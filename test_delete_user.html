@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Delete User Edge Function</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.52.1/dist/umd/supabase.js"></script>
+</head>
+<body>
+    <h1>Teste Edge Function delete-user</h1>
+    <div id="result"></div>
+    
+    <script>
+        const supabaseUrl = 'https://cisoewbdzdxombthxqfi.supabase.co'
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpc29ld2JkemR4b21idGh4cWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDc2NzMsImV4cCI6MjA2OTIyMzY3M30.lNvYVe8ilP-Ak0AsSv80JkLyMm_HM3rfD31EUlQF-fQ'
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey)
+        
+        async function testDeleteUser() {
+            try {
+                console.log('🚀 Iniciando teste da Edge Function delete-user...')
+                
+                // 1. Fazer login
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                    email: 'vyxjmhev@minimax.com',
+                    password: 'EzRL5GZbM2'
+                })
+                
+                if (authError) {
+                    console.error('❌ Erro no login:', authError)
+                    return
+                }
+                
+                console.log('✅ Login realizado com sucesso')
+                
+                // 2. Testar a Edge Function delete-user
+                const { data, error } = await supabase.functions.invoke('delete-user', {
+                    body: { user_id: '0b60db67-3458-4134-ad36-8fa4a467951e' }
+                })
+                
+                console.log('📊 Resposta da Edge Function:', {
+                    data: data,
+                    error: error,
+                    status: error ? 'ERROR' : 'SUCCESS'
+                })
+                
+                if (error) {
+                    console.error('❌ Erro na Edge Function:', error)
+                    document.getElementById('result').innerHTML = 
+                        `<div style="color: red;">ERRO: ${JSON.stringify(error)}</div>`
+                } else {
+                    console.log('✅ Edge Function executada com sucesso!')
+                    document.getElementById('result').innerHTML = 
+                        `<div style="color: green;">
+                            <h2>✅ SUCESSO - CAMINHO FELIZ VALIDADO!</h2>
+                            <p><strong>Status:</strong> SUCCESS (Status 200)</p>
+                            <p><strong>Mensagem:</strong> ${data.message}</p>
+                            <p><strong>Dados:</strong> ${JSON.stringify(data.data, null, 2)}</p>
+                        </div>`
+                }
+                
+            } catch (e) {
+                console.error('❌ Erro geral:', e)
+                document.getElementById('result').innerHTML = 
+                    `<div style="color: red;">ERRO GERAL: ${e.message}</div>`
+            }
+        }
+        
+        // Executar teste quando a página carregar
+        window.addEventListener('load', testDeleteUser)
+    </script>
+</body>
+</html>
