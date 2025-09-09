@@ -1,0 +1,4 @@
+Teste de conexão GitHub + Netlify
+Data: 2025-09-09 20:40:28
+Site: https://smoothdebenture.netlify.app
+Status: Conexão ativa e funcionando!
