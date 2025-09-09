@@ -22,10 +22,19 @@ const MasterDashboard = () => {
 
       if (usuariosError) throw usuariosError
 
+      console.log('🔍 DEBUG Master Dashboard - Todos usuários retornados:', todosUsuarios)
+      console.log('🔍 DEBUG Master Dashboard - User Profile ID:', userProfile?.id)
+      console.log('🔍 DEBUG Master Dashboard - Total usuários:', todosUsuarios?.length || 0)
+
       // Filtrar por tipo de usuário
       const escritorios = todosUsuarios?.filter(u => u.role_name === 'Escritório') || []
       const assessores = todosUsuarios?.filter(u => u.role_name === 'Assessor') || []
       const investidores = todosUsuarios?.filter(u => u.role_name === 'Investidor') || []
+
+      console.log('🔍 DEBUG Master Dashboard - Escritórios:', escritorios)
+      console.log('🔍 DEBUG Master Dashboard - Assessores:', assessores)
+      console.log('🔍 DEBUG Master Dashboard - Investidores:', investidores)
+      console.log('🔍 DEBUG Master Dashboard - Contagem Investidores:', investidores.length)
 
       // Buscar investimentos de TODOS os investidores da hierarquia
       const investidoresIds = investidores?.map(i => i.user_id) || []
@@ -151,6 +160,16 @@ const MasterDashboard = () => {
 
   return (
     <div className="w-full p-4 md:p-6 space-y-6">
+      {/* MENSAGEM DE TESTE - CORREÇÃO DO BUG DE INVESTIDORES */}
+      <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+        <h3 className="font-bold">🚧 TESTE ATIVO - Correção do Bug Dashboard Master</h3>
+        <p>Investidores encontrados: {stats?.investidores || 0} (deveria ser 3)</p>
+        <div className="text-xs mt-2">
+          <p>Total usuários retornados: {stats ? 'dados carregados' : 'dados não carregados'}</p>
+          <p>Debug detalhado no console do navegador</p>
+        </div>
+      </div>
+      
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Master</h1>
