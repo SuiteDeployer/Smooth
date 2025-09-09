@@ -97,14 +97,23 @@ const InvestmentDashboard = () => {
   }
 
   // Filtrar investidores disponíveis (apenas se for assessor ou acima)
-  const availableInvestors = subordinates.data?.filter(user => 
-    user.user_roles?.role_name === 'Investidor'
-  ) || []
+  const availableInvestors = subordinates.data?.filter(user => {
+    // Verificar múltiplas possibilidades de estrutura de dados
+    const roleName = user.user_roles?.role_name || user.role_name
+    return roleName === 'Investidor'
+  }) || []
 
   console.log('Subordinates data:', subordinates.data)
   console.log('Available investors:', availableInvestors)
   console.log('Subordinates loading:', subordinates.isLoading)
   console.log('Subordinates error:', subordinates.error)
+  console.log('Debug - Estrutura dos subordinados:', subordinates.data?.map(u => ({
+    id: u.id || u.user_id,
+    name: u.full_name,
+    role_from_user_roles: u.user_roles?.role_name,
+    role_direct: u.role_name,
+    email: u.email
+  })))
 
   // Função para criar dados de teste quando não há investidores
   const createTestInvestorData = async () => {

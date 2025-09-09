@@ -328,10 +328,11 @@ export function useUserManagement() {
         
         // Para Global, todos podem ser editados/deletados
         users = (data || []).map((user: any) => ({
-          user_id: user.id,
+          id: user.id, // ID consistente
+          user_id: user.id, // Manter compatibilidade
           email: user.email,
           full_name: user.full_name,
-          role_name: user.user_roles?.role_name,
+          role_name: user.user_roles?.role_name, // Campo direto para fácil acesso
           hierarchy_level: user.user_roles?.hierarchy_level,
           company_name: user.company_name,
           superior_user_id: user.superior_user_id,
@@ -344,8 +345,7 @@ export function useUserManagement() {
           level_depth: 0,
           can_edit: true,
           can_delete: true,
-          id: user.id,
-          user_roles: { role_name: user.user_roles?.role_name }
+          user_roles: { role_name: user.user_roles?.role_name } // Estrutura aninhada para compatibilidade
         }))
         
         console.log('🔍 USUÁRIOS PROCESSADOS:', users?.length || 0)
@@ -367,8 +367,8 @@ export function useUserManagement() {
             ...user,
             can_edit: canEdit,
             can_delete: canDelete,
-            id: user.user_id,
-            user_roles: { role_name: user.role_name }
+            id: user.user_id, // Padronizar ID
+            user_roles: { role_name: user.role_name } // Estrutura aninhada para compatibilidade
           }
         })
       }
