@@ -100,6 +100,13 @@ const InvestmentDashboard = () => {
   const availableInvestors = subordinates.data?.filter(user => {
     // Verificar múltiplas possibilidades de estrutura de dados
     const roleName = user.user_roles?.role_name || user.role_name
+    console.log('🔍 Verificando usuário:', { 
+      email: user.email, 
+      full_name: user.full_name,
+      role_name: user.role_name,
+      user_roles: user.user_roles,
+      roleName_computed: roleName 
+    })
     return roleName === 'Investidor'
   }) || []
 
@@ -175,6 +182,16 @@ const InvestmentDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* MENSAGEM DE TESTE - CORREÇÃO DO BUG DE INVESTIDORES */}
+      <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+        <h3 className="font-bold">🚧 TESTE ATIVO - Correção do Bug Dashboard</h3>
+        <p>Investidores encontrados: {availableInvestors.length}</p>
+        <div className="text-xs mt-2">
+          <p>Debug Subordinados: {subordinates.data?.length || 0} total</p>
+          <p>Debug Investidores: {availableInvestors.map(inv => inv.full_name || inv.email).join(', ')}</p>
+        </div>
+      </div>
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
