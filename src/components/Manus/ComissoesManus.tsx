@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { DollarSign, TrendingUp, Calendar, Users, Eye } from 'lucide-react'
 
+// Componente Comissões Manus - Versão com dados de exemplo - Deploy v2.0
+
 interface Commission {
   id: string
   investment_id: string
