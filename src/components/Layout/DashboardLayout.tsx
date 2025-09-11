@@ -78,6 +78,9 @@ const DashboardLayout = () => {
         { icon: FileText, label: 'Debêntures', path: '/debentures' },
         { icon: DollarSign, label: 'Comissões', path: '/comissoes' },
         { icon: DollarSign, label: 'Remuneração', path: '/remuneracao' },
+        { type: 'divider', label: 'Áreas Manus' },
+        { icon: DollarSign, label: 'Comissões Manus', path: '/comissoes-manus' },
+        { icon: TrendingUp, label: 'Remuneração Manus', path: '/remuneracao-manus' },
         { icon: Activity, label: 'Logs de Auditoria', path: '/audit' },
         { icon: Settings, label: 'Configurações', path: '/settings' }
       ]
@@ -89,6 +92,9 @@ const DashboardLayout = () => {
         { icon: Users, label: 'Minha Rede', path: '/network' },
         { icon: DollarSign, label: 'Comissões', path: '/comissoes' },
         { icon: DollarSign, label: 'Remuneração', path: '/remuneracao' },
+        { type: 'divider', label: 'Áreas Manus' },
+        { icon: DollarSign, label: 'Comissões Manus', path: '/comissoes-manus' },
+        { icon: TrendingUp, label: 'Remuneração Manus', path: '/remuneracao-manus' },
         { icon: Activity, label: 'Logs de Auditoria', path: '/audit' },
         { icon: Settings, label: 'Configurações', path: '/settings' }
       ]
@@ -99,6 +105,9 @@ const DashboardLayout = () => {
         ...commonItems,
         { icon: Users, label: 'Meus Clientes', path: '/clients' },
         { icon: DollarSign, label: 'Minhas Comissões', path: '/my-commissions' },
+        { type: 'divider', label: 'Áreas Manus' },
+        { icon: DollarSign, label: 'Comissões Manus', path: '/comissoes-manus' },
+        { icon: TrendingUp, label: 'Remuneração Manus', path: '/remuneracao-manus' },
         { icon: Settings, label: 'Configurações', path: '/settings' }
       ]
     }

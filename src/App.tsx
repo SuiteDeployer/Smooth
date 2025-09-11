@@ -27,6 +27,8 @@ import GlobalProfile from './components/Profile/GlobalProfile'
 import TestUserForm from './components/Dashboard/TestUserForm'
 import CommissionsDashboard from './features/commissions/pages/CommissionsDashboard'
 import RemuneracaoDashboard from './features/remuneracao/pages/RemuneracaoDashboard'
+import ComissoesManus from './components/Manus/ComissoesManus'
+import RemuneracaoManus from './components/Manus/RemuneracaoManus'
 import './App.css'
 
 // Componente para proteger rotas que precisam de autenticação
@@ -200,6 +202,8 @@ function App() {
               <Route path="debentures" element={<DebentureManagement />} />
               <Route path="comissoes" element={<CommissionsDashboard />} />
               <Route path="remuneracao" element={<RemuneracaoDashboard />} />
+              <Route path="comissoes-manus" element={<ComissoesManus />} />
+              <Route path="remuneracao-manus" element={<RemuneracaoManus />} />
               <Route path="my-commissions" element={<CommissionsReformulated />} />
               <Route path="audit" element={<AuditDashboard />} />
               
