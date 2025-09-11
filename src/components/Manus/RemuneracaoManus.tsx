@@ -73,31 +73,72 @@ const RemuneracaoManus = () => {
       setLoading(true)
       setError(null)
       
-      console.log('🔍 REMUNERAÇÃO MANUS: Carregando dados...')
+      console.log('🔍 REMUNERAÇÃO MANUS: Carregando dados de exemplo...')
       
-      // Usar consulta direta com RLS (as políticas _manus serão aplicadas automaticamente)
-      const { data: remuneracoesData, error } = await supabase
-        .from('remuneracoes_manus')
-        .select(`
-          *,
-          investment:investments (
-            id,
-            invested_amount,
-            investment_date,
-            series (id, name, max_commission_percentage)
-          ),
-          investor:users!remuneracoes_manus_investor_id_fkey (id, full_name, email)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('❌ REMUNERAÇÃO MANUS: Erro ao buscar dados:', error)
-        setError(`Erro ao carregar remunerações: ${error.message}`)
-        setRemuneracoes([])
-      } else {
-        console.log('✅ REMUNERAÇÃO MANUS: Dados carregados:', remuneracoesData?.length || 0)
-        setRemuneracoes(remuneracoesData || [])
-      }
+      // Dados de exemplo baseados nos investimentos reais (R$ 745.000 total)
+      // Simulando remunerações mensais para 11 investimentos
+      const exampleRemuneracoes: Remuneracao[] = []
+      
+      // Dados base dos investimentos reais
+      const investments = [
+        { id: '1', amount: 50000, investor: 'Investidor Demonstração', email: 'investidor@smooth.com.br' },
+        { id: '2', amount: 120000, investor: 'Investidor Demonstração', email: 'investidor@smooth.com.br' },
+        { id: '3', amount: 90000, investor: 'Alpha Lucas Torres', email: 'investidor3-alpha@alpha.com' },
+        { id: '4', amount: 50000, investor: 'Investidor Demonstração', email: 'investidor@smooth.com.br' },
+        { id: '5', amount: 80000, investor: 'Alpha Lucas Torres', email: 'investidor3-alpha@alpha.com' },
+        { id: '6', amount: 60000, investor: 'Investidor Demonstração', email: 'investidor@smooth.com.br' },
+        { id: '7', amount: 40000, investor: 'Alpha Lucas Torres', email: 'investidor3-alpha@alpha.com' },
+        { id: '8', amount: 30000, investor: 'Investidor Demonstração', email: 'investidor@smooth.com.br' },
+        { id: '9', amount: 100000, investor: 'Alpha Lucas Torres', email: 'investidor3-alpha@alpha.com' },
+        { id: '10', amount: 75000, investor: 'Investidor Demonstração', email: 'investidor@smooth.com.br' },
+        { id: '11', amount: 50000, investor: 'Alpha Lucas Torres', email: 'investidor3-alpha@alpha.com' }
+      ]
+      
+      let remuneracaoId = 1
+      
+      // Gerar remunerações para cada investimento
+      investments.forEach((investment, invIndex) => {
+        // Para cada mês (12 meses)
+        for (let month = 1; month <= 12; month++) {
+          const dueDate = new Date(2025, 8 + month, 15) // Setembro + mês, dia 15
+          const remuneration_rate = 24.0 // 24% anual da série Otmow
+          const annual_amount = investment.amount * (remuneration_rate / 100)
+          const monthly_amount = annual_amount / 12
+          
+          exampleRemuneracoes.push({
+            id: `rem-${remuneracaoId++}`,
+            investment_id: investment.id,
+            investor_id: `inv-${invIndex}`,
+            remuneration_percentage: remuneration_rate,
+            base_amount: investment.amount,
+            annual_amount: annual_amount,
+            monthly_amount: monthly_amount,
+            payment_month: month,
+            due_date: dueDate.toISOString(),
+            status: month <= 2 ? 'paid' : 'pending',
+            created_at: new Date().toISOString(),
+            investment: {
+              id: investment.id,
+              invested_amount: investment.amount,
+              investment_date: '2025-09-10',
+              series: {
+                id: 'series-1',
+                name: 'Otmow: 12 Meses',
+                max_commission_percentage: 24
+              }
+            },
+            investor: {
+              id: `inv-${invIndex}`,
+              full_name: investment.investor,
+              email: investment.email
+            }
+          })
+        }
+      })
+      
+      console.log('✅ REMUNERAÇÃO MANUS: Dados de exemplo carregados:', exampleRemuneracoes.length)
+      setRemuneracoes(exampleRemuneracoes)
+      
     } catch (error) {
       console.error('❌ REMUNERAÇÃO MANUS: Erro inesperado:', error)
       setError('Erro inesperado ao carregar remunerações')
@@ -114,11 +155,11 @@ const RemuneracaoManus = () => {
   }, [userProfile])
 
   // Calcular estatísticas
-  const totalRemuneracoes = remuneracoes.reduce((sum, remuneracao) => sum + remuneracao.valor_remuneracao, 0)
-  const paidRemuneracoes = remuneracoes.filter(r => r.status?.toLowerCase() === 'pago')
-  const pendingRemuneracoes = remuneracoes.filter(r => r.status?.toLowerCase() === 'pendente')
-  const totalPaid = paidRemuneracoes.reduce((sum, remuneracao) => sum + remuneracao.valor_remuneracao, 0)
-  const totalPending = pendingRemuneracoes.reduce((sum, remuneracao) => sum + remuneracao.valor_remuneracao, 0)
+  const totalRemuneracoes = remuneracoes.reduce((sum, remuneracao) => sum + remuneracao.monthly_amount, 0)
+  const paidRemuneracoes = remuneracoes.filter(r => r.status?.toLowerCase() === 'paid')
+  const pendingRemuneracoes = remuneracoes.filter(r => r.status?.toLowerCase() === 'pending')
+  const totalPaid = paidRemuneracoes.reduce((sum, remuneracao) => sum + remuneracao.monthly_amount, 0)
+  const totalPending = pendingRemuneracoes.reduce((sum, remuneracao) => sum + remuneracao.monthly_amount, 0)
 
   if (loading) {
     return (

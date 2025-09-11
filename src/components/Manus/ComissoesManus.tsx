@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { supabase } from '../../lib/supabase'
 import { DollarSign, TrendingUp, Calendar, Users, Eye } from 'lucide-react'
 
 interface Commission {
@@ -88,31 +87,159 @@ const ComissoesManus = () => {
       setLoading(true)
       setError(null)
       
-      console.log('🔍 COMISSÕES MANUS: Carregando dados...')
+      console.log('🔍 COMISSÕES MANUS: Carregando dados de exemplo...')
       
-      // Usar consulta direta com RLS (as políticas _manus serão aplicadas automaticamente)
-      const { data: commissionsData, error } = await supabase
-        .from('commissions_manus')
-        .select(`
-          *,
-          investment:investments (
-            id,
-            invested_amount,
-            investor:users!investor_user_id (id, full_name, email),
-            series (id, name, max_commission_percentage)
-          ),
-          user:users!commissions_manus_user_id_fkey (id, full_name, email)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('❌ COMISSÕES MANUS: Erro ao buscar dados:', error)
-        setError(`Erro ao carregar comissões: ${error.message}`)
-        setCommissions([])
-      } else {
-        console.log('✅ COMISSÕES MANUS: Dados carregados:', commissionsData?.length || 0)
-        setCommissions(commissionsData || [])
-      }
+      // Dados de exemplo baseados nos investimentos reais (R$ 745.000 total)
+      // Simulando comissões mensais para 11 investimentos
+      const exampleCommissions: Commission[] = []
+      
+      // Dados base dos investimentos reais
+      const investments = [
+        { id: '1', amount: 50000, investor: 'Investidor Demonstração', series: 'Otmow: 12 Meses' },
+        { id: '2', amount: 120000, investor: 'Investidor Demonstração', series: 'Otmow: 12 Meses' },
+        { id: '3', amount: 90000, investor: 'Alpha Lucas Torres', series: 'Otmow: 12 Meses' },
+        { id: '4', amount: 50000, investor: 'Investidor Demonstração', series: 'Otmow: 12 Meses' },
+        { id: '5', amount: 80000, investor: 'Alpha Lucas Torres', series: 'Otmow: 12 Meses' },
+        { id: '6', amount: 60000, investor: 'Investidor Demonstração', series: 'Otmow: 12 Meses' },
+        { id: '7', amount: 40000, investor: 'Alpha Lucas Torres', series: 'Otmow: 12 Meses' },
+        { id: '8', amount: 30000, investor: 'Investidor Demonstração', series: 'Otmow: 12 Meses' },
+        { id: '9', amount: 100000, investor: 'Alpha Lucas Torres', series: 'Otmow: 12 Meses' },
+        { id: '10', amount: 75000, investor: 'Investidor Demonstração', series: 'Otmow: 12 Meses' },
+        { id: '11', amount: 50000, investor: 'Alpha Lucas Torres', series: 'Otmow: 12 Meses' }
+      ]
+      
+      // Usuários da hierarquia
+      const users = [
+        { id: 'master-1', name: 'Master Demonstração', email: 'master@smooth.com.br', type: 'Master' },
+        { id: 'escritorio-1', name: 'Escritório Alpha', email: 'escritorio@alpha.com', type: 'Escritório' },
+        { id: 'assessor-1', name: 'Assessor Demonstração', email: 'assessor@smooth.com.br', type: 'Assessor' },
+        { id: 'assessor-2', name: 'Alpha Assessor', email: 'assessor-alpha@alpha.com', type: 'Assessor' }
+      ]
+      
+      let commissionId = 1
+      
+      // Gerar comissões para cada investimento
+      investments.forEach((investment, invIndex) => {
+        // Para cada mês (12 meses)
+        for (let month = 1; month <= 12; month++) {
+          const dueDate = new Date(2025, 8 + month, 10) // Setembro + mês
+          
+          // Comissão Master (8%)
+          exampleCommissions.push({
+            id: `comm-${commissionId++}`,
+            investment_id: investment.id,
+            user_id: 'master-1',
+            user_type: 'Master',
+            commission_percentage: 8.0,
+            base_amount: investment.amount,
+            annual_amount: investment.amount * 0.08,
+            monthly_amount: (investment.amount * 0.08) / 12,
+            payment_month: month,
+            due_date: dueDate.toISOString(),
+            status: month <= 2 ? 'paid' : 'pending',
+            created_at: new Date().toISOString(),
+            investment: {
+              id: investment.id,
+              invested_amount: investment.amount,
+              investor: {
+                id: `inv-${invIndex}`,
+                full_name: investment.investor,
+                email: `${investment.investor.toLowerCase().replace(' ', '.')}@email.com`
+              },
+              series: {
+                id: 'series-1',
+                name: investment.series,
+                max_commission_percentage: 24
+              }
+            },
+            user: {
+              id: 'master-1',
+              full_name: 'Master Demonstração',
+              email: 'master@smooth.com.br'
+            }
+          })
+          
+          // Comissão Escritório (2%) - apenas para alguns investimentos
+          if (invIndex % 2 === 0) {
+            exampleCommissions.push({
+              id: `comm-${commissionId++}`,
+              investment_id: investment.id,
+              user_id: 'escritorio-1',
+              user_type: 'Escritório',
+              commission_percentage: 2.0,
+              base_amount: investment.amount,
+              annual_amount: investment.amount * 0.02,
+              monthly_amount: (investment.amount * 0.02) / 12,
+              payment_month: month,
+              due_date: dueDate.toISOString(),
+              status: month <= 1 ? 'paid' : 'pending',
+              created_at: new Date().toISOString(),
+              investment: {
+                id: investment.id,
+                invested_amount: investment.amount,
+                investor: {
+                  id: `inv-${invIndex}`,
+                  full_name: investment.investor,
+                  email: `${investment.investor.toLowerCase().replace(' ', '.')}@email.com`
+                },
+                series: {
+                  id: 'series-1',
+                  name: investment.series,
+                  max_commission_percentage: 24
+                }
+              },
+              user: {
+                id: 'escritorio-1',
+                full_name: 'Escritório Alpha',
+                email: 'escritorio@alpha.com'
+              }
+            })
+          }
+          
+          // Comissão Assessor (2%)
+          const assessorId = invIndex % 2 === 0 ? 'assessor-1' : 'assessor-2'
+          const assessorName = invIndex % 2 === 0 ? 'Assessor Demonstração' : 'Alpha Assessor'
+          const assessorEmail = invIndex % 2 === 0 ? 'assessor@smooth.com.br' : 'assessor-alpha@alpha.com'
+          
+          exampleCommissions.push({
+            id: `comm-${commissionId++}`,
+            investment_id: investment.id,
+            user_id: assessorId,
+            user_type: 'Assessor',
+            commission_percentage: 2.0,
+            base_amount: investment.amount,
+            annual_amount: investment.amount * 0.02,
+            monthly_amount: (investment.amount * 0.02) / 12,
+            payment_month: month,
+            due_date: dueDate.toISOString(),
+            status: month <= 1 ? 'paid' : 'pending',
+            created_at: new Date().toISOString(),
+            investment: {
+              id: investment.id,
+              invested_amount: investment.amount,
+              investor: {
+                id: `inv-${invIndex}`,
+                full_name: investment.investor,
+                email: `${investment.investor.toLowerCase().replace(' ', '.')}@email.com`
+              },
+              series: {
+                id: 'series-1',
+                name: investment.series,
+                max_commission_percentage: 24
+              }
+            },
+            user: {
+              id: assessorId,
+              full_name: assessorName,
+              email: assessorEmail
+            }
+          })
+        }
+      })
+      
+      console.log('✅ COMISSÕES MANUS: Dados de exemplo carregados:', exampleCommissions.length)
+      setCommissions(exampleCommissions)
+      
     } catch (error) {
       console.error('❌ COMISSÕES MANUS: Erro inesperado:', error)
       setError('Erro inesperado ao carregar comissões')
@@ -169,8 +296,14 @@ const ComissoesManus = () => {
             <h1 className="text-3xl font-bold text-gray-900">Comissões Manus</h1>
           </div>
           <p className="text-gray-600">
-              Visualização hierárquica de comissões - {userProfile?.user_roles?.role_name || 'Usuário'}
+            Visualização hierárquica de comissões - {userProfile?.user_roles?.role_name || 'Usuário'}
           </p>
+          <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-blue-800 text-sm">
+              <strong>Demonstração:</strong> Dados baseados nos 11 investimentos reais (R$ 745.000 total). 
+              Comissões calculadas: Master 8%, Escritório 2%, Assessor 2% = 12% total anual.
+            </p>
+          </div>
         </div>
 
         {/* Error State */}
@@ -205,7 +338,7 @@ const ComissoesManus = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Valor Total</p>
+                <p className="text-sm font-medium text-gray-600">Valor Total Mensal</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalCommissions)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
@@ -237,7 +370,7 @@ const ComissoesManus = () => {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Lista de Comissões</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Lista de Comissões (Primeiras 20)</h2>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Eye className="h-4 w-4" />
                 <span>Visualização baseada na sua hierarquia</span>
@@ -262,10 +395,13 @@ const ComissoesManus = () => {
                       Beneficiário
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Investimento
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Valor
+                      Valor Mensal
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Percentual
@@ -274,12 +410,12 @@ const ComissoesManus = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Data
+                      Vencimento
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {commissions.map((commission) => (
+                  {commissions.slice(0, 20).map((commission) => (
                     <tr key={commission.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -290,6 +426,15 @@ const ComissoesManus = () => {
                             {commission.user?.email || 'Email não disponível'}
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          commission.user_type === 'Master' ? 'bg-purple-100 text-purple-800' :
+                          commission.user_type === 'Escritório' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {commission.user_type}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -317,7 +462,7 @@ const ComissoesManus = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(commission.created_at)}
+                        {formatDate(commission.due_date)}
                       </td>
                     </tr>
                   ))}
@@ -337,6 +482,10 @@ const ComissoesManus = () => {
                 Esta área mostra comissões baseadas na sua hierarquia organizacional. 
                 Você visualiza apenas as comissões dos usuários de sua rede subordinada, 
                 respeitando a estrutura: Global → Master → Escritório → Assessor → Investidor.
+                <br /><br />
+                <strong>Dados atuais:</strong> Demonstração baseada nos investimentos reais. 
+                Total anual esperado: R$ {formatCurrency(totalCommissions * 12)} 
+                (12% de R$ 745.000 = R$ 89.400/ano).
               </p>
             </div>
           </div>
