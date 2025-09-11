@@ -300,12 +300,14 @@ const ComissoesManus = () => {
           <p className="text-gray-600">
             Visualização hierárquica de comissões - {userProfile?.user_roles?.role_name || 'Usuário'}
           </p>
-          <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-blue-800 text-sm">
-              <strong>Demonstração:</strong> Dados baseados nos 11 investimentos reais (R$ 745.000 total). 
-              Comissões calculadas: Master 8%, Escritório 2%, Assessor 2% = 12% total anual.
-            </p>
-          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-blue-800 text-sm">
+            <strong>Demonstração:</strong> Dados baseados nos 11 investimentos reais (R$ 745.000 total). 
+            Comissões calculadas conforme distribuição definida em cada investimento: 
+            algumas com Master 8%, Escritório 2%, Assessor 2%; outras com Master 12%, Escritório 0%, Assessor 0%; 
+            e outras distribuições que sempre totalizam 12% (comissão máxima da série).
+          </p>
+        </div>    </div>
         </div>
 
         {/* Error State */}
@@ -480,15 +482,14 @@ const ComissoesManus = () => {
             <div className="w-5 h-5 bg-blue-500 rounded-full mt-0.5 flex-shrink-0"></div>
             <div>
               <h4 className="font-medium text-blue-900 mb-1">Sobre as Comissões Manus</h4>
-              <p className="text-blue-800 text-sm">
-                Esta área mostra comissões baseadas na sua hierarquia organizacional. 
-                Você visualiza apenas as comissões dos usuários de sua rede subordinada, 
-                respeitando a estrutura: Global → Master → Escritório → Assessor → Investidor.
-                <br /><br />
-                <strong>Dados atuais:</strong> Demonstração baseada nos investimentos reais. 
-                Total anual esperado: R$ {formatCurrency(totalCommissions * 12)} 
-                (12% de R$ 745.000 = R$ 89.400/ano).
-              </p>
+                 <p className="text-gray-600 text-sm">
+              Esta área mostra comissões baseadas na sua hierarquia organizacional. Você visualiza apenas as comissões dos usuários de sua rede subordinada, respeitando a estrutura: Global → Master → Escritório → Assessor → Investidor.
+            </p>
+            <p className="text-gray-600 text-sm mt-2">
+              <strong>Dados atuais:</strong> Demonstração baseada nos investimentos reais com distribuições variadas de comissão. 
+              Cada investimento pode ter distribuição diferente (ex: Master 8%, Escritório 2%, Assessor 2% OU Master 12%, Escritório 0%, Assessor 0%), 
+              sempre respeitando o limite máximo de 12% da série.
+            </p>
             </div>
           </div>
         </div>
