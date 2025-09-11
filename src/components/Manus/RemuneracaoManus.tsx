@@ -4,17 +4,27 @@ import { supabase } from '../../lib/supabase'
 import { DollarSign, TrendingUp, Calendar, User, Eye } from 'lucide-react'
 
 interface Remuneracao {
-  id_pagamento: string
-  nome_investidor: string
-  debenture: string
-  serie: string
-  valor_remuneracao: number
+  id: string
+  investment_id: string
+  investor_id: string
+  remuneration_percentage: number
+  base_amount: number
+  annual_amount: number
+  monthly_amount: number
+  payment_month: number
+  due_date: string
   status: string
-  data_vencimento: string
-  data_pagamento: string | null
-  pix: string
   created_at: string
-  user_id: string
+  investment?: {
+    id: string
+    invested_amount: number
+    investment_date: string
+    series?: {
+      id: string
+      name: string
+      max_commission_percentage: number
+    }
+  }
   investor?: {
     id: string
     full_name: string
@@ -305,36 +315,36 @@ const RemuneracaoManus = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {remuneracoes.map((remuneracao) => (
-                    <tr key={remuneracao.id_pagamento} className="hover:bg-gray-50">
+                  {remuneracoes.slice(0, 20).map((remuneracao) => (
+                    <tr key={remuneracao.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {remuneracao.nome_investidor || 'Nome não disponível'}
+                            {remuneracao.investor?.full_name || 'Nome não disponível'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            PIX: {remuneracao.pix}
+                            {remuneracao.investor?.email || 'Email não disponível'}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {remuneracao.debenture}
+                            {remuneracao.investment?.series?.name || 'Série não disponível'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {remuneracao.serie}
+                            {formatCurrency(remuneracao.base_amount)} investido
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {formatCurrency(remuneracao.valor_remuneracao)}
+                          {formatCurrency(remuneracao.monthly_amount)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          -
+                          {remuneracao.remuneration_percentage.toFixed(2)}%
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -343,7 +353,7 @@ const RemuneracaoManus = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {remuneracao.data_pagamento ? formatDate(remuneracao.data_pagamento) : 'Não definida'}
+                        {formatDate(remuneracao.due_date)}
                       </td>
                     </tr>
                   ))}
