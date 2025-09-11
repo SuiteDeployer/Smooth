@@ -2,11 +2,11 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const EmptyDashboard: React.FC = () => {
-  const { user, userProfile, logout } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
@@ -28,10 +28,10 @@ const EmptyDashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {userProfile?.name || user?.email}
+                  {user?.email}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {userProfile?.user_type || 'Usuário'}
+                  Administrador Global
                 </p>
               </div>
               <button
@@ -63,12 +63,12 @@ const EmptyDashboard: React.FC = () => {
             <div className="mb-6">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-blue-600">
-                  {userProfile?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                  {user?.email?.charAt(0)?.toUpperCase() || 'A'}
                 </span>
               </div>
               
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {userProfile?.name || 'Usuário'}
+                Administrador Global
               </h3>
               
               <p className="text-gray-600 mb-1">
@@ -76,7 +76,7 @@ const EmptyDashboard: React.FC = () => {
               </p>
               
               <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                {userProfile?.user_type || 'Global'}
+                Global
               </span>
             </div>
 

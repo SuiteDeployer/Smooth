@@ -490,7 +490,6 @@ const ComissoesManus = () => {
               Cada investimento pode ter distribuição diferente (ex: Master 8%, Escritório 2%, Assessor 2% OU Master 12%, Escritório 0%, Assessor 0%), 
               sempre respeitando o limite máximo de 12% da série.
             </p>
-            </div>
           </div>
         </div>
       </div>
