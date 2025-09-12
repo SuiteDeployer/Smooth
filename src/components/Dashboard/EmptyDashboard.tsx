@@ -49,7 +49,12 @@ const EmptyDashboard: React.FC = () => {
                   {user?.email}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Administrador Global
+                  {userProfile?.user_type === 'Global' ? 'Administrador Global' :
+                   userProfile?.user_type === 'Master' ? 'Master' :
+                   userProfile?.user_type === 'Escritório' ? 'Escritório' :
+                   userProfile?.user_type === 'Assessor' ? 'Assessor' :
+                   userProfile?.user_type === 'Investidor' ? 'Investidor' :
+                   'Usuário'}
                 </p>
               </div>
               <button
@@ -86,7 +91,7 @@ const EmptyDashboard: React.FC = () => {
               </div>
               
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Administrador Global
+                {userProfile?.name || 'Usuário'}
               </h3>
               
               <p className="text-gray-600 mb-1">
@@ -94,7 +99,7 @@ const EmptyDashboard: React.FC = () => {
               </p>
               
               <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                Global
+                {userProfile?.user_type || 'Usuário'}
               </span>
             </div>
 
