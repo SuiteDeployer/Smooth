@@ -9,7 +9,9 @@ interface User {
   user_type: 'Global' | 'Master' | 'Escritório' | 'Assessor' | 'Investidor';
   parent_id: string | null;
   phone: string | null;
-  document: string | null;
+  document: string | null; // Temporário - será migrado para cpf
+  cpf?: string | null; // Novo campo (opcional até migração)
+  pix?: string | null; // Novo campo (opcional até migração)
   status: 'active' | 'inactive' | 'suspended';
   created_at: string;
   updated_at: string;
@@ -25,10 +27,12 @@ const UserManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
+    password: '',
     user_type: 'Investidor' as User['user_type'],
     parent_id: '',
     phone: '',
-    document: '',
+    document: '', // Usando document como CPF temporariamente
+    pix: '',
     status: 'active' as User['status']
   });
 
@@ -58,30 +62,49 @@ const UserManagement: React.FC = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
+      // Primeiro criar o usuário no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        password: formData.password,
+        email_confirm: true
+      });
+
+      if (authError) throw authError;
+
+      // Depois criar o perfil na tabela users
+      const { error: profileError } = await supabase
         .from('users')
         .insert([{
-          ...formData,
+          id: authData.user.id,
+          email: formData.email,
+          name: formData.name,
+          user_type: formData.user_type,
           parent_id: formData.parent_id || null,
+          phone: formData.phone || null,
+          document: formData.document || null, // Usando document como CPF temporariamente
+          status: formData.status,
           created_by: user?.id
         }]);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
       setShowForm(false);
       setFormData({
         email: '',
         name: '',
+        password: '',
         user_type: 'Investidor',
         parent_id: '',
         phone: '',
         document: '',
+        pix: '',
         status: 'active'
       });
       loadUsers();
+      alert('Usuário criado com sucesso!');
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
-      alert('Erro ao criar usuário');
+      alert('Erro ao criar usuário: ' + (error as any).message);
     }
   };
 
@@ -91,10 +114,12 @@ const UserManagement: React.FC = () => {
     setFormData({
       email: user.email,
       name: user.name,
+      password: '', // Não mostrar senha existente
       user_type: user.user_type,
       parent_id: user.parent_id || '',
       phone: user.phone || '',
-      document: user.document || '',
+      document: user.document || '', // Usando document como CPF temporariamente
+      pix: user.pix || '',
       status: user.status
     });
     setShowForm(true);
@@ -106,31 +131,51 @@ const UserManagement: React.FC = () => {
     if (!editingUser) return;
 
     try {
-      const { error } = await supabase
+      // Atualizar dados na tabela users
+      const updateData: any = {
+        email: formData.email,
+        name: formData.name,
+        user_type: formData.user_type,
+        parent_id: formData.parent_id || null,
+        phone: formData.phone || null,
+        document: formData.document || null, // Usando document como CPF temporariamente
+        status: formData.status
+      };
+
+      const { error: profileError } = await supabase
         .from('users')
-        .update({
-          ...formData,
-          parent_id: formData.parent_id || null
-        })
+        .update(updateData)
         .eq('id', editingUser.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Se uma nova senha foi fornecida, atualizar no Auth
+      if (formData.password.trim()) {
+        const { error: authError } = await supabase.auth.admin.updateUserById(
+          editingUser.id,
+          { password: formData.password }
+        );
+        if (authError) throw authError;
+      }
 
       setShowForm(false);
       setEditingUser(null);
       setFormData({
         email: '',
         name: '',
+        password: '',
         user_type: 'Investidor',
         parent_id: '',
         phone: '',
         document: '',
+        pix: '',
         status: 'active'
       });
       loadUsers();
+      alert('Usuário atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
-      alert('Erro ao atualizar usuário');
+      alert('Erro ao atualizar usuário: ' + (error as any).message);
     }
   };
 
@@ -159,10 +204,12 @@ const UserManagement: React.FC = () => {
     setFormData({
       email: '',
       name: '',
+      password: '',
       user_type: 'Investidor',
       parent_id: '',
       phone: '',
       document: '',
+      pix: '',
       status: 'active'
     });
   };
@@ -272,6 +319,20 @@ const UserManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Senha {editingUser && <span className="text-sm text-gray-500">(deixe em branco para manter a atual)</span>}
+                </label>
+                <input
+                  type="password"
+                  required={!editingUser}
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={editingUser ? "Nova senha (opcional)" : "Digite a senha"}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Telefone
                 </label>
                 <input
@@ -279,18 +340,33 @@ const UserManagement: React.FC = () => {
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="(11) 99999-9999"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Documento
+                  CPF
                 </label>
                 <input
                   type="text"
                   value={formData.document}
                   onChange={(e) => setFormData({...formData, document: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="000.000.000-00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  PIX
+                </label>
+                <input
+                  type="text"
+                  value={formData.pix}
+                  onChange={(e) => setFormData({...formData, pix: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Chave PIX (CPF, email, telefone ou chave aleatória)"
                 />
               </div>
 
