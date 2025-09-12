@@ -251,53 +251,55 @@ const UserManagement: React.FC = () => {
 
       {/* Formulário */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
               {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
             </h2>
             
             <form onSubmit={editingUser ? handleUpdate : handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              {/* Grid de 2 colunas para campos principais */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nome
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo de Usuário
-                </label>
-                <select
-                  value={formData.user_type}
-                  onChange={(e) => setFormData({...formData, user_type: e.target.value as User['user_type']})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Investidor">Investidor</option>
-                  <option value="Assessor">Assessor</option>
-                  <option value="Escritório">Escritório</option>
-                  <option value="Master">Master</option>
-                  <option value="Global">Global</option>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tipo de Usuário
+                  </label>
+                  <select
+                    value={formData.user_type}
+                    onChange={(e) => setFormData({...formData, user_type: e.target.value as User['user_type']})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Investidor">Investidor</option>
+                    <option value="Assessor">Assessor</option>
+                    <option value="Escritório">Escritório</option>
+                    <option value="Master">Master</option>
+                    <option value="Global">Global</option>
                 </select>
               </div>
 
@@ -317,20 +319,6 @@ const UserManagement: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Senha {editingUser && <span className="text-sm text-gray-500">(deixe em branco para manter a atual)</span>}
-                </label>
-                <input
-                  type="password"
-                  required={!editingUser}
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={editingUser ? "Nova senha (opcional)" : "Digite a senha"}
-                />
               </div>
 
               <div>
@@ -386,6 +374,22 @@ const UserManagement: React.FC = () => {
                   <option value="suspended">Suspenso</option>
                 </select>
               </div>
+            </div>
+
+            {/* Campo senha em linha separada para destaque */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Senha {editingUser && <span className="text-sm text-gray-500">(deixe em branco para manter a atual)</span>}
+              </label>
+              <input
+                type="password"
+                required={!editingUser}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={editingUser ? "Nova senha (opcional)" : "Digite a senha"}
+              />
+            </div>
 
               <div className="flex space-x-3 pt-4">
                 <button
