@@ -24,16 +24,25 @@ const LoginForm = () => {
     setError('')
     setLoading(true)
 
+    console.log('🔐 Iniciando login para:', email)
+
     try {
-      const { error } = await signIn(email, password)
+      const { data, error } = await signIn(email, password)
+      
+      console.log('🔐 Resposta do signIn:', { data: !!data, error: error?.message })
+      
       if (error) {
+        console.error('❌ Erro no login:', error.message)
         setError('Credenciais inválidas. Verifique seu email e senha.')
       } else {
+        console.log('✅ Login bem-sucedido, navegando para dashboard...')
         navigate('/dashboard')
       }
     } catch (err) {
+      console.error('❌ Exceção no login:', err)
       setError('Erro ao fazer login. Tente novamente.')
     } finally {
+      console.log('🔐 Finalizando loading do login')
       setLoading(false)
     }
   }

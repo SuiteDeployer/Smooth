@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔍 Buscando perfil do usuário:', authUser.email)
       
-      // Buscar usuário diretamente por ID
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -32,14 +31,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (userError) {
-        console.error('Erro ao buscar usuário:', userError)
+        console.error('❌ Erro ao buscar usuário:', userError)
         return null
       }
 
-      console.log('✅ Perfil encontrado:', userData)
+      console.log('✅ Perfil encontrado:', userData.name)
       return userData
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error)
+      console.error('❌ Erro ao buscar perfil:', error)
       return null
     }
   }
@@ -47,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Atualizar perfil do usuário
   const refreshUserProfile = async () => {
     if (user) {
+      console.log('🔄 Atualizando perfil do usuário...')
       const profile = await fetchUserProfile(user)
       setUserProfile(profile)
     }
@@ -57,8 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true
 
     async function loadUser() {
+      console.log('🚀 Carregando usuário inicial...')
+      
       try {
         const { data: { user: authUser } } = await supabase.auth.getUser()
+        console.log('👤 Usuário auth:', authUser?.email || 'Nenhum')
         
         if (!mounted) return
         
@@ -75,13 +78,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error('Erro ao carregar usuário:', error)
+        console.error('❌ Erro ao carregar usuário:', error)
         if (mounted) {
           setUser(null)
           setUserProfile(null)
         }
       } finally {
         if (mounted) {
+          console.log('✅ Loading finalizado')
           setLoading(false)
         }
       }
@@ -92,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email)
+        console.log('🔄 Auth state change:', event, session?.user?.email || 'Nenhum')
         
         if (!mounted) return
         
@@ -123,10 +127,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Métodos de autenticação
   async function signIn(email: string, password: string) {
+    console.log('🔐 Tentando fazer login com:', email)
     setLoading(true)
+    
     try {
       const result = await supabase.auth.signInWithPassword({ email, password })
+      console.log('🔐 Resultado do login:', result.error ? 'Erro' : 'Sucesso')
+      
+      if (result.error) {
+        console.error('❌ Erro no login:', result.error.message)
+      }
+      
       return result
+    } catch (error) {
+      console.error('❌ Exceção no login:', error)
+      throw error
     } finally {
       setLoading(false)
     }
@@ -143,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
+    console.log('🚪 Fazendo logout...')
     setLoading(true)
     try {
       await supabase.auth.signOut()
