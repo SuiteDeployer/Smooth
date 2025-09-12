@@ -60,36 +60,81 @@ const UserManagement: React.FC = () => {
 
   // Criar usuário
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+    setLoading(true)
+
     try {
-      // Primeiro criar o usuário no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        email_confirm: true
-      });
+      console.log('🔐 Criando usuário:', formData.email)
 
-      if (authError) throw authError;
+      // Usar service_role_key para criar usuário no Auth
+      const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpc29ld2JkemR4b21idGh4cWZpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzY0NzY3MywiZXhwIjoyMDY5MjIzNjczfQ.dc0ckvRcSVxbo0OHKfTwMlOI8SI8kZSB4zXhbZ5y1yU'
+      const SUPABASE_URL = 'https://cisoewbdzdxombthxqfi.supabase.co'
+      
+      // Criar usuário no Supabase Auth usando service_role
+      const authResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+          'apikey': SERVICE_ROLE_KEY
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          email_confirm: true
+        })
+      })
 
-      // Depois criar o perfil na tabela users
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert([{
-          id: authData.user.id,
+      if (!authResponse.ok) {
+        const authError = await authResponse.text()
+        throw new Error(`Erro ao criar usuário no Auth: ${authError}`)
+      }
+
+      const authUser = await authResponse.json()
+      console.log('✅ Usuário criado no Auth:', authUser.id)
+
+      // Criar registro na tabela users usando service_role
+      const userResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+          'apikey': SERVICE_ROLE_KEY,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          id: authUser.id,
           email: formData.email,
           name: formData.name,
           user_type: formData.user_type,
           parent_id: formData.parent_id || null,
           phone: formData.phone || null,
-          cpf: formData.cpf || null, // Usando campo CPF correto
-          pix: formData.pix || null, // Usando campo PIX correto
+          cpf: formData.cpf || null,
+          pix: formData.pix || null,
           status: formData.status,
-          created_by: user?.id
-        }]);
+          created_by: user?.id || null
+        })
+      })
 
-      if (profileError) throw profileError;
+      if (!userResponse.ok) {
+        const userError = await userResponse.text()
+        // Se falhar na tabela users, deletar do Auth
+        await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authUser.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+            'apikey': SERVICE_ROLE_KEY
+          }
+        })
+        throw new Error(`Erro ao criar registro do usuário: ${userError}`)
+      }
 
-      setShowForm(false);
+      console.log('✅ Usuário criado com sucesso')
+      
+      // Recarregar lista de usuários
+      await loadUsers()
+      
+      // Resetar formulário
       setFormData({
         email: '',
         name: '',
@@ -100,14 +145,16 @@ const UserManagement: React.FC = () => {
         cpf: '',
         pix: '',
         status: 'active'
-      });
-      loadUsers();
-      alert('Usuário criado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      alert('Erro ao criar usuário: ' + (error as any).message);
+      })
+      setShowForm(false)
+      
+    } catch (error: any) {
+      console.error('❌ Erro ao criar usuário:', error.message)
+      alert(`Erro ao criar usuário: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   // Editar usuário
   const handleEdit = (user: User) => {
