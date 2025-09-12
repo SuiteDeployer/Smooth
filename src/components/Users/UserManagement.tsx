@@ -31,8 +31,8 @@ const UserManagement: React.FC = () => {
     user_type: 'Investidor' as User['user_type'],
     parent_id: '',
     phone: '',
-    document: '', // Usando document como CPF temporariamente
-    pix: '',
+    cpf: '', // Usando campo CPF correto
+    pix: '', // Usando campo PIX correto
     status: 'active' as User['status']
   });
 
@@ -81,7 +81,8 @@ const UserManagement: React.FC = () => {
           user_type: formData.user_type,
           parent_id: formData.parent_id || null,
           phone: formData.phone || null,
-          document: formData.document || null, // Usando document como CPF temporariamente
+          cpf: formData.cpf || null, // Usando campo CPF correto
+          pix: formData.pix || null, // Usando campo PIX correto
           status: formData.status,
           created_by: user?.id
         }]);
@@ -96,7 +97,7 @@ const UserManagement: React.FC = () => {
         user_type: 'Investidor',
         parent_id: '',
         phone: '',
-        document: '',
+        cpf: '',
         pix: '',
         status: 'active'
       });
@@ -118,8 +119,8 @@ const UserManagement: React.FC = () => {
       user_type: user.user_type,
       parent_id: user.parent_id || '',
       phone: user.phone || '',
-      document: user.document || '', // Usando document como CPF temporariamente
-      pix: user.pix || '',
+      cpf: user.cpf || '', // Usando campo CPF correto
+      pix: user.pix || '', // Usando campo PIX correto
       status: user.status
     });
     setShowForm(true);
@@ -138,7 +139,8 @@ const UserManagement: React.FC = () => {
         user_type: formData.user_type,
         parent_id: formData.parent_id || null,
         phone: formData.phone || null,
-        document: formData.document || null, // Usando document como CPF temporariamente
+        cpf: formData.cpf || null, // Usando campo CPF correto
+        pix: formData.pix || null, // Usando campo PIX correto
         status: formData.status
       };
 
@@ -167,7 +169,7 @@ const UserManagement: React.FC = () => {
         user_type: 'Investidor',
         parent_id: '',
         phone: '',
-        document: '',
+        cpf: '',
         pix: '',
         status: 'active'
       });
@@ -208,7 +210,7 @@ const UserManagement: React.FC = () => {
       user_type: 'Investidor',
       parent_id: '',
       phone: '',
-      document: '',
+      cpf: '',
       pix: '',
       status: 'active'
     });
@@ -350,8 +352,8 @@ const UserManagement: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={formData.document}
-                  onChange={(e) => setFormData({...formData, document: e.target.value})}
+                  value={formData.cpf}
+                  onChange={(e) => setFormData({...formData, cpf: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="000.000.000-00"
                 />
