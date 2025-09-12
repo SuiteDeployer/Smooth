@@ -111,7 +111,6 @@ const UserManagement: React.FC = () => {
           phone: formData.phone || null,
           cpf: formData.cpf || null,
           pix: formData.pix || null,
-          status: formData.status,
           created_by: user?.id || null
         })
       })
