@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const EmptyDashboard: React.FC = () => {
   const { user, userProfile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -23,6 +25,22 @@ const EmptyDashboard: React.FC = () => {
               <h1 className="text-2xl font-bold text-blue-600">Smooth</h1>
               <span className="ml-2 text-sm text-gray-500">Platform</span>
             </div>
+
+            {/* Navigation */}
+            <nav className="flex items-center space-x-6">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/users')}
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Usuários
+              </button>
+            </nav>
 
             {/* User Info & Logout */}
             <div className="flex items-center space-x-4">
@@ -54,7 +72,7 @@ const EmptyDashboard: React.FC = () => {
               Bem-vindo ao Smooth Platform
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Sistema de gestão de debêntures limpo e pronto para desenvolvimento.
+              Sistema de gestão de debêntures com controle hierárquico de usuários.
             </p>
           </div>
 
@@ -87,7 +105,29 @@ const EmptyDashboard: React.FC = () => {
                 <span className="text-sm text-gray-600">Sistema Online</span>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Dashboard limpo - Pronto para desenvolvimento
+                Dashboard com área de usuários implementada
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <button
+              onClick={() => navigate('/users')}
+              className="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-lg shadow-md transition-colors"
+            >
+              <div className="text-2xl mb-2">👥</div>
+              <h3 className="text-lg font-semibold mb-2">Gerenciar Usuários</h3>
+              <p className="text-sm opacity-90">
+                Criar, editar e visualizar usuários com controle hierárquico
+              </p>
+            </button>
+
+            <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+              <div className="text-2xl mb-2">🚧</div>
+              <h3 className="text-lg font-semibold mb-2 text-gray-600">Em Desenvolvimento</h3>
+              <p className="text-sm text-gray-500">
+                Outras funcionalidades serão implementadas em breve
               </p>
             </div>
           </div>
@@ -95,14 +135,14 @@ const EmptyDashboard: React.FC = () => {
           {/* Development Info */}
           <div className="mt-12 bg-blue-50 rounded-lg p-6 max-w-2xl mx-auto">
             <h4 className="text-lg font-semibold text-blue-900 mb-3">
-              🚀 Sistema Limpo
+              🚀 Sistema Implementado
             </h4>
             <div className="text-left space-y-2 text-sm text-blue-800">
               <p>✅ Login funcionando</p>
               <p>✅ Usuário admin@smooth.com.br configurado</p>
-              <p>✅ Dashboard vazio pronto</p>
-              <p>✅ Banco de dados limpo</p>
-              <p>✅ Pronto para desenvolvimento do zero</p>
+              <p>✅ Área de gerenciamento de usuários</p>
+              <p>✅ Políticas RLS hierárquicas</p>
+              <p>✅ CRUD completo de usuários</p>
             </div>
           </div>
         </div>

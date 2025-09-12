@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/Auth/LoginForm';
 import EmptyDashboard from './components/Dashboard/EmptyDashboard';
+import UserManagement from './components/Users/UserManagement';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -82,6 +83,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <EmptyDashboard />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Gerenciamento de usuários */}
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <UserManagement />
                 </ProtectedRoute>
               }
             />
