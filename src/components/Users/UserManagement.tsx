@@ -263,9 +263,35 @@ const UserManagement: React.FC = () => {
     });
   };
 
-  // Obter usuários disponíveis como superior hierárquico
+  // Obter usuários disponíveis como superior hierárquico baseado na hierarquia
   const getAvailableParents = () => {
-    return users.filter(u => u.id !== editingUser?.id);
+    const selectedUserType = formData.user_type;
+    
+    // Filtrar usuários baseado na hierarquia correta
+    let availableUsers = users.filter(u => u.id !== editingUser?.id);
+    
+    switch (selectedUserType) {
+      case 'Master':
+        // Master só pode ter Global como superior
+        availableUsers = availableUsers.filter(u => u.user_type === 'Global');
+        break;
+      case 'Escritório':
+        // Escritório só pode ter Master como superior
+        availableUsers = availableUsers.filter(u => u.user_type === 'Master');
+        break;
+      case 'Assessor':
+        // Assessor só pode ter Escritório como superior
+        availableUsers = availableUsers.filter(u => u.user_type === 'Escritório');
+        break;
+      case 'Investidor':
+        // Investidor pode ter qualquer tipo como superior
+        availableUsers = availableUsers;
+        break;
+      default:
+        availableUsers = availableUsers;
+    }
+    
+    return availableUsers;
   };
 
   if (loading) {
@@ -339,7 +365,11 @@ const UserManagement: React.FC = () => {
                   </label>
                   <select
                     value={formData.user_type}
-                    onChange={(e) => setFormData({...formData, user_type: e.target.value as User['user_type']})}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      user_type: e.target.value as User['user_type'],
+                      parent_id: '' // Reset superior hierárquico quando muda o tipo
+                    })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Investidor">Investidor</option>
