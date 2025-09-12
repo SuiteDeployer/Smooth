@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
+import AppLayout from '../Layout/AppLayout';
 
 interface User {
   id: string;
@@ -276,16 +277,16 @@ const UserManagement: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
-            <p className="mt-2 text-gray-600">
-              Gerencie usuários do sistema com controle hierárquico
-            </p>
-          </div>
+    <AppLayout>
+      <div className="py-2">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
+          <p className="text-gray-600 mt-1">Gerencie usuários do sistema com controle hierárquico</p>
+        </div>
+
+        {/* Header com botão */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">Usuários ({users.length})</h2>
           <button
             onClick={() => setShowForm(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
@@ -537,7 +538,7 @@ const UserManagement: React.FC = () => {
           </table>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
