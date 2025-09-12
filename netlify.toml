@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm build"
+  command = "npm run build"
   publish = "dist"
 
 [[redirects]]
@@ -9,3 +9,6 @@
   
 [build.environment]
   NODE_VERSION = "18"
+  NEXT_PUBLIC_SUPABASE_URL = "https://cisoewbdzdxombthxqfi.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpc29ld2JkemR4b21idGh4cWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDc2NzMsImV4cCI6MjA2OTIyMzY3M30.lNvYVe8ilP-Ak0AsSv80JkLyMm_HM3rfD31EUlQF-fQ"
+
