@@ -23,6 +23,11 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    server: {
+      host: '0.0.0.0',
+      port: 5173,
+      allowedHosts: true
+    },
     define: {
       // Garante que as variáveis de ambiente estejam disponíveis
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),

@@ -16,19 +16,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 // Tipos TypeScript para o banco de dados
 export interface User {
   id: string
-  auth_user_id: string | null
   email: string
-  full_name: string
-  role_id: string
-  superior_user_id: string | null
-  cpf_cnpj: string | null
+  name: string
+  full_name?: string // Alias for name for compatibility
+  user_type: string
+  parent_id: string | null
   phone: string | null
-  pix_key: string | null
+  document: string | null
+  cpf_cnpj?: string | null // Alias for document for compatibility
   status: string
-  commission_percentage: number
   created_at: string
   updated_at: string
-  user_roles?: UserRole
+  created_by: string | null
+  user_roles?: {
+    id: string
+    role_name: string
+    hierarchy_level: number
+  } | null
 }
 
 export interface UserRole {

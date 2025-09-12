@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase, User } from '../lib/supabase'
 
@@ -18,151 +18,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [userProfile, setUserProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const profileCache = useRef<Map<string, { profile: User | null, timestamp: number }>>(new Map())
-  const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
-  // Buscar perfil do usuário no sistema com cache e retry
-  const fetchUserProfile = async (authUser: SupabaseUser, retryCount = 0): Promise<User | null> => {
-    const cacheKey = authUser.id
-    
-    // Verificar cache primeiro
-    const cached = profileCache.current.get(cacheKey)
-    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-      console.log('Perfil carregado do cache')
-      return cached.profile
-    }
-
-    const maxRetries = 3
-    const timeout = 15000 // 15 segundos
-    
+  // Buscar perfil do usuário no sistema
+  const fetchUserProfile = async (authUser: SupabaseUser): Promise<User | null> => {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), timeout)
+      console.log('🔍 Buscando perfil do usuário:', authUser.email)
       
-      const session = await supabase.auth.getSession()
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-profile-simple`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${session.data.session?.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          signal: controller.signal
-        }
-      )
-      
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: { message: 'Erro desconhecido' } }))
-        throw new Error(errorData.error?.message || `HTTP ${response.status}`)
-      }
-      
-      const data = await response.json()
-      const profile = data.data
-      
-      // Armazenar no cache
-      profileCache.current.set(cacheKey, {
-        profile,
-        timestamp: Date.now()
-      })
-      
-      console.log('Perfil carregado com sucesso via edge function')
-      return profile
-      
-    } catch (error) {
-      console.error(`Tentativa ${retryCount + 1} falhou:`, error)
-      
-      // Implementar retry com backoff exponencial
-      if (retryCount < maxRetries && !error.name?.includes('AbortError')) {
-        const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
-        console.log(`Tentando novamente em ${delay}ms...`)
-        
-        await new Promise(resolve => setTimeout(resolve, delay))
-        return fetchUserProfile(authUser, retryCount + 1)
-      }
-      
-      // Se todas as tentativas falharam, tentar método fallback
-      if (retryCount >= maxRetries) {
-        console.warn('Todas as tentativas falharam, usando método fallback')
-        return await fetchUserProfileFallback(authUser)
-      }
-      
-      return null
-    }
-  }
-  
-  // Método fallback usando consultas diretas
-  const fetchUserProfileFallback = async (authUser: SupabaseUser): Promise<User | null> => {
-    try {
-      console.log('Executando busca de perfil fallback')
-      
+      // Buscar usuário diretamente por ID (que deve corresponder ao auth user ID)
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('auth_user_id', authUser.id)
+        .eq('id', authUser.id)
         .maybeSingle()
 
       if (userError) {
-        console.error('Erro no fallback - buscar usuário:', userError)
-        return null
+        console.error('Erro ao buscar usuário por ID:', userError)
+        
+        // Fallback: buscar por email
+        const { data: userByEmail, error: emailError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', authUser.email)
+          .maybeSingle()
+
+        if (emailError) {
+          console.error('Erro ao buscar usuário por email:', emailError)
+          return null
+        }
+
+        if (!userByEmail) {
+          console.warn('Usuário não encontrado na tabela users')
+          return null
+        }
+
+        console.log('✅ Usuário encontrado por email:', userByEmail.name)
+        
+        // Map fields for compatibility
+        const mappedUser = {
+          ...userByEmail,
+          full_name: userByEmail.name,
+          cpf_cnpj: userByEmail.document,
+          user_roles: {
+            id: 'temp-id',
+            role_name: userByEmail.user_type,
+            hierarchy_level: 1
+          }
+        } as User
+        
+        return mappedUser
       }
 
       if (!userData) {
-        console.warn(`Fallback - Usuário não encontrado: ${authUser.id}`)
+        console.warn('Usuário não encontrado na tabela users')
         return null
       }
 
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('id', userData.role_id)
-        .maybeSingle()
-
-      if (roleError) {
-        console.warn('Fallback - Erro ao buscar papel:', roleError)
-        // Retorna usuário sem role em caso de erro
-        return {
-          ...userData,
-          user_roles: null
-        } as User
-      }
-
-      const profile = {
+      console.log('✅ Usuário encontrado por ID:', userData.name)
+      
+      // Map fields for compatibility
+      const mappedUser = {
         ...userData,
-        user_roles: roleData
+        full_name: userData.name,
+        cpf_cnpj: userData.document,
+        user_roles: {
+          id: 'temp-id',
+          role_name: userData.user_type,
+          hierarchy_level: 1
+        }
       } as User
       
-      // Armazenar no cache
-      profileCache.current.set(authUser.id, {
-        profile,
-        timestamp: Date.now()
-      })
-      
-      console.log('Perfil carregado via fallback')
-      return profile
+      return mappedUser
       
     } catch (error) {
-      console.error('Erro no método fallback:', error)
+      console.error('Erro ao buscar perfil do usuário:', error)
       return null
     }
   }
 
   const refreshUserProfile = async () => {
     if (user) {
-      // Limpar cache para forçar nova busca
-      profileCache.current.delete(user.id)
       const profile = await fetchUserProfile(user)
       setUserProfile(profile)
     }
-  }
-  
-  // Função para limpar todo o cache
-  const clearProfileCache = () => {
-    profileCache.current.clear()
-    console.log('Cache de perfis limpo')
   }
 
   // Carregar usuário na inicialização
@@ -196,21 +133,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user || null)
         
         if (session?.user) {
-          // Não bloquear interface enquanto busca perfil
-          fetchUserProfile(session.user)
-            .then(profile => {
-              setUserProfile(profile)
-              if (profile) {
-                console.log('Perfil carregado após mudança de estado de auth')
-              }
-            })
-            .catch(error => {
-              console.error('Erro ao buscar perfil após login:', error)
-              setUserProfile(null)
-            })
+          const profile = await fetchUserProfile(session.user)
+          setUserProfile(profile)
         } else {
           setUserProfile(null)
-          clearProfileCache() // Limpar cache ao fazer logout
         }
       }
     )
@@ -237,10 +163,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true)
       await supabase.auth.signOut()
-      // Forçar limpeza do estado local
       setUser(null)
       setUserProfile(null)
-      // Redirecionar para login
       window.location.href = '/login'
     } catch (error) {
       console.error('Erro ao fazer logout:', error)
@@ -271,3 +195,4 @@ export function useAuth() {
   }
   return context
 }
+
