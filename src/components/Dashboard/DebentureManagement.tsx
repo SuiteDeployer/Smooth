@@ -272,8 +272,9 @@ const DebentureManagement = () => {
     }
   }
 
-  // Funções de edição e exclusão
+  // Funções de edição e exclusão - CORRIGIDAS
   const handleEditDebenture = (debenture) => {
+    console.log('🔧 Editando debênture:', debenture)
     setEditingDebenture({
       id: debenture.id,
       name: debenture.name || '',
@@ -284,6 +285,7 @@ const DebentureManagement = () => {
   }
 
   const handleEditSeries = (serie) => {
+    console.log('🔧 Editando série:', serie)
     setEditingSeriesForm({
       id: serie.id,
       name: serie.name || '',
@@ -297,6 +299,7 @@ const DebentureManagement = () => {
   }
 
   const handleDeleteConfirm = (item, type) => {
+    console.log('🗑️ Confirmando exclusão:', { item, type })
     setDeleteItem(item)
     setDeleteType(type)
     setShowDeleteConfirm(true)
@@ -336,6 +339,7 @@ const DebentureManagement = () => {
       setShowEditDebentureForm(false)
       setEditingDebenture(null)
       loadData()
+      alert('Debênture atualizada com sucesso!')
     } catch (error) {
       console.error('❌ Erro ao atualizar debênture:', error)
       alert(`Erro ao atualizar debênture: ${error.message}`)
@@ -387,6 +391,7 @@ const DebentureManagement = () => {
         max_commission_percentage: '5.0'
       })
       loadData()
+      alert('Série atualizada com sucesso!')
     } catch (error) {
       console.error('❌ Erro ao atualizar série:', error)
       alert(`Erro ao atualizar série: ${error.message}`)
@@ -426,10 +431,21 @@ const DebentureManagement = () => {
       setDeleteItem(null)
       setDeleteType('')
       loadData()
+      alert(`${deleteType === 'debenture' ? 'Debênture' : 'Série'} excluída com sucesso!`)
     } catch (error) {
       console.error(`❌ Erro ao excluir ${deleteType}:`, error)
       alert(`Erro ao excluir ${deleteType === 'debenture' ? 'debênture' : 'série'}: ${error.message}`)
     }
+  }
+
+  // Função para abrir modal de nova série - CORRIGIDA
+  const handleOpenNewSeriesModal = () => {
+    console.log('📝 Abrindo modal de nova série')
+    if (!Array.isArray(debentures) || debentures.length === 0) {
+      alert('É necessário criar uma debênture antes de criar uma série.')
+      return
+    }
+    setShowCreateSeriesForm(true)
   }
 
   return (
@@ -451,13 +467,7 @@ const DebentureManagement = () => {
                 Nova Debênture
               </button>
               <button
-                onClick={() => {
-                  if (!Array.isArray(debentures) || debentures.length === 0) {
-                    alert('É necessário criar uma debênture antes de criar uma série.')
-                    return
-                  }
-                  setShowCreateSeriesForm(true)
-                }}
+                onClick={handleOpenNewSeriesModal}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
               >
                 <Plus className="w-4 h-4" />
@@ -798,8 +808,6 @@ const DebentureManagement = () => {
                 />
               </div>
 
-
-
               <div>
                 <label className="block text-sm font-medium text-gray-700">Data de Vencimento</label>
                 <input
@@ -921,14 +929,14 @@ const DebentureManagement = () => {
                   onClick={() => {
                     setShowEditSeriesForm(false)
                     setEditingSeriesForm({
-        id: '',
-        name: '',
-        description: '',
-        duration_months: '12',
-        interest_rate: '0',
-        minimum_investment: '0',
-        max_commission_percentage: '5.0'
-      })
+                      id: '',
+                      name: '',
+                      description: '',
+                      duration_months: '12',
+                      interest_rate: '0',
+                      minimum_investment: '0',
+                      max_commission_percentage: '5.0'
+                    })
                   }}
                   className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
                 >
@@ -1060,7 +1068,11 @@ const DebentureManagement = () => {
                             {isGlobalUser() && (
                               <div className="flex gap-2 mb-4">
                                 <button
-                                  onClick={() => handleEditDebenture(debenture)}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleEditDebenture(debenture)
+                                  }}
                                   className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                                   title="Editar debênture"
                                 >
@@ -1068,7 +1080,11 @@ const DebentureManagement = () => {
                                   Editar
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteConfirm(debenture, 'debenture')}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleDeleteConfirm(debenture, 'debenture')
+                                  }}
                                   className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
                                   title="Excluir debênture"
                                 >
@@ -1176,7 +1192,11 @@ const DebentureManagement = () => {
                                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                             <div className="flex gap-2">
                                               <button
-                                                onClick={() => handleEditSeries(serie)}
+                                                onClick={(e) => {
+                                                  e.preventDefault()
+                                                  e.stopPropagation()
+                                                  handleEditSeries(serie)
+                                                }}
                                                 className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                                                 title="Editar série"
                                               >
@@ -1184,7 +1204,11 @@ const DebentureManagement = () => {
                                                 Editar
                                               </button>
                                               <button
-                                                onClick={() => handleDeleteConfirm(serie, 'serie')}
+                                                onClick={(e) => {
+                                                  e.preventDefault()
+                                                  e.stopPropagation()
+                                                  handleDeleteConfirm(serie, 'serie')
+                                                }}
                                                 className="flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
                                                 title="Excluir série"
                                               >
@@ -1206,7 +1230,9 @@ const DebentureManagement = () => {
                             <p className="text-sm">Nenhuma série criada para esta debênture.</p>
                             {isGlobalUser() && (
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
                                   setSeriesFormData(prev => ({ ...prev, debenture_id: debenture.id }))
                                   setShowCreateSeriesForm(true)
                                 }}
@@ -1243,3 +1269,4 @@ const DebentureManagement = () => {
 }
 
 export default DebentureManagement
+
