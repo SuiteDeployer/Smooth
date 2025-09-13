@@ -760,7 +760,12 @@ const InvestmentManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  {currentUser?.user_type !== 'Investidor' && (
+                  {(() => {
+                    console.log('Rendering actions column check - currentUser:', currentUser);
+                    console.log('currentUser?.user_type:', currentUser?.user_type);
+                    console.log('Should show actions:', currentUser?.user_type !== 'Investidor');
+                    return currentUser?.user_type !== 'Investidor';
+                  })() && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                   )}
                 </tr>
@@ -804,7 +809,12 @@ const InvestmentManagement: React.FC = () => {
                          investment.status === 'matured' ? 'Vencido' : 'Cancelado'}
                       </span>
                     </td>
-                    {currentUser?.user_type !== 'Investidor' && (
+                    {(() => {
+                      console.log('Rendering actions cell check - currentUser:', currentUser);
+                      console.log('currentUser?.user_type:', currentUser?.user_type);
+                      console.log('Should show actions cell:', currentUser?.user_type !== 'Investidor');
+                      return currentUser?.user_type !== 'Investidor';
+                    })() && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           {canEditInvestment(investment) && (
