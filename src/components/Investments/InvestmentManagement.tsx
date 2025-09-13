@@ -166,6 +166,8 @@ const InvestmentManagement: React.FC = () => {
 
   // Load network users based on current user type (for investor selection - original permissions)
   useEffect(() => {
+    console.log('useEffect loadNetworkUsers triggered, currentUser:', currentUser);
+    
     const loadNetworkUsers = async () => {
       if (!currentUser) {
         console.log('No currentUser, skipping loadNetworkUsers');
@@ -207,6 +209,8 @@ const InvestmentManagement: React.FC = () => {
 
   // Load commission split users (includes hierarchy - superior and inferior users)
   useEffect(() => {
+    console.log('useEffect loadCommissionUsers triggered, currentUser:', currentUser);
+    
     const loadCommissionUsers = async () => {
       if (!currentUser) {
         console.log('No currentUser, skipping loadCommissionUsers');
@@ -257,6 +261,13 @@ const InvestmentManagement: React.FC = () => {
     
     loadCommissionUsers();
   }, [currentUser]);
+
+  // Debug modal opening
+  const handleOpenModal = () => {
+    console.log('Opening modal, currentUser:', currentUser);
+    console.log('Current state - investors:', investors.length, 'masters:', masters.length, 'escritorios:', escritorios.length, 'assessors:', assessors.length);
+    setIsModalOpen(true);
+  };
 
   // Load investments
   useEffect(() => {
@@ -461,8 +472,8 @@ const InvestmentManagement: React.FC = () => {
           
           {/* Create Investment Button */}
           <button
-            onClick={openModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
+            onClick={handleOpenModal}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <span>+</span>
             <span>Criar Investimento</span>
