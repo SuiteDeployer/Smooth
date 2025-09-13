@@ -16,20 +16,49 @@ interface Debenture {
   created_by: string;
 }
 
+interface Serie {
+  id: string;
+  debenture_id: string;
+  series_letter: string;
+  commercial_name: string;
+  term_months: number;
+  captacao_amount: number;
+  max_commission_year: number;
+  remuneration_year: number;
+  minimum_investment: number;
+  interest_rate: number;
+  max_commission_percentage: number;
+}
+
 const DebentureManagement: React.FC = () => {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
   const [debentures, setDebentures] = useState<Debenture[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showSeriesForm, setShowSeriesForm] = useState(false);
   const [expandedDebenture, setExpandedDebenture] = useState<string | null>(null);
-  const [series, setSeries] = useState<any[]>([]);
+  const [series, setSeries] = useState<Serie[]>([]);
   const [editingDebenture, setEditingDebenture] = useState<Debenture | null>(null);
+  const [editingSeries, setEditingSeries] = useState<Serie | null>(null);
+  const [selectedDebentureId, setSelectedDebentureId] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     total_amount: '',
     issuer: '',
     status: 'Ativa' as Debenture['status']
+  });
+
+  const [seriesFormData, setSeriesFormData] = useState({
+    series_letter: '',
+    commercial_name: '',
+    term_months: '',
+    captacao_amount: '',
+    max_commission_year: '',
+    remuneration_year: '',
+    minimum_investment: '',
+    interest_rate: '',
+    max_commission_percentage: ''
   });
 
   // Verificar permissões de usuário
@@ -214,6 +243,140 @@ const DebentureManagement: React.FC = () => {
     }
   };
 
+  // Funções para séries
+  const handleCreateSeries = (debentureId: string) => {
+    if (!isGlobalUser) {
+      toast.error('Apenas usuários Global podem criar séries');
+      return;
+    }
+    
+    console.log('🚀 Abrindo modal para criar série para debênture:', debentureId);
+    setSelectedDebentureId(debentureId);
+    setEditingSeries(null);
+    resetSeriesForm();
+    setShowSeriesForm(true);
+  };
+
+  const handleEditSeries = (serie: Serie) => {
+    if (!isGlobalUser) {
+      toast.error('Apenas usuários Global podem editar séries');
+      return;
+    }
+
+    console.log('🔧 Editando série:', serie);
+    setEditingSeries(serie);
+    setSelectedDebentureId(serie.debenture_id);
+    setSeriesFormData({
+      series_letter: serie.series_letter || '',
+      commercial_name: serie.commercial_name || '',
+      term_months: String(serie.term_months || ''),
+      captacao_amount: String(serie.captacao_amount || ''),
+      max_commission_year: String(serie.max_commission_year || ''),
+      remuneration_year: String(serie.remuneration_year || ''),
+      minimum_investment: String(serie.minimum_investment || ''),
+      interest_rate: String(serie.interest_rate || ''),
+      max_commission_percentage: String(serie.max_commission_percentage || '')
+    });
+    setShowSeriesForm(true);
+  };
+
+  const handleDeleteSeries = async (serie: Serie) => {
+    if (!isGlobalUser) {
+      toast.error('Apenas usuários Global podem deletar séries');
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja deletar a série ${serie.series_letter}?`)) {
+      return;
+    }
+
+    console.log('🗑️ Deletando série:', serie);
+
+    try {
+      const { error } = await supabase
+        .from('series')
+        .delete()
+        .eq('id', serie.id);
+
+      if (error) throw error;
+
+      toast.success('Série deletada com sucesso!');
+      
+      // Recarregar séries
+      const { data, error: fetchError } = await supabase
+        .from('series')
+        .select('*')
+        .order('series_letter', { ascending: true });
+
+      if (!fetchError) {
+        setSeries(data || []);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar série:', error);
+      toast.error('Erro ao deletar série');
+    }
+  };
+
+  const handleSeriesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isGlobalUser) {
+      toast.error('Apenas usuários Global podem gerenciar séries');
+      return;
+    }
+
+    try {
+      const seriesData = {
+        debenture_id: selectedDebentureId,
+        series_letter: seriesFormData.series_letter,
+        commercial_name: seriesFormData.commercial_name,
+        term_months: parseInt(seriesFormData.term_months) || 0,
+        captacao_amount: parseFloat(seriesFormData.captacao_amount) || 0,
+        max_commission_year: parseFloat(seriesFormData.max_commission_year) || 0,
+        remuneration_year: parseFloat(seriesFormData.remuneration_year) || 0,
+        minimum_investment: parseFloat(seriesFormData.minimum_investment) || 0,
+        interest_rate: parseFloat(seriesFormData.interest_rate) || 0,
+        max_commission_percentage: parseFloat(seriesFormData.max_commission_percentage) || 0
+      };
+
+      if (editingSeries) {
+        // Atualizar série existente
+        const { error } = await supabase
+          .from('series')
+          .update(seriesData)
+          .eq('id', editingSeries.id);
+
+        if (error) throw error;
+        toast.success('Série atualizada com sucesso!');
+      } else {
+        // Criar nova série
+        const { error } = await supabase
+          .from('series')
+          .insert([seriesData]);
+
+        if (error) throw error;
+        toast.success('Série criada com sucesso!');
+      }
+
+      setShowSeriesForm(false);
+      setEditingSeries(null);
+      resetSeriesForm();
+      
+      // Recarregar séries
+      const { data, error: fetchError } = await supabase
+        .from('series')
+        .select('*')
+        .order('series_letter', { ascending: true });
+
+      if (!fetchError) {
+        setSeries(data || []);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar série:', error);
+      toast.error('Erro ao salvar série');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -223,19 +386,30 @@ const DebentureManagement: React.FC = () => {
     });
   };
 
-  const handleToggleExpand = async (debentureId: string) => {
-    if (expandedDebenture === debentureId) {
-      setExpandedDebenture(null);
-    } else {
-      setExpandedDebenture(debentureId);
-      await fetchSeries(debentureId);
-    }
+  const resetSeriesForm = () => {
+    setSeriesFormData({
+      series_letter: '',
+      commercial_name: '',
+      term_months: '',
+      captacao_amount: '',
+      max_commission_year: '',
+      remuneration_year: '',
+      minimum_investment: '',
+      interest_rate: '',
+      max_commission_percentage: ''
+    });
   };
 
   const handleCancel = () => {
     setShowForm(false);
     setEditingDebenture(null);
     resetForm();
+  };
+
+  const handleSeriesCancel = () => {
+    setShowSeriesForm(false);
+    setEditingSeries(null);
+    resetSeriesForm();
   };
 
   const formatCurrency = (value: number) => {
@@ -249,24 +423,15 @@ const DebentureManagement: React.FC = () => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Ativa':
-        return 'bg-green-100 text-green-800';
-      case 'Inativa':
-        return 'bg-red-100 text-red-800';
-      case 'Finalizada':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const toggleExpanded = (debentureId: string) => {
+    setExpandedDebenture(expandedDebenture === debentureId ? null : debentureId);
   };
 
   if (loading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-gray-600">Carregando debêntures...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </AppLayout>
     );
@@ -274,128 +439,102 @@ const DebentureManagement: React.FC = () => {
 
   return (
     <AppLayout>
-      <div className="py-2">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Debêntures</h1>
-          <p className="text-gray-600 mt-1">
-            {isGlobalUser 
-              ? 'Gerencie debêntures do sistema' 
-              : 'Visualize debêntures do sistema (somente leitura)'
-            }
-          </p>
-        </div>
-
-        {/* Header com botão */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Debêntures ({debentures.length})</h2>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Debêntures</h1>
+            <p className="text-gray-600">Gerencie debêntures do sistema</p>
+          </div>
           {isGlobalUser && (
             <button
               onClick={() => setShowForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Nova Debênture
             </button>
           )}
         </div>
 
-        {/* Tabela de debêntures */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Tabela de Debêntures */}
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">Debêntures ({debentures.length})</h2>
+          </div>
+          
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Captação Total
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Captação Utilizada
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Disponível
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Emitente
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data de Criação
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Captação Total</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Captação Utilizada</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Disponível</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Emitente</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Data de Criação</th>
+                {isGlobalUser && (
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                )}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
               {debentures.map((debenture) => {
-                const captacaoUtilizada = calculateSeriesTotal(debenture.id);
-                const disponivel = debenture.total_amount - captacaoUtilizada;
-                const isExpanded = expandedDebenture === debenture.id;
+                const seriesTotal = calculateSeriesTotal(debenture.id);
+                const available = debenture.total_amount - seriesTotal;
                 const debenturesSeries = series.filter(s => s.debenture_id === debenture.id);
                 
                 return (
                 <React.Fragment key={debenture.id}>
-                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => handleToggleExpand(debenture.id)}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpanded(debenture.id)}>
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900">
                       <div className="flex items-center">
-                        <span className={`mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
-                          ▶
+                        <span className="mr-2">
+                          {expandedDebenture === debenture.id ? '▼' : '▶'}
                         </span>
-                        <div className="text-sm font-medium text-gray-900">{debenture.name}</div>
+                        {debenture.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatCurrency(captacaoUtilizada)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`text-sm font-medium ${disponivel < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {formatCurrency(disponivel)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{debenture.issuer}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(debenture.status)}`}>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(seriesTotal)}</td>
+                    <td className="px-4 py-2 text-sm text-green-600">{formatCurrency(available)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{debenture.issuer}</td>
+                    <td className="px-4 py-2 text-sm">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        debenture.status === 'Ativa' ? 'bg-green-100 text-green-800' :
+                        debenture.status === 'Inativa' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
                         {debenture.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(debenture.created_at)}
-                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatDate(debenture.created_at)}</td>
                     {isGlobalUser && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-2 text-sm font-medium space-x-2">
                         <button
-                          onClick={() => handleEdit(debenture)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(debenture);
+                          }}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Editar
                         </button>
                         <button
-                          onClick={() => handleDelete(debenture.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(debenture.id);
+                          }}
                           className="text-red-600 hover:text-red-900"
                         >
                           Deletar
                         </button>
                       </td>
                     )}
-                    {!isGlobalUser && canViewDebentures && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <span className="text-gray-500">Visualização</span>
-                      </td>
-                    )}
                   </tr>
                   
-                  {/* Linha expandida com séries */}
-                  {isExpanded && (
+                  {expandedDebenture === debenture.id && (
                     <tr>
-                      <td colSpan={8} className="px-6 py-4 bg-gray-50">
+                      <td colSpan={isGlobalUser ? 8 : 7} className="px-4 py-4 bg-gray-50">
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
                             <h4 className="text-lg font-medium text-gray-900">
@@ -405,7 +544,7 @@ const DebentureManagement: React.FC = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // TODO: Implementar criação de série
+                                  handleCreateSeries(debenture.id);
                                 }}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                               >
@@ -444,7 +583,7 @@ const DebentureManagement: React.FC = () => {
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              // TODO: Implementar edição de série
+                                              handleEditSeries(serie);
                                             }}
                                             className="text-blue-600 hover:text-blue-900"
                                           >
@@ -453,7 +592,7 @@ const DebentureManagement: React.FC = () => {
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              // TODO: Implementar exclusão de série
+                                              handleDeleteSeries(serie);
                                             }}
                                             className="text-red-600 hover:text-red-900"
                                           >
@@ -499,7 +638,7 @@ const DebentureManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Modal de formulário */}
+        {/* Modal de formulário de debênture */}
         {showForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -580,6 +719,172 @@ const DebentureManagement: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleCancel}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de formulário de série */}
+        {showSeriesForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-bold mb-4">
+                {editingSeries ? 'Editar Série' : 'Nova Série'}
+              </h2>
+              
+              <form onSubmit={handleSeriesSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Letra da Série
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={1}
+                    value={seriesFormData.series_letter}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, series_letter: e.target.value.toUpperCase()})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="A"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nome Comercial
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={seriesFormData.commercial_name}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, commercial_name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex: Otmow 12 meses"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prazo (meses)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={seriesFormData.term_months}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, term_months: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="12"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Valor de Captação
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={seriesFormData.captacao_amount}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, captacao_amount: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="1000000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Comissão Máxima/Ano (%)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={seriesFormData.max_commission_year}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, max_commission_year: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="12"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Remuneração/Ano (%)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={seriesFormData.remuneration_year}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, remuneration_year: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="24"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Investimento Mínimo
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={seriesFormData.minimum_investment}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, minimum_investment: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="1000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Taxa de Juros (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={seriesFormData.interest_rate}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, interest_rate: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="10.5"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Comissão Máxima Total (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={seriesFormData.max_commission_percentage}
+                    onChange={(e) => setSeriesFormData({...seriesFormData, max_commission_percentage: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="5.0"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition-colors"
+                  >
+                    {editingSeries ? 'Atualizar' : 'Criar'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSeriesCancel}
                     className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium transition-colors"
                   >
                     Cancelar
