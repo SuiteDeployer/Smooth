@@ -51,7 +51,8 @@ interface Series {
 interface User {
   id: string;
   email: string;
-  full_name: string;
+  name: string;
+  full_name?: string; // Optional for backward compatibility
   user_type: 'Global' | 'Master' | 'Escritório' | 'Assessor' | 'Investidor';
   master_id?: string;
   escritorio_id?: string;
