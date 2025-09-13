@@ -742,12 +742,13 @@ const InvestmentManagement: React.FC = () => {
         )}
 
         {/* Investments List */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Investimentos Criados</h2>
-          </div>
-          
-          <div className="overflow-x-auto">
+        {currentUser ? (
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Investimentos Criados</h2>
+            </div>
+            
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -839,6 +840,16 @@ const InvestmentManagement: React.FC = () => {
             )}
           </div>
         </div>
+        ) : (
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Investimentos Criados</h2>
+            </div>
+            <div className="text-center py-8 text-gray-500">
+              Carregando usuário...
+            </div>
+          </div>
+        )}
 
         {/* Modal */}
         {isModalOpen && (
