@@ -5,25 +5,24 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../Layout/AppLayout';
 
 interface Investment {
-  id: string;
+  id: number;
   debenture_id: string;
   series_id: string;
   investor_id: string;
-  responsible_id: string;
+  assessor_id: string;
+  escritorio_id: string;
+  master_id: string;
+  investment_amount: number;
   investment_date: string;
   maturity_date: string;
-  amount: number;
-  annual_remuneration: number;
-  monthly_remuneration: number;
-  max_annual_commission: number;
-  max_monthly_commission: number;
-  master_id?: string;
-  master_percentage?: number;
-  office_id?: string;
-  office_percentage?: number;
-  advisor_id?: string;
-  advisor_percentage?: number;
+  assessor_commission_percentage: number;
+  escritorio_commission_percentage: number;
+  master_commission_percentage: number;
+  assessor_commission_amount: number;
+  escritorio_commission_amount: number;
+  master_commission_amount: number;
   status: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +31,7 @@ interface Debenture {
   id: string;
   name: string;
   total_amount: number;
+  issuer: string;
   status: string;
 }
 
@@ -50,206 +50,203 @@ interface Series {
 
 interface User {
   id: string;
-  name: string;
   email: string;
-  user_type: string;
+  full_name: string;
+  user_type: 'Global' | 'Master' | 'Escritório' | 'Assessor' | 'Investidor';
+  master_id?: string;
+  escritorio_id?: string;
 }
 
 const InvestmentManagement: React.FC = () => {
-  const { userProfile } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [debentures, setDebentures] = useState<Debenture[]>([]);
-  const [series, setSeries] = useState<Series[]>([]);
-  const [networkUsers, setNetworkUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
+  
+  // State for form data
   const [formData, setFormData] = useState({
     debenture_id: '',
     series_id: '',
     investor_id: '',
-    amount: '',
+    assessor_id: '',
+    escritorio_id: '',
     master_id: '',
-    master_percentage: '',
-    office_id: '',
-    office_percentage: '',
-    advisor_id: '',
-    advisor_percentage: ''
+    investment_amount: '',
+    assessor_commission_percentage: '',
+    escritorio_commission_percentage: '',
+    master_commission_percentage: '',
+    notes: ''
   });
 
-  // Verificar permissões
-  const isGlobalUser = userProfile?.user_type === 'Global';
-  const isMasterUser = userProfile?.user_type === 'Master';
-  const isOfficeUser = userProfile?.user_type === 'Escritório';
-  const isAdvisorUser = userProfile?.user_type === 'Assessor';
-  const isInvestorUser = userProfile?.user_type === 'Investidor';
+  // State for dropdowns data
+  const [debentures, setDebentures] = useState<Debenture[]>([]);
+  const [series, setSeries] = useState<Series[]>([]);
+  const [investors, setInvestors] = useState<User[]>([]);
+  const [masters, setMasters] = useState<User[]>([]);
+  const [escritorios, setEscritorios] = useState<User[]>([]);
+  const [assessors, setAssessors] = useState<User[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
+  
+  // State for selected series info
+  const [selectedSeries, setSelectedSeries] = useState<Series | null>(null);
+  
+  // State for UI
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const canCreateInvestments = isGlobalUser || isMasterUser || isOfficeUser || isAdvisorUser;
-  const canEditInvestments = isGlobalUser || isMasterUser || isOfficeUser || isAdvisorUser;
-
+  // Load current user data
   useEffect(() => {
-    if (!userProfile) {
-      navigate('/');
-      return;
-    }
-
-    if (isInvestorUser) {
-      // Investidor só vê seus próprios investimentos
-      fetchInvestorInvestments();
-    } else {
-      fetchInvestments();
-    }
-    
-    fetchDebentures();
-    fetchNetworkUsers();
-  }, [userProfile]);
-
-  const fetchInvestments = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('investments')
-        .select(`
-          *,
-          debentures(name),
-          series(series_letter, commercial_name),
-          investor:users!investments_investor_id_fkey(name, email),
-          responsible:users!investments_responsible_id_fkey(name, email)
-        `);
-
-      // Aplicar filtros baseados no tipo de usuário
-      if (isMasterUser) {
-        // Master vê investimentos de sua rede (Master, Escritório, Assessor)
-        query = query.or(`responsible_id.eq.${userProfile.id},master_id.eq.${userProfile.id}`);
-      } else if (isOfficeUser) {
-        // Escritório vê investimentos de sua rede (Escritório, Assessor)
-        query = query.or(`responsible_id.eq.${userProfile.id},office_id.eq.${userProfile.id}`);
-      } else if (isAdvisorUser) {
-        // Assessor vê apenas seus investimentos
-        query = query.eq('responsible_id', userProfile.id);
+    const loadCurrentUser = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        setCurrentUser(data);
+      } catch (err) {
+        console.error('Error loading current user:', err);
       }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setInvestments(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar investimentos:', error);
-      alert('Erro ao carregar investimentos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchInvestorInvestments = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('investments')
-        .select(`
-          *,
-          debentures(name),
-          series(series_letter, commercial_name),
-          responsible:users!investments_responsible_id_fkey(name, email)
-        `)
-        .eq('investor_id', userProfile.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setInvestments(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar investimentos do investidor:', error);
-      alert('Erro ao carregar seus investimentos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchDebentures = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('debentures')
-        .select('*')
-        .eq('status', 'Ativa')
-        .order('name');
-
-      if (error) throw error;
-      setDebentures(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar debêntures:', error);
-    }
-  };
-
-  const fetchSeriesByDebenture = async (debentureId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('series')
-        .select('*')
-        .eq('debenture_id', debentureId)
-        .order('series_letter');
-
-      if (error) throw error;
-      setSeries(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar séries:', error);
-    }
-  };
-
-  const fetchNetworkUsers = async () => {
-    try {
-      let query = supabase.from('users').select('*');
-
-      // Buscar usuários da rede baseado no tipo do usuário logado
-      if (isGlobalUser) {
-        // Global vê todos os usuários
-        query = query.neq('user_type', 'Global');
-      } else if (isMasterUser) {
-        // Master vê sua rede (Escritório, Assessor, Investidor sob sua hierarquia)
-        query = query.or(`hierarchical_superior.eq.${userProfile.id},id.eq.${userProfile.id}`);
-      } else if (isOfficeUser) {
-        // Escritório vê sua rede (Assessor, Investidor sob sua hierarquia)
-        query = query.or(`hierarchical_superior.eq.${userProfile.id},id.eq.${userProfile.id}`);
-      } else if (isAdvisorUser) {
-        // Assessor vê apenas investidores sob sua hierarquia
-        query = query.or(`hierarchical_superior.eq.${userProfile.id},id.eq.${userProfile.id}`);
-      }
-
-      const { data, error } = await query.order('name');
-
-      if (error) throw error;
-      setNetworkUsers(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar usuários da rede:', error);
-    }
-  };
-
-  const handleDebentureChange = (debentureId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      debenture_id: debentureId,
-      series_id: '' // Reset série quando muda debênture
-    }));
+    };
     
-    if (debentureId) {
-      fetchSeriesByDebenture(debentureId);
-    } else {
-      setSeries([]);
-    }
-  };
+    loadCurrentUser();
+  }, [user]);
 
+  // Load debentures
+  useEffect(() => {
+    const loadDebentures = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('debentures')
+          .select('*')
+          .eq('status', 'Ativa')
+          .order('name');
+          
+        if (error) throw error;
+        setDebentures(data || []);
+      } catch (err) {
+        console.error('Error loading debentures:', err);
+      }
+    };
+    
+    loadDebentures();
+  }, []);
+
+  // Load series when debenture is selected
+  useEffect(() => {
+    const loadSeries = async () => {
+      if (!formData.debenture_id) {
+        setSeries([]);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('series')
+          .select('*')
+          .eq('debenture_id', formData.debenture_id)
+          .order('series_letter');
+          
+        if (error) throw error;
+        setSeries(data || []);
+      } catch (err) {
+        console.error('Error loading series:', err);
+      }
+    };
+    
+    loadSeries();
+  }, [formData.debenture_id]);
+
+  // Load network users based on current user type
+  useEffect(() => {
+    const loadNetworkUsers = async () => {
+      if (!currentUser) return;
+      
+      try {
+        let query = supabase.from('users').select('*');
+        
+        // Load users based on current user's permissions
+        switch (currentUser.user_type) {
+          case 'Global':
+            // Global can see all users
+            break;
+          case 'Master':
+            // Master can see their network
+            query = query.or(`master_id.eq.${currentUser.id},id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id = '${currentUser.id}')`);
+            break;
+          case 'Escritório':
+            // Escritório can see their office network
+            query = query.or(`escritorio_id.eq.${currentUser.id},id.eq.${currentUser.id}`);
+            break;
+          case 'Assessor':
+            // Assessor can see themselves and investors
+            query = query.or(`id.eq.${currentUser.id},user_type.eq.Investidor`);
+            break;
+          default:
+            return;
+        }
+        
+        const { data, error } = await query.order('full_name');
+        if (error) throw error;
+        
+        const users = data || [];
+        
+        // Separate users by type
+        setInvestors(users.filter(u => u.user_type === 'Investidor'));
+        setMasters(users.filter(u => u.user_type === 'Master'));
+        setEscritorios(users.filter(u => u.user_type === 'Escritório'));
+        setAssessors(users.filter(u => u.user_type === 'Assessor'));
+        
+      } catch (err) {
+        console.error('Error loading network users:', err);
+      }
+    };
+    
+    loadNetworkUsers();
+  }, [currentUser]);
+
+  // Load investments
+  useEffect(() => {
+    const loadInvestments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('investments')
+          .select(`
+            *,
+            debentures(name),
+            series(series_letter, commercial_name),
+            investor:users!investments_investor_id_fkey(full_name),
+            assessor:users!investments_assessor_id_fkey(full_name),
+            escritorio:users!investments_escritorio_id_fkey(full_name),
+            master:users!investments_master_id_fkey(full_name)
+          `)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        setInvestments(data || []);
+      } catch (err) {
+        console.error('Error loading investments:', err);
+      }
+    };
+    
+    loadInvestments();
+  }, []);
+
+  // Handle series selection
   const handleSeriesChange = (seriesId: string) => {
-    const selectedSeries = series.find(s => s.id === seriesId);
-    setFormData(prev => ({
-      ...prev,
-      series_id: seriesId
-    }));
+    const selected = series.find(s => s.id === seriesId);
+    setSelectedSeries(selected || null);
+    setFormData(prev => ({ ...prev, series_id: seriesId }));
   };
 
-  const calculateMaturityDate = (seriesId: string): string => {
-    const selectedSeries = series.find(s => s.id === seriesId);
+  // Calculate maturity date
+  const calculateMaturityDate = () => {
     if (!selectedSeries) return '';
-
+    
     const today = new Date();
     const maturityDate = new Date(today);
     maturityDate.setMonth(maturityDate.getMonth() + selectedSeries.term_months);
@@ -257,591 +254,457 @@ const InvestmentManagement: React.FC = () => {
     return maturityDate.toISOString().split('T')[0];
   };
 
-  const getSelectedSeriesInfo = () => {
-    return series.find(s => s.id === formData.series_id);
-  };
-
-  const calculateTotalPercentage = (): number => {
-    const master = parseFloat(formData.master_percentage) || 0;
-    const office = parseFloat(formData.office_percentage) || 0;
-    const advisor = parseFloat(formData.advisor_percentage) || 0;
-    return master + office + advisor;
-  };
-
-  const isValidPercentage = (): boolean => {
-    const selectedSeries = getSelectedSeriesInfo();
-    if (!selectedSeries) return true;
+  // Validate commission split
+  const validateCommissionSplit = () => {
+    const assessor = parseFloat(formData.assessor_commission_percentage) || 0;
+    const escritorio = parseFloat(formData.escritorio_commission_percentage) || 0;
+    const master = parseFloat(formData.master_commission_percentage) || 0;
     
-    const total = calculateTotalPercentage();
-    return total <= selectedSeries.max_commission_year;
+    const total = assessor + escritorio + master;
+    
+    if (total > 100) {
+      setError('O total dos percentuais de comissão não pode ultrapassar 100%');
+      return false;
+    }
+    
+    if (selectedSeries) {
+      const maxCommission = selectedSeries.max_commission_year;
+      if (total > maxCommission) {
+        setError(`O total dos percentuais de comissão não pode ultrapassar ${maxCommission}% (máximo da série)`);
+        return false;
+      }
+    }
+    
+    return true;
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isValidPercentage()) {
-      alert('O total dos percentuais não pode ultrapassar a comissão máxima da série');
-      return;
-    }
-
+    if (!validateCommissionSplit()) return;
+    
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
     try {
-      const selectedSeries = getSelectedSeriesInfo();
-      if (!selectedSeries) {
-        alert('Selecione uma série válida');
-        return;
-      }
-
       const investmentData = {
         debenture_id: formData.debenture_id,
         series_id: formData.series_id,
         investor_id: formData.investor_id,
-        responsible_id: userProfile.id,
+        assessor_id: formData.assessor_id,
+        escritorio_id: formData.escritorio_id,
+        master_id: formData.master_id,
+        investment_amount: parseFloat(formData.investment_amount),
         investment_date: new Date().toISOString().split('T')[0],
-        maturity_date: calculateMaturityDate(formData.series_id),
-        amount: parseFloat(formData.amount),
-        annual_remuneration: selectedSeries.remuneration_year,
-        monthly_remuneration: selectedSeries.remuneration_month,
-        max_annual_commission: selectedSeries.max_commission_year,
-        max_monthly_commission: selectedSeries.max_commission_month,
-        master_id: formData.master_id || null,
-        master_percentage: parseFloat(formData.master_percentage) || null,
-        office_id: formData.office_id || null,
-        office_percentage: parseFloat(formData.office_percentage) || null,
-        advisor_id: formData.advisor_id || null,
-        advisor_percentage: parseFloat(formData.advisor_percentage) || null,
-        status: 'Ativo'
+        maturity_date: calculateMaturityDate(),
+        assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
+        escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
+        master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
+        notes: formData.notes,
+        created_by: user?.id,
+        updated_by: user?.id
       };
-
-      let result;
-      if (editingInvestment) {
-        result = await supabase
-          .from('investments')
-          .update(investmentData)
-          .eq('id', editingInvestment.id);
-      } else {
-        result = await supabase
-          .from('investments')
-          .insert([investmentData]);
-      }
-
-      if (result.error) throw result.error;
-
-      alert(editingInvestment ? 'Investimento atualizado com sucesso!' : 'Investimento criado com sucesso!');
-      handleCancel();
       
-      if (isInvestorUser) {
-        fetchInvestorInvestments();
-      } else {
-        fetchInvestments();
-      }
-    } catch (error) {
-      console.error('Erro ao salvar investimento:', error);
-      alert('Erro ao salvar investimento');
-    }
-  };
-
-  const handleEdit = (investment: Investment) => {
-    setEditingInvestment(investment);
-    setFormData({
-      debenture_id: investment.debenture_id,
-      series_id: investment.series_id,
-      investor_id: investment.investor_id,
-      amount: investment.amount.toString(),
-      master_id: investment.master_id || '',
-      master_percentage: investment.master_percentage?.toString() || '',
-      office_id: investment.office_id || '',
-      office_percentage: investment.office_percentage?.toString() || '',
-      advisor_id: investment.advisor_id || '',
-      advisor_percentage: investment.advisor_percentage?.toString() || ''
-    });
-    
-    // Carregar séries da debênture
-    if (investment.debenture_id) {
-      fetchSeriesByDebenture(investment.debenture_id);
-    }
-    
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja deletar este investimento?')) return;
-
-    try {
       const { error } = await supabase
         .from('investments')
-        .delete()
-        .eq('id', id);
-
+        .insert([investmentData]);
+        
       if (error) throw error;
-
-      alert('Investimento deletado com sucesso!');
       
-      if (isInvestorUser) {
-        fetchInvestorInvestments();
-      } else {
-        fetchInvestments();
-      }
-    } catch (error) {
-      console.error('Erro ao deletar investimento:', error);
-      alert('Erro ao deletar investimento');
+      setSuccess('Investimento criado com sucesso!');
+      
+      // Reset form
+      setFormData({
+        debenture_id: '',
+        series_id: '',
+        investor_id: '',
+        assessor_id: '',
+        escritorio_id: '',
+        master_id: '',
+        investment_amount: '',
+        assessor_commission_percentage: '',
+        escritorio_commission_percentage: '',
+        master_commission_percentage: '',
+        notes: ''
+      });
+      setSelectedSeries(null);
+      
+      // Reload investments
+      const { data } = await supabase
+        .from('investments')
+        .select(`
+          *,
+          debentures(name),
+          series(series_letter, commercial_name),
+          investor:users!investments_investor_id_fkey(full_name),
+          assessor:users!investments_assessor_id_fkey(full_name),
+          escritorio:users!investments_escritorio_id_fkey(full_name),
+          master:users!investments_master_id_fkey(full_name)
+        `)
+        .order('created_at', { ascending: false });
+      setInvestments(data || []);
+      
+    } catch (err: any) {
+      setError(err.message || 'Erro ao criar investimento');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingInvestment(null);
-    setFormData({
-      debenture_id: '',
-      series_id: '',
-      investor_id: '',
-      amount: '',
-      master_id: '',
-      master_percentage: '',
-      office_id: '',
-      office_percentage: '',
-      advisor_id: '',
-      advisor_percentage: ''
-    });
-    setSeries([]);
+  // Calculate commission total
+  const getCommissionTotal = () => {
+    const assessor = parseFloat(formData.assessor_commission_percentage) || 0;
+    const escritorio = parseFloat(formData.escritorio_commission_percentage) || 0;
+    const master = parseFloat(formData.master_commission_percentage) || 0;
+    return assessor + escritorio + master;
   };
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'Ativo':
-        return 'bg-green-100 text-green-800';
-      case 'Vencido':
-        return 'bg-red-100 text-red-800';
-      case 'Cancelado':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
-    }
-  };
-
-  const getUsersByType = (userType: string) => {
-    return networkUsers.filter(user => user.user_type === userType);
-  };
-
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Carregando...</div>
-        </div>
-      </AppLayout>
-    );
+  if (!user) {
+    return <div>Carregando...</div>;
   }
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Investimentos</h1>
-            <p className="text-gray-600">
-              {isInvestorUser 
-                ? 'Visualize seus investimentos'
-                : 'Gerencie investimentos do sistema com controle hierárquico'
-              }
-            </p>
-          </div>
-          {canCreateInvestments && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-            >
-              Novo Investimento
-            </button>
-          )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Gerenciamento de Investimentos</h1>
+          <p className="mt-2 text-gray-600">Crie e gerencie investimentos em debêntures</p>
         </div>
 
-        {/* Formulário de Investimento */}
-        {showForm && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4">
-                {editingInvestment ? 'Editar Investimento' : 'Novo Investimento'}
-              </h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Debênture */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Debênture *
-                    </label>
-                    <select
-                      value={formData.debenture_id}
-                      onChange={(e) => handleDebentureChange(e.target.value)}
-                      required
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    >
-                      <option value="">Selecione uma debênture</option>
-                      {debentures.map((debenture) => (
-                        <option key={debenture.id} value={debenture.id}>
-                          {debenture.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+        {/* Create Investment Form */}
+        <div className="bg-white shadow rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Criar Novo Investimento</h2>
+          
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
+          
+          {success && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-green-600">{success}</p>
+            </div>
+          )}
 
-                  {/* Série */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Série *
-                    </label>
-                    <select
-                      value={formData.series_id}
-                      onChange={(e) => handleSeriesChange(e.target.value)}
-                      required
-                      disabled={!formData.debenture_id}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100"
-                    >
-                      <option value="">Selecione uma série</option>
-                      {series.map((serie) => (
-                        <option key={serie.id} value={serie.id}>
-                          Série {serie.series_letter} - {serie.commercial_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Debenture Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Debênture *
+                </label>
+                <select
+                  value={formData.debenture_id}
+                  onChange={(e) => setFormData(prev => ({ ...prev, debenture_id: e.target.value, series_id: '' }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Selecione uma debênture</option>
+                  {debentures.map(debenture => (
+                    <option key={debenture.id} value={debenture.id}>
+                      {debenture.name} - {debenture.issuer}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  {/* Investidor */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Investidor *
-                    </label>
-                    <select
-                      value={formData.investor_id}
-                      onChange={(e) => setFormData(prev => ({ ...prev, investor_id: e.target.value }))}
-                      required
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    >
-                      <option value="">Selecione um investidor</option>
-                      {getUsersByType('Investidor').map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.name} ({user.email})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              {/* Series Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Série *
+                </label>
+                <select
+                  value={formData.series_id}
+                  onChange={(e) => handleSeriesChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={!formData.debenture_id}
+                >
+                  <option value="">Selecione uma série</option>
+                  {series.map(serie => (
+                    <option key={serie.id} value={serie.id}>
+                      Série {serie.series_letter} - {serie.commercial_name} ({serie.term_months} meses)
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  {/* Valor do Investimento */}
+              {/* Investment Amount */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Valor do Investimento (R$) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.investment_amount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, investment_amount: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Investor Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Investidor *
+                </label>
+                <select
+                  value={formData.investor_id}
+                  onChange={(e) => setFormData(prev => ({ ...prev, investor_id: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Selecione um investidor</option>
+                  {investors.map(investor => (
+                    <option key={investor.id} value={investor.id}>
+                      {investor.full_name} ({investor.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Series Information Display */}
+            {selectedSeries && (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Informações da Série</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Valor do Investimento *
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.amount}
-                      onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                      required
-                      placeholder="0,00"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    />
+                    <span className="font-medium">Prazo:</span>
+                    <p>{selectedSeries.term_months} meses</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Remuneração ao Ano:</span>
+                    <p>{selectedSeries.remuneration_year}%</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Remuneração ao Mês:</span>
+                    <p>{selectedSeries.remuneration_month}%</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Comissão Máxima ao Ano:</span>
+                    <p>{selectedSeries.max_commission_year}%</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Comissão Máxima ao Mês:</span>
+                    <p>{selectedSeries.max_commission_month}%</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Data de Vencimento:</span>
+                    <p>{calculateMaturityDate()}</p>
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Informações da Série Selecionada */}
-                {getSelectedSeriesInfo() && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-2">Informações da Série</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Prazo:</span>
-                        <div className="font-medium">{getSelectedSeriesInfo()?.term_months} meses</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Remuneração/Ano:</span>
-                        <div className="font-medium">{getSelectedSeriesInfo()?.remuneration_year}%</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Remuneração/Mês:</span>
-                        <div className="font-medium">{getSelectedSeriesInfo()?.remuneration_month}%</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Comissão Máxima:</span>
-                        <div className="font-medium">{getSelectedSeriesInfo()?.max_commission_year}%/ano</div>
-                      </div>
-                    </div>
-                    {formData.series_id && (
-                      <div className="mt-2">
-                        <span className="text-gray-600">Vencimento:</span>
-                        <div className="font-medium">{formatDate(calculateMaturityDate(formData.series_id))}</div>
-                      </div>
-                    )}
+            {/* Commission Split */}
+            <div className="bg-blue-50 p-4 rounded-md">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Split de Comissionamento</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Master */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Master
+                  </label>
+                  <select
+                    value={formData.master_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, master_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                    required
+                  >
+                    <option value="">Selecione um master</option>
+                    {masters.map(master => (
+                      <option key={master.id} value={master.id}>
+                        {master.full_name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="Percentual (%)"
+                    value={formData.master_commission_percentage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, master_commission_percentage: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Escritório */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Escritório
+                  </label>
+                  <select
+                    value={formData.escritorio_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, escritorio_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                    required
+                  >
+                    <option value="">Selecione um escritório</option>
+                    {escritorios.map(escritorio => (
+                      <option key={escritorio.id} value={escritorio.id}>
+                        {escritorio.full_name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="Percentual (%)"
+                    value={formData.escritorio_commission_percentage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, escritorio_commission_percentage: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Assessor */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assessor
+                  </label>
+                  <select
+                    value={formData.assessor_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, assessor_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                    required
+                  >
+                    <option value="">Selecione um assessor</option>
+                    {assessors.map(assessor => (
+                      <option key={assessor.id} value={assessor.id}>
+                        {assessor.full_name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="Percentual (%)"
+                    value={formData.assessor_commission_percentage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, assessor_commission_percentage: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Commission Total */}
+              <div className="mt-4 p-3 bg-white rounded border">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Total dos Percentuais:</span>
+                  <span className={`font-bold ${getCommissionTotal() > 100 ? 'text-red-600' : getCommissionTotal() > (selectedSeries?.max_commission_year || 100) ? 'text-orange-600' : 'text-green-600'}`}>
+                    {getCommissionTotal().toFixed(2)}%
+                  </span>
+                </div>
+                {selectedSeries && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    Máximo permitido pela série: {selectedSeries.max_commission_year}%
                   </div>
                 )}
-
-                {/* Split de Comissionamento */}
-                <div className="border-t pt-4">
-                  <h3 className="font-medium text-gray-900 mb-4">Split de Comissionamento</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Master */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Master</label>
-                      <select
-                        value={formData.master_id}
-                        onChange={(e) => setFormData(prev => ({ ...prev, master_id: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      >
-                        <option value="">Selecione um Master</option>
-                        {getUsersByType('Master').map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        value={formData.master_percentage}
-                        onChange={(e) => setFormData(prev => ({ ...prev, master_percentage: e.target.value }))}
-                        placeholder="Percentual (%)"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      />
-                    </div>
-
-                    {/* Escritório */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Escritório</label>
-                      <select
-                        value={formData.office_id}
-                        onChange={(e) => setFormData(prev => ({ ...prev, office_id: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      >
-                        <option value="">Selecione um Escritório</option>
-                        {getUsersByType('Escritório').map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        value={formData.office_percentage}
-                        onChange={(e) => setFormData(prev => ({ ...prev, office_percentage: e.target.value }))}
-                        placeholder="Percentual (%)"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      />
-                    </div>
-
-                    {/* Assessor */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Assessor</label>
-                      <select
-                        value={formData.advisor_id}
-                        onChange={(e) => setFormData(prev => ({ ...prev, advisor_id: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      >
-                        <option value="">Selecione um Assessor</option>
-                        {getUsersByType('Assessor').map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        value={formData.advisor_percentage}
-                        onChange={(e) => setFormData(prev => ({ ...prev, advisor_percentage: e.target.value }))}
-                        placeholder="Percentual (%)"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Total dos Percentuais */}
-                  <div className="mt-4 p-3 bg-gray-100 rounded-md">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Total dos Percentuais:</span>
-                      <span className={`font-bold ${isValidPercentage() ? 'text-green-600' : 'text-red-600'}`}>
-                        {calculateTotalPercentage().toFixed(2)}%
-                      </span>
-                    </div>
-                    {getSelectedSeriesInfo() && (
-                      <div className="text-sm text-gray-600 mt-1">
-                        Máximo permitido: {getSelectedSeriesInfo()?.max_commission_year}%
-                      </div>
-                    )}
-                    {!isValidPercentage() && (
-                      <div className="text-sm text-red-600 mt-1">
-                        ⚠️ Total excede a comissão máxima da série
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Botões */}
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!isValidPercentage()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {editingInvestment ? 'Atualizar' : 'Criar'}
-                  </button>
-                </div>
-              </form>
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Tabela de Investimentos */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+            {/* Notes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Observações
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Observações adicionais sobre o investimento..."
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading || getCommissionTotal() > 100 || (selectedSeries && getCommissionTotal() > selectedSeries.max_commission_year)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Criando...' : 'Criar Investimento'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Investments List */}
+        <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">
-              Investimentos ({investments.length})
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900">Investimentos Criados</h2>
           </div>
-
+          
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Debênture/Série
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Investidor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Valor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data/Vencimento
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Responsável
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  {canEditInvestments && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ações
-                    </th>
-                  )}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investidor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {investments.map((investment) => (
+                {investments.map((investment: any) => (
                   <tr key={investment.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        #{investment.id.slice(-8)}
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{investment.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {investment.debentures?.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {investment.series?.series_letter} - {investment.series?.commercial_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {investment.investor?.full_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      R$ {investment.investment_amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(investment.investment_date).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(investment.maturity_date).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {(investment as any).debentures?.name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Série {(investment as any).series?.series_letter} - {(investment as any).series?.commercial_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {(investment as any).investor?.name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {(investment as any).investor?.email}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatCurrency(investment.amount)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatDate(investment.investment_date)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Venc: {formatDate(investment.maturity_date)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {(investment as any).responsible?.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(investment.status)}`}>
-                        {investment.status}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        investment.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : investment.status === 'matured'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {investment.status === 'active' ? 'Ativo' : 
+                         investment.status === 'matured' ? 'Vencido' : 'Cancelado'}
                       </span>
                     </td>
-                    {canEditInvestments && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button
-                          onClick={() => handleEdit(investment)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          Editar
-                        </button>
-                        {(isGlobalUser || investment.responsible_id === userProfile.id) && (
-                          <button
-                            onClick={() => handleDelete(investment.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Deletar
-                          </button>
-                        )}
-                      </td>
-                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
-
+            
             {investments.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-500">
-                  {isInvestorUser 
-                    ? 'Você ainda não possui investimentos cadastrados.'
-                    : 'Nenhum investimento encontrado.'
-                  }
-                </div>
-                {canCreateInvestments && (
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                  >
-                    Criar Primeiro Investimento
-                  </button>
-                )}
+              <div className="text-center py-8 text-gray-500">
+                Nenhum investimento encontrado
               </div>
             )}
           </div>

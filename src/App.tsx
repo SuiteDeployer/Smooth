@@ -7,6 +7,7 @@ import EmptyDashboard from './components/Dashboard/EmptyDashboard';
 import UserManagement from './components/Users/UserManagement';
 import DebentureManagement from './components/Debentures/DebentureManagement';
 import SeriesManagement from './components/Series/SeriesManagement';
+import InvestmentManagement from './components/Investments/InvestmentManagement';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -115,6 +116,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SeriesManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Gerenciamento de investimentos */}
+            <Route
+              path="/investments"
+              element={
+                <ProtectedRoute>
+                  <InvestmentManagement />
                 </ProtectedRoute>
               }
             />

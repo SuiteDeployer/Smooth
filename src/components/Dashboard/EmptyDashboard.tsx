@@ -81,11 +81,25 @@ const EmptyDashboard: React.FC = () => {
             </button>
           )}
 
+          {/* Card Investimentos - oculto para Investidores */}
+          {userProfile?.user_type !== 'Investidor' && (
+            <button
+              onClick={() => navigate('/investments')}
+              className="bg-green-600 hover:bg-green-700 text-white p-6 rounded-lg shadow-md transition-colors"
+            >
+              <div className="text-2xl mb-2">💰</div>
+              <h3 className="text-lg font-semibold mb-2">Investimentos</h3>
+              <p className="text-sm opacity-90">
+                Criar e gerenciar investimentos com split de comissão
+              </p>
+            </button>
+          )}
+
           <div className="bg-gray-100 p-6 rounded-lg shadow-md">
             <div className="text-2xl mb-2">🚧</div>
             <h3 className="text-lg font-semibold mb-2 text-gray-600">Em Desenvolvimento</h3>
             <p className="text-sm text-gray-500">
-              Outras funcionalidades serão implementadas em breve
+              Comissões e Remunerações serão implementadas em breve
             </p>
           </div>
         </div>
@@ -99,8 +113,10 @@ const EmptyDashboard: React.FC = () => {
             <p>✅ Login funcionando</p>
             <p>✅ Usuário admin@smooth.com.br configurado</p>
             <p>✅ Área de gerenciamento de usuários</p>
+            <p>✅ Área de gerenciamento de debêntures</p>
+            <p>✅ Área de gerenciamento de investimentos</p>
             <p>✅ Políticas RLS hierárquicas</p>
-            <p>✅ CRUD completo de usuários</p>
+            <p>✅ Split de comissionamento</p>
           </div>
         </div>
       </div>

@@ -70,6 +70,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   Debêntures
                 </button>
               )}
+              {/* Investimentos - oculto para Investidores */}
+              {userProfile?.user_type !== 'Investidor' && (
+                <button
+                  onClick={() => navigate('/investments')}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Investimentos
+                </button>
+              )}
             </nav>
 
             {/* User Info & Logout */}
