@@ -72,6 +72,7 @@ export default function InvestmentManagement() {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // State for form data
   const [formData, setFormData] = useState({
@@ -454,6 +455,8 @@ export default function InvestmentManagement() {
       setInvestments(data || []);
     } catch (err) {
       console.error('Error loading investments:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -745,6 +748,11 @@ export default function InvestmentManagement() {
             <h2 className="text-xl font-semibold text-gray-900">Investimentos Criados</h2>
           </div>
           
+          {isLoading || !userProfile ? (
+            <div className="px-6 py-8 text-center">
+              <p className="text-gray-500">Carregando investimentos...</p>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -840,6 +848,7 @@ export default function InvestmentManagement() {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Modal */}
