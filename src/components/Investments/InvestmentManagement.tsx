@@ -791,7 +791,7 @@ const InvestmentManagement: React.FC = () => {
                         <option value="">Selecione um investidor</option>
                         {investors.map(investor => (
                           <option key={investor.id} value={investor.id}>
-                            {investor.full_name} ({investor.email})
+                            {investor.name} ({investor.email})
                           </option>
                         ))}
                       </select>
@@ -897,7 +897,7 @@ const InvestmentManagement: React.FC = () => {
                           <option value="">Selecione um master</option>
                           {masters.map(master => (
                             <option key={master.id} value={master.id}>
-                              {master.full_name}
+                              {master.name}
                             </option>
                           ))}
                         </select>
@@ -927,7 +927,7 @@ const InvestmentManagement: React.FC = () => {
                           <option value="">Selecione um escritório</option>
                           {escritorios.map(escritorio => (
                             <option key={escritorio.id} value={escritorio.id}>
-                              {escritorio.full_name}
+                              {escritorio.name}
                             </option>
                           ))}
                         </select>
@@ -957,7 +957,7 @@ const InvestmentManagement: React.FC = () => {
                           <option value="">Selecione um assessor</option>
                           {assessors.map(assessor => (
                             <option key={assessor.id} value={assessor.id}>
-                              {assessor.full_name}
+                              {assessor.name}
                             </option>
                           ))}
                         </select>
