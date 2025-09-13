@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/Auth/LoginForm';
 import EmptyDashboard from './components/Dashboard/EmptyDashboard';
 import UserManagement from './components/Users/UserManagement';
+import DebentureManagement from './components/Debentures/DebentureManagement';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -93,6 +94,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <UserManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Gerenciamento de debêntures */}
+            <Route
+              path="/debentures"
+              element={
+                <ProtectedRoute>
+                  <DebentureManagement />
                 </ProtectedRoute>
               }
             />
