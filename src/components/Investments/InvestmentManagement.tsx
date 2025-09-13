@@ -1155,9 +1155,7 @@ export default function InvestmentManagement() {
           </div>
         )}
       </div>
-    </AppLayout>
-  );
-};
-
-export default InvestmentManagement;
+      </AppLayout>
+    );
+  }
 
