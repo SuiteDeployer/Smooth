@@ -55,7 +55,9 @@ const DebentureManagement: React.FC = () => {
     term_months: '',
     captacao_amount: '',
     max_commission_year: '',
+    max_commission_month: '', // Campo calculado automaticamente
     remuneration_year: '',
+    remuneration_month: '', // Campo calculado automaticamente
     minimum_investment: '',
     interest_rate: '',
     max_commission_percentage: ''
@@ -96,6 +98,35 @@ const DebentureManagement: React.FC = () => {
       fetchAllSeries();
     }
   }, [debentures]);
+
+  // Função para calcular valores mensais automaticamente
+  const calculateMonthlyValues = (yearValue: string) => {
+    const numericValue = parseFloat(yearValue);
+    if (isNaN(numericValue) || numericValue === 0) {
+      return '';
+    }
+    return (numericValue / 12).toFixed(2);
+  };
+
+  // Handler para mudança na comissão anual
+  const handleCommissionYearChange = (value: string) => {
+    const monthValue = calculateMonthlyValues(value);
+    setSeriesFormData({
+      ...seriesFormData,
+      max_commission_year: value,
+      max_commission_month: monthValue
+    });
+  };
+
+  // Handler para mudança na remuneração anual
+  const handleRemunerationYearChange = (value: string) => {
+    const monthValue = calculateMonthlyValues(value);
+    setSeriesFormData({
+      ...seriesFormData,
+      remuneration_year: value,
+      remuneration_month: monthValue
+    });
+  };
 
   const fetchDebentures = async () => {
     try {
@@ -266,13 +297,20 @@ const DebentureManagement: React.FC = () => {
     console.log('🔧 Editando série:', serie);
     setEditingSeries(serie);
     setSelectedDebentureId(serie.debenture_id);
+    
+    // Calcular valores mensais ao carregar dados para edição
+    const commissionMonth = calculateMonthlyValues(String(serie.max_commission_year || ''));
+    const remunerationMonth = calculateMonthlyValues(String(serie.remuneration_year || ''));
+    
     setSeriesFormData({
       series_letter: serie.series_letter || '',
       commercial_name: serie.commercial_name || '',
       term_months: String(serie.term_months || ''),
       captacao_amount: String(serie.captacao_amount || ''),
       max_commission_year: String(serie.max_commission_year || ''),
+      max_commission_month: commissionMonth,
       remuneration_year: String(serie.remuneration_year || ''),
+      remuneration_month: remunerationMonth,
       minimum_investment: String(serie.minimum_investment || ''),
       interest_rate: String(serie.interest_rate || ''),
       max_commission_percentage: String(serie.max_commission_percentage || '')
@@ -393,7 +431,9 @@ const DebentureManagement: React.FC = () => {
       term_months: '',
       captacao_amount: '',
       max_commission_year: '',
+      max_commission_month: '',
       remuneration_year: '',
+      remuneration_month: '',
       minimum_investment: '',
       interest_rate: '',
       max_commission_percentage: ''
@@ -732,25 +772,42 @@ const DebentureManagement: React.FC = () => {
         {/* Modal de formulário de série */}
         {showSeriesForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">
                 {editingSeries ? 'Editar Série' : 'Nova Série'}
               </h2>
               
               <form onSubmit={handleSeriesSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Letra da Série
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={1}
-                    value={seriesFormData.series_letter}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, series_letter: e.target.value.toUpperCase()})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="A"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Letra da Série
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={1}
+                      value={seriesFormData.series_letter}
+                      onChange={(e) => setSeriesFormData({...seriesFormData, series_letter: e.target.value.toUpperCase()})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="A"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Prazo (meses)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={seriesFormData.term_months}
+                      onChange={(e) => setSeriesFormData({...seriesFormData, term_months: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="12"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -764,21 +821,6 @@ const DebentureManagement: React.FC = () => {
                     onChange={(e) => setSeriesFormData({...seriesFormData, commercial_name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Ex: Otmow 12 meses"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prazo (meses)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={seriesFormData.term_months}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, term_months: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="12"
                   />
                 </div>
 
@@ -798,36 +840,72 @@ const DebentureManagement: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Comissão Máxima/Ano (%)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    step="0.01"
-                    value={seriesFormData.max_commission_year}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, max_commission_year: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="12"
-                  />
+                {/* Seção de Comissão com cálculo automático */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-blue-900 mb-3">Comissão Máxima</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Por Ano (%)
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        step="0.01"
+                        value={seriesFormData.max_commission_year}
+                        onChange={(e) => handleCommissionYearChange(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="12"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Por Mês (%) <span className="text-blue-600 text-xs">- Calculado automaticamente</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={seriesFormData.max_commission_month}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                        placeholder="1.00"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Remuneração/Ano (%)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    step="0.01"
-                    value={seriesFormData.remuneration_year}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, remuneration_year: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="24"
-                  />
+                {/* Seção de Remuneração com cálculo automático */}
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-green-900 mb-3">Remuneração</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Por Ano (%)
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        step="0.01"
+                        value={seriesFormData.remuneration_year}
+                        onChange={(e) => handleRemunerationYearChange(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="24"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Por Mês (%) <span className="text-green-600 text-xs">- Calculado automaticamente</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={seriesFormData.remuneration_month}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                        placeholder="2.00"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -845,34 +923,36 @@ const DebentureManagement: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Taxa de Juros (%)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={seriesFormData.interest_rate}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, interest_rate: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="10.5"
-                  />
-                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Taxa de Juros (%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={seriesFormData.interest_rate}
+                      onChange={(e) => setSeriesFormData({...seriesFormData, interest_rate: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="10.5"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Comissão Máxima Total (%)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={seriesFormData.max_commission_percentage}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, max_commission_percentage: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="5.0"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Comissão Máxima Total (%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={seriesFormData.max_commission_percentage}
+                      onChange={(e) => setSeriesFormData({...seriesFormData, max_commission_percentage: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="5.0"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-4">
