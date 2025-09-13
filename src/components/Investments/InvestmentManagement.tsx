@@ -616,19 +616,33 @@ const InvestmentManagement: React.FC = () => {
   const canEditInvestment = (investment: any) => {
     if (!currentUser) return false;
     
+    console.log('Checking edit permission for investment:', investment.id);
+    console.log('Current user:', currentUser.user_type, currentUser.id);
+    console.log('Investment master_id:', investment.master_id);
+    console.log('Investment escritorio_id:', investment.escritorio_id);
+    console.log('Investment assessor_id:', investment.assessor_id);
+    
     switch (currentUser.user_type) {
       case 'Global':
+        console.log('Global user - can edit');
         return true;
       case 'Master':
-        return investment.master_id === currentUser.id ||
+        const canEdit = investment.master_id === currentUser.id ||
                investment.escritorio_id === currentUser.id ||
                investment.assessor_id === currentUser.id;
+        console.log('Master user - can edit:', canEdit);
+        return canEdit;
       case 'Escritório':
-        return investment.escritorio_id === currentUser.id ||
+        const canEditEscritorio = investment.escritorio_id === currentUser.id ||
                investment.assessor_id === currentUser.id;
+        console.log('Escritório user - can edit:', canEditEscritorio);
+        return canEditEscritorio;
       case 'Assessor':
-        return investment.assessor_id === currentUser.id;
+        const canEditAssessor = investment.assessor_id === currentUser.id;
+        console.log('Assessor user - can edit:', canEditAssessor);
+        return canEditAssessor;
       default:
+        console.log('Unknown user type - cannot edit');
         return false;
     }
   };
@@ -637,18 +651,26 @@ const InvestmentManagement: React.FC = () => {
   const canDeleteInvestment = (investment: any) => {
     if (!currentUser) return false;
     
+    console.log('Checking delete permission for investment:', investment.id);
+    
     switch (currentUser.user_type) {
       case 'Global':
+        console.log('Global user - can delete');
         return true;
       case 'Master':
-        return investment.master_id === currentUser.id ||
+        const canDelete = investment.master_id === currentUser.id ||
                investment.escritorio_id === currentUser.id ||
                investment.assessor_id === currentUser.id;
+        console.log('Master user - can delete:', canDelete);
+        return canDelete;
       case 'Escritório':
+        console.log('Escritório user - cannot delete');
         return false; // Escritório can only edit, not delete
       case 'Assessor':
+        console.log('Assessor user - cannot delete');
         return false; // Assessor can only edit, not delete
       default:
+        console.log('Unknown user type - cannot delete');
         return false;
     }
   };
