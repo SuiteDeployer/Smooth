@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../Layout/AppLayout';
 import toast from 'react-hot-toast';
 
@@ -17,6 +18,7 @@ interface Debenture {
 
 const DebentureManagement: React.FC = () => {
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
   const [debentures, setDebentures] = useState<Debenture[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -28,8 +30,17 @@ const DebentureManagement: React.FC = () => {
     status: 'Ativa' as Debenture['status']
   });
 
-  // Verificar se o usuário é Global
+  // Verificar permissões de usuário
   const isGlobalUser = userProfile?.user_type === 'Global';
+  const canViewDebentures = ['Global', 'Master', 'Escritório', 'Assessor'].includes(userProfile?.user_type || '');
+  
+  // Redirecionar Investidores
+  useEffect(() => {
+    if (userProfile && !canViewDebentures) {
+      navigate('/dashboard');
+      toast.error('Você não tem permissão para acessar esta área');
+    }
+  }, [userProfile, canViewDebentures, navigate]);
 
   useEffect(() => {
     fetchDebentures();
@@ -213,7 +224,12 @@ const DebentureManagement: React.FC = () => {
       <div className="py-2">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Debêntures</h1>
-          <p className="text-gray-600 mt-1">Gerencie debêntures do sistema</p>
+          <p className="text-gray-600 mt-1">
+            {isGlobalUser 
+              ? 'Gerencie debêntures do sistema' 
+              : 'Visualize debêntures do sistema (somente leitura)'
+            }
+          </p>
         </div>
 
         {/* Header com botão */}

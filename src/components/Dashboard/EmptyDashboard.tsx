@@ -55,7 +55,7 @@ const EmptyDashboard: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className={`mt-12 grid grid-cols-1 gap-6 max-w-4xl mx-auto ${userProfile?.user_type === 'Investidor' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
           <button
             onClick={() => navigate('/users')}
             className="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-lg shadow-md transition-colors"
@@ -67,16 +67,19 @@ const EmptyDashboard: React.FC = () => {
             </p>
           </button>
 
-          <button
-            onClick={() => navigate('/debentures')}
-            className="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-lg shadow-md transition-colors"
-          >
-            <div className="text-2xl mb-2">📊</div>
-            <h3 className="text-lg font-semibold mb-2">Debêntures</h3>
-            <p className="text-sm opacity-90">
-              Gerenciar debêntures e captações do sistema
-            </p>
-          </button>
+          {/* Card Debêntures - oculto para Investidores */}
+          {userProfile?.user_type !== 'Investidor' && (
+            <button
+              onClick={() => navigate('/debentures')}
+              className="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-lg shadow-md transition-colors"
+            >
+              <div className="text-2xl mb-2">📊</div>
+              <h3 className="text-lg font-semibold mb-2">Debêntures</h3>
+              <p className="text-sm opacity-90">
+                Gerenciar debêntures e captações do sistema
+              </p>
+            </button>
+          )}
 
           <div className="bg-gray-100 p-6 rounded-lg shadow-md">
             <div className="text-2xl mb-2">🚧</div>
