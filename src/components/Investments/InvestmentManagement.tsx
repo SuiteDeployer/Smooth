@@ -430,29 +430,36 @@ const InvestmentManagement: React.FC = () => {
   };
 
   // Load investments
-  useEffect(() => {
-    const loadInvestments = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('investments')
-          .select(`
-            *,
-            debentures(name),
-            series(series_letter, commercial_name),
-            investor:users!investments_investor_id_fkey(full_name),
-            assessor:users!investments_assessor_id_fkey(full_name),
-            escritorio:users!investments_escritorio_id_fkey(full_name),
-            master:users!investments_master_id_fkey(full_name)
-          `)
-          .order('created_at', { ascending: false });
-          
-        if (error) throw error;
-        setInvestments(data || []);
-      } catch (err) {
-        console.error('Error loading investments:', err);
+  const loadInvestments = async () => {
+    try {
+      console.log('Loading investments...');
+      const { data, error } = await supabase
+        .from('investments')
+        .select(`
+          *,
+          debentures(name),
+          series(series_letter, commercial_name),
+          investor:users!investments_investor_id_fkey(name, email),
+          assessor:users!investments_assessor_id_fkey(name, email),
+          escritorio:users!investments_escritorio_id_fkey(name, email),
+          master:users!investments_master_id_fkey(name, email),
+          responsible:users!investments_created_by_fkey(name, email)
+        `)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error('Error loading investments:', error);
+        throw error;
       }
-    };
-    
+      
+      console.log('Loaded investments:', data?.length || 0, data);
+      setInvestments(data || []);
+    } catch (err) {
+      console.error('Error loading investments:', err);
+    }
+  };
+
+  useEffect(() => {
     loadInvestments();
   }, []);
 
@@ -559,20 +566,8 @@ const InvestmentManagement: React.FC = () => {
       // Close modal
       setIsModalOpen(false);
       
-      // Reload investments
-      const { data } = await supabase
-        .from('investments')
-        .select(`
-          *,
-          debentures(name),
-          series(series_letter, commercial_name),
-          investor:users!investments_investor_id_fkey(full_name),
-          assessor:users!investments_assessor_id_fkey(full_name),
-          escritorio:users!investments_escritorio_id_fkey(full_name),
-          master:users!investments_master_id_fkey(full_name)
-        `)
-        .order('created_at', { ascending: false });
-      setInvestments(data || []);
+      // Reload investments using the corrected function
+      await loadInvestments();
       
     } catch (err: any) {
       setError(err.message || 'Erro ao criar investimento');
@@ -661,6 +656,7 @@ const InvestmentManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investidor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
@@ -680,7 +676,10 @@ const InvestmentManagement: React.FC = () => {
                       {investment.series?.series_letter} - {investment.series?.commercial_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {investment.investor?.full_name}
+                      {investment.investor?.name || investment.investor?.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {investment.responsible?.name || investment.responsible?.email || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       R$ {investment.investment_amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
