@@ -758,7 +758,9 @@ export default function InvestmentManagement() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  {userProfile && userProfile.user_type !== 'Investidor' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -800,8 +802,9 @@ export default function InvestmentManagement() {
                          investment.status === 'matured' ? 'Vencido' : 'Cancelado'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                    {userProfile && userProfile.user_type !== 'Investidor' && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
                         {canEditInvestment(investment) && (
                           <button
                             onClick={() => handleEditInvestment(investment)}
@@ -825,6 +828,7 @@ export default function InvestmentManagement() {
                           )}
                         </div>
                       </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
