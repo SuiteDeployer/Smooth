@@ -164,15 +164,60 @@ const InvestmentManagement: React.FC = () => {
     loadSeries();
   }, [formData.debenture_id]);
 
-  // Load network users based on current user type
+  // Load network users based on current user type (for investor selection - original permissions)
   useEffect(() => {
     const loadNetworkUsers = async () => {
       if (!currentUser) return;
       
       try {
+        let query = supabase.from('users').select('*');
+        
+        // Load users based on current user's permissions (original logic for investors)
+        switch (currentUser.user_type) {
+          case 'Global':
+            // Global can see all users
+            break;
+          case 'Master':
+            // Master can see their network
+            query = query.or(`master_id.eq.${currentUser.id},id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id = '${currentUser.id}')`);
+            break;
+          case 'Escritório':
+            // Escritório can see their office network
+            query = query.or(`escritorio_id.eq.${currentUser.id},id.eq.${currentUser.id}`);
+            break;
+          case 'Assessor':
+            // Assessor can see themselves and investors
+            query = query.or(`id.eq.${currentUser.id},user_type.eq.Investidor`);
+            break;
+          default:
+            return;
+        }
+        
+        const { data, error } = await query.order('full_name');
+        if (error) throw error;
+        
+        const users = data || [];
+        
+        // Set investors (for investor selection dropdown)
+        setInvestors(users.filter(u => u.user_type === 'Investidor'));
+        
+      } catch (err) {
+        console.error('Error loading network users:', err);
+      }
+    };
+    
+    loadNetworkUsers();
+  }, [currentUser]);
+
+  // Load commission split users (includes hierarchy - superior and inferior users)
+  useEffect(() => {
+    const loadCommissionUsers = async () => {
+      if (!currentUser) return;
+      
+      try {
         let allUsers: User[] = [];
         
-        // Load users based on current user's permissions and network
+        // Load users for commission split (includes hierarchy)
         switch (currentUser.user_type) {
           case 'Global':
             // Global can see all users
@@ -216,14 +261,12 @@ const InvestmentManagement: React.FC = () => {
             break;
             
           case 'Assessor':
-            // Assessor can see their hierarchy (master, escritório, themselves) + investors
+            // Assessor can see their hierarchy (master, escritório, themselves)
             const assessorQueries = [
               // Get themselves
               supabase.from('users').select('*').eq('id', currentUser.id),
               // Get their escritório if exists
-              ...(currentUser.escritorio_id ? [supabase.from('users').select('*').eq('id', currentUser.escritorio_id)] : []),
-              // Get investors (for investor selection, not commission split)
-              supabase.from('users').select('*').eq('user_type', 'Investidor')
+              ...(currentUser.escritorio_id ? [supabase.from('users').select('*').eq('id', currentUser.escritorio_id)] : [])
             ];
             
             // Also get master if escritório has one
@@ -259,18 +302,17 @@ const InvestmentManagement: React.FC = () => {
           index === self.findIndex(u => u.id === user.id)
         );
         
-        // Separate users by type
-        setInvestors(uniqueUsers.filter(u => u.user_type === 'Investidor'));
+        // Separate users by type (for commission split dropdowns)
         setMasters(uniqueUsers.filter(u => u.user_type === 'Master'));
         setEscritorios(uniqueUsers.filter(u => u.user_type === 'Escritório'));
         setAssessors(uniqueUsers.filter(u => u.user_type === 'Assessor'));
         
       } catch (err) {
-        console.error('Error loading network users:', err);
+        console.error('Error loading commission users:', err);
       }
     };
     
-    loadNetworkUsers();
+    loadCommissionUsers();
   }, [currentUser]);
 
   // Load investments
