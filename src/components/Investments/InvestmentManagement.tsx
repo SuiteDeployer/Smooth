@@ -233,9 +233,9 @@ const InvestmentManagement: React.FC = () => {
       try {
         let allUsers: User[] = [];
         
-        // Load users for commission split
+        // Load users for commission split based on hierarchy
         console.log('Fetching commission users from database...');
-        const { data: commissionUsers, error: commissionError } = await supabase
+        const { data: allCommissionUsers, error: commissionError } = await supabase
           .from('users')
           .select('*')
           .neq('user_type', 'Investidor')
@@ -246,18 +246,62 @@ const InvestmentManagement: React.FC = () => {
           throw commissionError;
         }
         
-        console.log('Fetched commission users:', commissionUsers?.length || 0, commissionUsers);
-        allUsers = commissionUsers || [];
+        console.log('Fetched all commission users:', allCommissionUsers?.length || 0, allCommissionUsers);
         
-        // Remove duplicates
-        const uniqueUsers = allUsers.filter((user, index, self) => 
-          index === self.findIndex(u => u.id === user.id)
-        );
+        if (!allCommissionUsers) {
+          console.log('No commission users found');
+          return;
+        }
+        
+        // Filter users based on current user's hierarchy access
+        switch (currentUser.user_type) {
+          case 'Global':
+            // Global can see all users
+            allUsers = allCommissionUsers;
+            break;
+            
+          case 'Master':
+            // Master can see themselves + their escritórios + their assessors
+            allUsers = allCommissionUsers.filter(user => 
+              user.id === currentUser.id || // themselves
+              user.parent_id === currentUser.id || // direct subordinates (escritórios)
+              allCommissionUsers.some(escritorio => 
+                escritorio.parent_id === currentUser.id && 
+                user.parent_id === escritorio.id
+              ) // assessors under their escritórios
+            );
+            break;
+            
+          case 'Escritório':
+            // Escritório can see themselves + their master + their assessors
+            allUsers = allCommissionUsers.filter(user => 
+              user.id === currentUser.id || // themselves
+              user.id === currentUser.parent_id || // their master
+              user.parent_id === currentUser.id // their assessors
+            );
+            break;
+            
+          case 'Assessor':
+            // Assessor can see themselves + their escritório + their master
+            const escritorio = allCommissionUsers.find(u => u.id === currentUser.parent_id);
+            allUsers = allCommissionUsers.filter(user => 
+              user.id === currentUser.id || // themselves
+              user.id === currentUser.parent_id || // their escritório
+              (escritorio && user.id === escritorio.parent_id) // their master
+            );
+            break;
+            
+          default:
+            allUsers = [];
+            break;
+        }
+        
+        console.log('Filtered commission users:', allUsers.length, allUsers);
         
         // Separate users by type (for commission split dropdowns)
-        const masters = uniqueUsers.filter(u => u.user_type === 'Master');
-        const escritorios = uniqueUsers.filter(u => u.user_type === 'Escritório');
-        const assessors = uniqueUsers.filter(u => u.user_type === 'Assessor');
+        const masters = allUsers.filter(u => u.user_type === 'Master');
+        const escritorios = allUsers.filter(u => u.user_type === 'Escritório');
+        const assessors = allUsers.filter(u => u.user_type === 'Assessor');
         
         console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
         
@@ -300,7 +344,7 @@ const InvestmentManagement: React.FC = () => {
         
         // Load commission users
         console.log('Force loading commission users...');
-        const { data: commissionData, error: commissionError } = await supabase
+        const { data: allCommissionData, error: commissionError } = await supabase
           .from('users')
           .select('*')
           .neq('user_type', 'Investidor')
@@ -309,17 +353,66 @@ const InvestmentManagement: React.FC = () => {
         if (commissionError) {
           console.error('Force load commission users error:', commissionError);
         } else {
-          console.log('Force loaded commission users:', commissionData?.length || 0, commissionData);
+          console.log('Force loaded all commission users:', allCommissionData?.length || 0, allCommissionData);
           
-          const masters = commissionData?.filter(u => u.user_type === 'Master') || [];
-          const escritorios = commissionData?.filter(u => u.user_type === 'Escritório') || [];
-          const assessors = commissionData?.filter(u => u.user_type === 'Assessor') || [];
-          
-          console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
-          
-          setMasters(masters);
-          setEscritorios(escritorios);
-          setAssessors(assessors);
+          if (allCommissionData) {
+            // Filter users based on current user's hierarchy access
+            let filteredUsers: User[] = [];
+            
+            switch (currentUser.user_type) {
+              case 'Global':
+                // Global can see all users
+                filteredUsers = allCommissionData;
+                break;
+                
+              case 'Master':
+                // Master can see themselves + their escritórios + their assessors
+                filteredUsers = allCommissionData.filter(user => 
+                  user.id === currentUser.id || // themselves
+                  user.parent_id === currentUser.id || // direct subordinates (escritórios)
+                  allCommissionData.some(escritorio => 
+                    escritorio.parent_id === currentUser.id && 
+                    user.parent_id === escritorio.id
+                  ) // assessors under their escritórios
+                );
+                break;
+                
+              case 'Escritório':
+                // Escritório can see themselves + their master + their assessors
+                filteredUsers = allCommissionData.filter(user => 
+                  user.id === currentUser.id || // themselves
+                  user.id === currentUser.parent_id || // their master
+                  user.parent_id === currentUser.id // their assessors
+                );
+                break;
+                
+              case 'Assessor':
+                // Assessor can see themselves + their escritório + their master
+                const escritorio = allCommissionData.find(u => u.id === currentUser.parent_id);
+                filteredUsers = allCommissionData.filter(user => 
+                  user.id === currentUser.id || // themselves
+                  user.id === currentUser.parent_id || // their escritório
+                  (escritorio && user.id === escritorio.parent_id) // their master
+                );
+                break;
+                
+              default:
+                filteredUsers = [];
+                break;
+            }
+            
+            console.log('Force filtered commission users:', filteredUsers.length, filteredUsers);
+            
+            const masters = filteredUsers.filter(u => u.user_type === 'Master');
+            const escritorios = filteredUsers.filter(u => u.user_type === 'Escritório');
+            const assessors = filteredUsers.filter(u => u.user_type === 'Assessor');
+            
+            console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+            
+            setMasters(masters);
+            setEscritorios(escritorios);
+            setAssessors(assessors);
+          }
         }
         
       } catch (err) {
