@@ -49,6 +49,26 @@ const DebentureManagement: React.FC = () => {
     fetchDebentures();
   }, []);
 
+  useEffect(() => {
+    // Buscar séries para todas as debêntures quando elas carregam
+    if (debentures.length > 0) {
+      const fetchAllSeries = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('series')
+            .select('*')
+            .order('series_letter', { ascending: true });
+
+          if (error) throw error;
+          setSeries(data || []);
+        } catch (error) {
+          console.error('Erro ao buscar todas as séries:', error);
+        }
+      };
+      fetchAllSeries();
+    }
+  }, [debentures]);
+
   const fetchDebentures = async () => {
     try {
       setLoading(true);
@@ -308,13 +328,25 @@ const DebentureManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {debentures.map((debenture) => (
+              {debentures.map((debenture) => {
+                const captacaoUtilizada = calculateSeriesTotal(debenture.id);
+                const disponivel = debenture.total_amount - captacaoUtilizada;
+                
+                return (
                 <tr key={debenture.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{debenture.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatCurrency(captacaoUtilizada)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className={`text-sm font-medium ${disponivel < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatCurrency(disponivel)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{debenture.issuer}</div>
@@ -330,7 +362,7 @@ const DebentureManagement: React.FC = () => {
                   {isGlobalUser && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
-                        onClick={() => navigate(`/debentures/${debenture.id}/series`)}
+                        onClick={() => handleViewSeries(debenture)}
                         className="text-purple-600 hover:text-purple-900"
                       >
                         Séries
@@ -352,7 +384,7 @@ const DebentureManagement: React.FC = () => {
                   {!isGlobalUser && canViewDebentures && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
-                        onClick={() => navigate(`/debentures/${debenture.id}/series`)}
+                        onClick={() => handleViewSeries(debenture)}
                         className="text-purple-600 hover:text-purple-900"
                       >
                         Ver Séries
@@ -360,7 +392,8 @@ const DebentureManagement: React.FC = () => {
                     </td>
                   )}
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
 
