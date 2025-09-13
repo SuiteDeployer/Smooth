@@ -612,6 +612,83 @@ const InvestmentManagement: React.FC = () => {
     setSuccess('');
   };
 
+  // Check if user can edit investment
+  const canEditInvestment = (investment: any) => {
+    if (!currentUser) return false;
+    
+    switch (currentUser.user_type) {
+      case 'Global':
+        return true;
+      case 'Master':
+        return investment.master_id === currentUser.id ||
+               investment.escritorio_id === currentUser.id ||
+               investment.assessor_id === currentUser.id;
+      case 'Escritório':
+        return investment.escritorio_id === currentUser.id ||
+               investment.assessor_id === currentUser.id;
+      case 'Assessor':
+        return investment.assessor_id === currentUser.id;
+      default:
+        return false;
+    }
+  };
+
+  // Check if user can delete investment
+  const canDeleteInvestment = (investment: any) => {
+    if (!currentUser) return false;
+    
+    switch (currentUser.user_type) {
+      case 'Global':
+        return true;
+      case 'Master':
+        return investment.master_id === currentUser.id ||
+               investment.escritorio_id === currentUser.id ||
+               investment.assessor_id === currentUser.id;
+      case 'Escritório':
+        return false; // Escritório can only edit, not delete
+      case 'Assessor':
+        return false; // Assessor can only edit, not delete
+      default:
+        return false;
+    }
+  };
+
+  // Handle edit investment
+  const handleEditInvestment = (investment: any) => {
+    // TODO: Implement edit functionality
+    console.log('Edit investment:', investment);
+    alert('Funcionalidade de edição será implementada em breve');
+  };
+
+  // Handle delete investment
+  const handleDeleteInvestment = async (investment: any) => {
+    if (!canDeleteInvestment(investment)) {
+      setError('Você não tem permissão para deletar este investimento');
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja deletar o investimento #${investment.id}?`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('investments')
+        .delete()
+        .eq('id', investment.id);
+
+      if (error) throw error;
+
+      setSuccess('Investimento deletado com sucesso!');
+      await loadInvestments();
+    } catch (err: any) {
+      setError(err.message || 'Erro ao deletar investimento');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user) {
     return <div>Carregando...</div>;
   }
@@ -661,6 +738,9 @@ const InvestmentManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  {currentUser?.user_type !== 'Investidor' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -702,6 +782,33 @@ const InvestmentManagement: React.FC = () => {
                          investment.status === 'matured' ? 'Vencido' : 'Cancelado'}
                       </span>
                     </td>
+                    {currentUser?.user_type !== 'Investidor' && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          {canEditInvestment(investment) && (
+                            <button
+                              onClick={() => handleEditInvestment(investment)}
+                              className="text-blue-600 hover:text-blue-900 font-medium"
+                              title="Editar investimento"
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {canDeleteInvestment(investment) && (
+                            <button
+                              onClick={() => handleDeleteInvestment(investment)}
+                              className="text-red-600 hover:text-red-900 font-medium"
+                              title="Deletar investimento"
+                            >
+                              Deletar
+                            </button>
+                          )}
+                          {!canEditInvestment(investment) && !canDeleteInvestment(investment) && (
+                            <span className="text-gray-400">Sem permissão</span>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
