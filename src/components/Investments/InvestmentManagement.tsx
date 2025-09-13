@@ -174,7 +174,7 @@ const InvestmentManagement: React.FC = () => {
         return;
       }
       
-      console.log('Loading network users for:', currentUser.user_type, currentUser.full_name);
+      console.log('Loading network users for:', currentUser.user_type, currentUser.name);
       
       try {
         let investorUsers: User[] = [];
@@ -185,7 +185,7 @@ const InvestmentManagement: React.FC = () => {
           .from('users')
           .select('*')
           .eq('user_type', 'Investidor')
-          .order('full_name');
+          .order('name');
           
         if (investorError) {
           console.error('Error fetching investors:', investorError);
@@ -217,7 +217,7 @@ const InvestmentManagement: React.FC = () => {
         return;
       }
       
-      console.log('Loading commission users for:', currentUser.user_type, currentUser.full_name);
+      console.log('Loading commission users for:', currentUser.user_type, currentUser.name);
       
       try {
         let allUsers: User[] = [];
@@ -228,7 +228,7 @@ const InvestmentManagement: React.FC = () => {
           .from('users')
           .select('*')
           .neq('user_type', 'Investidor')
-          .order('full_name');
+          .order('name');
           
         if (commissionError) {
           console.error('Error fetching commission users:', commissionError);
@@ -278,7 +278,7 @@ const InvestmentManagement: React.FC = () => {
           .from('users')
           .select('*')
           .eq('user_type', 'Investidor')
-          .order('full_name');
+          .order('name');
           
         if (investorError) {
           console.error('Force load investors error:', investorError);
@@ -293,7 +293,7 @@ const InvestmentManagement: React.FC = () => {
           .from('users')
           .select('*')
           .neq('user_type', 'Investidor')
-          .order('full_name');
+          .order('name');
           
         if (commissionError) {
           console.error('Force load commission users error:', commissionError);
