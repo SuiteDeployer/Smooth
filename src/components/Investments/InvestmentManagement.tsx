@@ -263,9 +263,59 @@ const InvestmentManagement: React.FC = () => {
   }, [currentUser]);
 
   // Debug modal opening
-  const handleOpenModal = () => {
+  const handleOpenModal = async () => {
     console.log('Opening modal, currentUser:', currentUser);
     console.log('Current state - investors:', investors.length, 'masters:', masters.length, 'escritorios:', escritorios.length, 'assessors:', assessors.length);
+    
+    // Force reload data when modal opens
+    if (currentUser) {
+      console.log('Force loading data for modal...');
+      
+      try {
+        // Load investors
+        console.log('Force loading investors...');
+        const { data: investorData, error: investorError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_type', 'Investidor')
+          .order('full_name');
+          
+        if (investorError) {
+          console.error('Force load investors error:', investorError);
+        } else {
+          console.log('Force loaded investors:', investorData?.length || 0, investorData);
+          setInvestors(investorData || []);
+        }
+        
+        // Load commission users
+        console.log('Force loading commission users...');
+        const { data: commissionData, error: commissionError } = await supabase
+          .from('users')
+          .select('*')
+          .neq('user_type', 'Investidor')
+          .order('full_name');
+          
+        if (commissionError) {
+          console.error('Force load commission users error:', commissionError);
+        } else {
+          console.log('Force loaded commission users:', commissionData?.length || 0, commissionData);
+          
+          const masters = commissionData?.filter(u => u.user_type === 'Master') || [];
+          const escritorios = commissionData?.filter(u => u.user_type === 'Escritório') || [];
+          const assessors = commissionData?.filter(u => u.user_type === 'Assessor') || [];
+          
+          console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+          
+          setMasters(masters);
+          setEscritorios(escritorios);
+          setAssessors(assessors);
+        }
+        
+      } catch (err) {
+        console.error('Force load error:', err);
+      }
+    }
+    
     setIsModalOpen(true);
   };
 
