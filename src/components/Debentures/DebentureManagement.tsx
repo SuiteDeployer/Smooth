@@ -22,6 +22,9 @@ const DebentureManagement: React.FC = () => {
   const [debentures, setDebentures] = useState<Debenture[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showSeriesModal, setShowSeriesModal] = useState(false);
+  const [selectedDebenture, setSelectedDebenture] = useState<Debenture | null>(null);
+  const [series, setSeries] = useState<any[]>([]);
   const [editingDebenture, setEditingDebenture] = useState<Debenture | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -62,6 +65,28 @@ const DebentureManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchSeries = async (debentureId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('series')
+        .select('*')
+        .eq('debenture_id', debentureId)
+        .order('series_letter', { ascending: true });
+
+      if (error) throw error;
+      setSeries(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar séries:', error);
+      toast.error('Erro ao carregar séries');
+    }
+  };
+
+  const calculateSeriesTotal = (debentureId: string) => {
+    return series
+      .filter(s => s.debenture_id === debentureId)
+      .reduce((total, s) => total + s.captacao_amount, 0);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -179,6 +204,12 @@ const DebentureManagement: React.FC = () => {
     });
   };
 
+  const handleViewSeries = async (debenture: Debenture) => {
+    setSelectedDebenture(debenture);
+    await fetchSeries(debenture.id);
+    setShowSeriesModal(true);
+  };
+
   const handleCancel = () => {
     setShowForm(false);
     setEditingDebenture(null);
@@ -251,10 +282,16 @@ const DebentureManagement: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Debênture
+                  Nome
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Captação Total
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Captação Utilizada
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Disponível
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Emitente
@@ -263,13 +300,11 @@ const DebentureManagement: React.FC = () => {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Criado em
+                  Data de Criação
                 </th>
-                {isGlobalUser && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                )}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
