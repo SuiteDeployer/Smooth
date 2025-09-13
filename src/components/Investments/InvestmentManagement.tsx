@@ -167,66 +167,35 @@ const InvestmentManagement: React.FC = () => {
   // Load network users based on current user type (for investor selection - original permissions)
   useEffect(() => {
     const loadNetworkUsers = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('No currentUser, skipping loadNetworkUsers');
+        return;
+      }
+      
+      console.log('Loading network users for:', currentUser.user_type, currentUser.full_name);
       
       try {
         let investorUsers: User[] = [];
         
         // Load investors based on current user's network (responsável's network)
-        switch (currentUser.user_type) {
-          case 'Global':
-            // Global can see all investors
-            const { data: globalInvestors, error: globalError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('user_type', 'Investidor')
-              .order('full_name');
-            if (globalError) throw globalError;
-            investorUsers = globalInvestors || [];
-            break;
-            
-          case 'Master':
-            // Master can see investors linked to themselves, their escritórios and assessors
-            // Simplified: get all investors for now, filter later if needed
-            const { data: masterInvestors, error: masterError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('user_type', 'Investidor')
-              .order('full_name');
-            if (masterError) throw masterError;
-            investorUsers = masterInvestors || [];
-            break;
-            
-          case 'Escritório':
-            // Escritório can see investors linked to themselves and their assessors
-            // Simplified: get all investors for now, filter later if needed
-            const { data: escritorioInvestors, error: escritorioError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('user_type', 'Investidor')
-              .order('full_name');
-            if (escritorioError) throw escritorioError;
-            investorUsers = escritorioInvestors || [];
-            break;
-            
-          case 'Assessor':
-            // Assessor can see investors linked directly to them
-            // Simplified: get all investors for now, filter later if needed
-            const { data: assessorInvestors, error: assessorError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('user_type', 'Investidor')
-              .order('full_name');
-            if (assessorError) throw assessorError;
-            investorUsers = assessorInvestors || [];
-            break;
-            
-          default:
-            break;
+        console.log('Fetching investors from database...');
+        const { data: allInvestors, error: investorError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_type', 'Investidor')
+          .order('full_name');
+          
+        if (investorError) {
+          console.error('Error fetching investors:', investorError);
+          throw investorError;
         }
+        
+        console.log('Fetched investors:', allInvestors?.length || 0, allInvestors);
+        investorUsers = allInvestors || [];
         
         // Set investors (for investor selection dropdown)
         setInvestors(investorUsers);
+        console.log('Set investors state:', investorUsers.length);
         
       } catch (err) {
         console.error('Error loading network users:', err);
@@ -239,62 +208,31 @@ const InvestmentManagement: React.FC = () => {
   // Load commission split users (includes hierarchy - superior and inferior users)
   useEffect(() => {
     const loadCommissionUsers = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('No currentUser, skipping loadCommissionUsers');
+        return;
+      }
+      
+      console.log('Loading commission users for:', currentUser.user_type, currentUser.full_name);
       
       try {
         let allUsers: User[] = [];
         
-        // Load users for commission split according to specifications
-        switch (currentUser.user_type) {
-          case 'Global':
-            // Global can see all users
-            const { data: globalUsers, error: globalError } = await supabase
-              .from('users')
-              .select('*')
-              .order('full_name');
-            if (globalError) throw globalError;
-            allUsers = globalUsers || [];
-            break;
-            
-          case 'Master':
-            // Master can see themselves + their escritórios + their assessors
-            // Simplified: get all non-investor users for now
-            const { data: masterUsers, error: masterError } = await supabase
-              .from('users')
-              .select('*')
-              .neq('user_type', 'Investidor')
-              .order('full_name');
-            if (masterError) throw masterError;
-            allUsers = masterUsers || [];
-            break;
-            
-          case 'Escritório':
-            // Escritório can see themselves + their master + their assessors
-            // Simplified: get all non-investor users for now
-            const { data: escritorioUsers, error: escritorioError } = await supabase
-              .from('users')
-              .select('*')
-              .neq('user_type', 'Investidor')
-              .order('full_name');
-            if (escritorioError) throw escritorioError;
-            allUsers = escritorioUsers || [];
-            break;
-            
-          case 'Assessor':
-            // Assessor can see themselves + their master + their escritório
-            // Simplified: get all non-investor users for now
-            const { data: assessorUsers, error: assessorError } = await supabase
-              .from('users')
-              .select('*')
-              .neq('user_type', 'Investidor')
-              .order('full_name');
-            if (assessorError) throw assessorError;
-            allUsers = assessorUsers || [];
-            break;
-            
-          default:
-            break;
+        // Load users for commission split
+        console.log('Fetching commission users from database...');
+        const { data: commissionUsers, error: commissionError } = await supabase
+          .from('users')
+          .select('*')
+          .neq('user_type', 'Investidor')
+          .order('full_name');
+          
+        if (commissionError) {
+          console.error('Error fetching commission users:', commissionError);
+          throw commissionError;
         }
+        
+        console.log('Fetched commission users:', commissionUsers?.length || 0, commissionUsers);
+        allUsers = commissionUsers || [];
         
         // Remove duplicates
         const uniqueUsers = allUsers.filter((user, index, self) => 
@@ -302,9 +240,15 @@ const InvestmentManagement: React.FC = () => {
         );
         
         // Separate users by type (for commission split dropdowns)
-        setMasters(uniqueUsers.filter(u => u.user_type === 'Master'));
-        setEscritorios(uniqueUsers.filter(u => u.user_type === 'Escritório'));
-        setAssessors(uniqueUsers.filter(u => u.user_type === 'Assessor'));
+        const masters = uniqueUsers.filter(u => u.user_type === 'Master');
+        const escritorios = uniqueUsers.filter(u => u.user_type === 'Escritório');
+        const assessors = uniqueUsers.filter(u => u.user_type === 'Assessor');
+        
+        console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+        
+        setMasters(masters);
+        setEscritorios(escritorios);
+        setAssessors(assessors);
         
       } catch (err) {
         console.error('Error loading commission users:', err);
