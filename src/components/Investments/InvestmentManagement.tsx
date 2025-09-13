@@ -67,10 +67,8 @@ interface User {
   escritorio_id?: string;
   assessor_id?: string;
 }
-
-const InvestmentManagement: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+export default function InvestmentManagement() {
+  const { user, userProfile } = useAuth();  const navigate = useNavigate();
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -614,31 +612,31 @@ const InvestmentManagement: React.FC = () => {
 
   // Check if user can edit investment
   const canEditInvestment = (investment: any) => {
-    if (!user) return false;
+    if (!userProfile) return false;
     
     console.log('Checking edit permission for investment:', investment.id);
-    console.log('Current user:', user.user_type, user.id);
+    console.log('Current user:', userProfile.user_type, userProfile.id);
     console.log('Investment master_id:', investment.master_id);
     console.log('Investment escritorio_id:', investment.escritorio_id);
     console.log('Investment assessor_id:', investment.assessor_id);
     
-    switch (user.user_type) {
+    switch (userProfile.user_type) {
       case 'Global':
         console.log('Global user - can edit');
         return true;
       case 'Master':
-        const canEdit = investment.master_id === user.id ||
-               investment.escritorio_id === user.id ||
-               investment.assessor_id === user.id;
+        const canEdit = investment.master_id === userProfile.id ||
+               investment.escritorio_id === userProfile.id ||
+               investment.assessor_id === userProfile.id;
         console.log('Master user - can edit:', canEdit);
         return canEdit;
       case 'Escritório':
-        const canEditEscritorio = investment.escritorio_id === user.id ||
-               investment.assessor_id === user.id;
+        const canEditEscritorio = investment.escritorio_id === userProfile.id ||
+               investment.assessor_id === userProfile.id;
         console.log('Escritório user - can edit:', canEditEscritorio);
         return canEditEscritorio;
       case 'Assessor':
-        const canEditAssessor = investment.assessor_id === user.id;
+        const canEditAssessor = investment.assessor_id === userProfile.id;
         console.log('Assessor user - can edit:', canEditAssessor);
         return canEditAssessor;
       default:
@@ -649,18 +647,18 @@ const InvestmentManagement: React.FC = () => {
 
   // Check if user can delete investment
   const canDeleteInvestment = (investment: any) => {
-    if (!user) return false;
+    if (!userProfile) return false;
     
     console.log('Checking delete permission for investment:', investment.id);
     
-    switch (user.user_type) {
+    switch (userProfile.user_type) {
       case 'Global':
         console.log('Global user - can delete');
         return true;
       case 'Master':
-        const canDelete = investment.master_id === user.id ||
-               investment.escritorio_id === user.id ||
-               investment.assessor_id === user.id;
+        const canDelete = investment.master_id === userProfile.id ||
+               investment.escritorio_id === userProfile.id ||
+               investment.assessor_id === userProfile.id;
         console.log('Master user - can delete:', canDelete);
         return canDelete;
       case 'Escritório':
