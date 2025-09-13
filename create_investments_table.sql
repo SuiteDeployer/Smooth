@@ -1,8 +1,8 @@
 -- Create investments table
 CREATE TABLE IF NOT EXISTS public.investments (
     id SERIAL PRIMARY KEY,
-    debenture_id INTEGER NOT NULL REFERENCES public.debentures(id) ON DELETE CASCADE,
-    series_id INTEGER NOT NULL REFERENCES public.series(id) ON DELETE CASCADE,
+    debenture_id UUID NOT NULL REFERENCES public.debentures(id) ON DELETE CASCADE,
+    series_id UUID NOT NULL REFERENCES public.series(id) ON DELETE CASCADE,
     investor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     assessor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     escritorio_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
