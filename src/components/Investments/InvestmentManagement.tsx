@@ -244,7 +244,7 @@ const InvestmentManagement: React.FC = () => {
       try {
         let allUsers: User[] = [];
         
-        // Load users for commission split (includes hierarchy)
+        // Load users for commission split according to specifications
         switch (currentUser.user_type) {
           case 'Global':
             // Global can see all users
@@ -257,32 +257,18 @@ const InvestmentManagement: React.FC = () => {
             break;
             
           case 'Master':
-            // Master can see their entire network
+            // Master can see themselves + their escritórios + their assessors
             const { data: masterUsers, error: masterError } = await supabase
               .from('users')
               .select('*')
-              .or(`id.eq.${currentUser.id},master_id.eq.${currentUser.id}`)
+              .or(`id.eq.${currentUser.id},master_id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id='${currentUser.id}')`)
               .order('full_name');
             if (masterError) throw masterError;
-            
-            // Also get assessors under their escritórios
-            const { data: assessorsUnderEscritorios, error: assessorsError } = await supabase
-              .from('users')
-              .select('*')
-              .in('escritorio_id', 
-                (await supabase
-                  .from('users')
-                  .select('id')
-                  .eq('master_id', currentUser.id)
-                ).data?.map(u => u.id) || []
-              );
-            if (assessorsError) throw assessorsError;
-            
-            allUsers = [...(masterUsers || []), ...(assessorsUnderEscritorios || [])];
+            allUsers = masterUsers || [];
             break;
             
           case 'Escritório':
-            // Escritório can see their master, themselves, and their assessors
+            // Escritório can see themselves + their master + their assessors
             const escritorioQueries = [];
             
             // Get themselves
@@ -312,7 +298,7 @@ const InvestmentManagement: React.FC = () => {
             break;
             
           case 'Assessor':
-            // Assessor can see their hierarchy (master, escritório, themselves)
+            // Assessor can see themselves + their master + their escritório
             const assessorQueries = [];
             
             // Get themselves
