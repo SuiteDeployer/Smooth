@@ -22,8 +22,7 @@ const DebentureManagement: React.FC = () => {
   const [debentures, setDebentures] = useState<Debenture[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [showSeriesModal, setShowSeriesModal] = useState(false);
-  const [selectedDebenture, setSelectedDebenture] = useState<Debenture | null>(null);
+  const [expandedDebenture, setExpandedDebenture] = useState<string | null>(null);
   const [series, setSeries] = useState<any[]>([]);
   const [editingDebenture, setEditingDebenture] = useState<Debenture | null>(null);
   const [formData, setFormData] = useState({
@@ -224,10 +223,13 @@ const DebentureManagement: React.FC = () => {
     });
   };
 
-  const handleViewSeries = async (debenture: Debenture) => {
-    setSelectedDebenture(debenture);
-    await fetchSeries(debenture.id);
-    setShowSeriesModal(true);
+  const handleToggleExpand = async (debentureId: string) => {
+    if (expandedDebenture === debentureId) {
+      setExpandedDebenture(null);
+    } else {
+      setExpandedDebenture(debentureId);
+      await fetchSeries(debentureId);
+    }
   };
 
   const handleCancel = () => {
@@ -331,67 +333,152 @@ const DebentureManagement: React.FC = () => {
               {debentures.map((debenture) => {
                 const captacaoUtilizada = calculateSeriesTotal(debenture.id);
                 const disponivel = debenture.total_amount - captacaoUtilizada;
+                const isExpanded = expandedDebenture === debenture.id;
+                const debenturesSeries = series.filter(s => s.debenture_id === debenture.id);
                 
                 return (
-                <tr key={debenture.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{debenture.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatCurrency(captacaoUtilizada)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm font-medium ${disponivel < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {formatCurrency(disponivel)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{debenture.issuer}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(debenture.status)}`}>
-                      {debenture.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(debenture.created_at)}
-                  </td>
-                  {isGlobalUser && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleViewSeries(debenture)}
-                        className="text-purple-600 hover:text-purple-900"
-                      >
-                        Séries
-                      </button>
-                      <button
-                        onClick={() => handleEdit(debenture)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(debenture.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Deletar
-                      </button>
+                <React.Fragment key={debenture.id}>
+                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => handleToggleExpand(debenture.id)}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <span className={`mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+                          ▶
+                        </span>
+                        <div className="text-sm font-medium text-gray-900">{debenture.name}</div>
+                      </div>
                     </td>
-                  )}
-                  {!isGlobalUser && canViewDebentures && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleViewSeries(debenture)}
-                        className="text-purple-600 hover:text-purple-900"
-                      >
-                        Ver Séries
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatCurrency(captacaoUtilizada)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className={`text-sm font-medium ${disponivel < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {formatCurrency(disponivel)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{debenture.issuer}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(debenture.status)}`}>
+                        {debenture.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(debenture.created_at)}
+                    </td>
+                    {isGlobalUser && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleEdit(debenture)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(debenture.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Deletar
+                        </button>
+                      </td>
+                    )}
+                    {!isGlobalUser && canViewDebentures && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span className="text-gray-500">Visualização</span>
+                      </td>
+                    )}
+                  </tr>
+                  
+                  {/* Linha expandida com séries */}
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-4 bg-gray-50">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-lg font-medium text-gray-900">
+                              Séries da {debenture.name}
+                            </h4>
+                            {isGlobalUser && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // TODO: Implementar criação de série
+                                }}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                              >
+                                Nova Série
+                              </button>
+                            )}
+                          </div>
+                          
+                          {debenturesSeries.length > 0 ? (
+                            <div className="bg-white rounded-lg shadow overflow-hidden">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                  <tr>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Série</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nome Comercial</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Prazo</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Captação</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Comissão/Ano</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remuneração/Ano</th>
+                                    {isGlobalUser && (
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                  {debenturesSeries.map((serie) => (
+                                    <tr key={serie.id} className="hover:bg-gray-50">
+                                      <td className="px-4 py-2 text-sm font-medium text-gray-900">{serie.series_letter}</td>
+                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.commercial_name}</td>
+                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.term_months} meses</td>
+                                      <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(serie.captacao_amount)}</td>
+                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.max_commission_year}%</td>
+                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.remuneration_year}%</td>
+                                      {isGlobalUser && (
+                                        <td className="px-4 py-2 text-sm font-medium space-x-2">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              // TODO: Implementar edição de série
+                                            }}
+                                            className="text-blue-600 hover:text-blue-900"
+                                          >
+                                            Editar
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              // TODO: Implementar exclusão de série
+                                            }}
+                                            className="text-red-600 hover:text-red-900"
+                                          >
+                                            Deletar
+                                          </button>
+                                        </td>
+                                      )}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              <p>Nenhuma série cadastrada para esta debênture.</p>
+                              {isGlobalUser && (
+                                <p className="mt-2">Clique em "Nova Série" para adicionar a primeira série.</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
                   )}
-                </tr>
+                </React.Fragment>
                 );
               })}
             </tbody>
