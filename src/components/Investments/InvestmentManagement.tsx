@@ -170,39 +170,100 @@ const InvestmentManagement: React.FC = () => {
       if (!currentUser) return;
       
       try {
-        let query = supabase.from('users').select('*');
+        let allUsers: User[] = [];
         
-        // Load users based on current user's permissions
+        // Load users based on current user's permissions and network
         switch (currentUser.user_type) {
           case 'Global':
             // Global can see all users
+            const { data: globalUsers, error: globalError } = await supabase
+              .from('users')
+              .select('*')
+              .order('full_name');
+            if (globalError) throw globalError;
+            allUsers = globalUsers || [];
             break;
+            
           case 'Master':
-            // Master can see their network
-            query = query.or(`master_id.eq.${currentUser.id},id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id = '${currentUser.id}')`);
+            // Master can see their entire network (themselves, their escritórios, assessors under them)
+            const { data: masterUsers, error: masterError } = await supabase
+              .from('users')
+              .select('*')
+              .or(`id.eq.${currentUser.id},master_id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id='${currentUser.id}')`)
+              .order('full_name');
+            if (masterError) throw masterError;
+            allUsers = masterUsers || [];
             break;
+            
           case 'Escritório':
-            // Escritório can see their office network
-            query = query.or(`escritorio_id.eq.${currentUser.id},id.eq.${currentUser.id}`);
+            // Escritório can see their master, themselves, and their assessors
+            const queries = [
+              // Get themselves
+              supabase.from('users').select('*').eq('id', currentUser.id),
+              // Get their master if exists
+              ...(currentUser.master_id ? [supabase.from('users').select('*').eq('id', currentUser.master_id)] : []),
+              // Get assessors under them
+              supabase.from('users').select('*').eq('escritorio_id', currentUser.id)
+            ];
+            
+            const escritorioResults = await Promise.all(queries);
+            allUsers = escritorioResults.reduce((acc, result) => {
+              if (result.data) {
+                acc.push(...result.data);
+              }
+              return acc;
+            }, [] as User[]);
             break;
+            
           case 'Assessor':
-            // Assessor can see themselves and investors in their network
-            query = query.or(`id.eq.${currentUser.id},user_type.eq.Investidor`);
+            // Assessor can see their hierarchy (master, escritório, themselves) + investors
+            const assessorQueries = [
+              // Get themselves
+              supabase.from('users').select('*').eq('id', currentUser.id),
+              // Get their escritório if exists
+              ...(currentUser.escritorio_id ? [supabase.from('users').select('*').eq('id', currentUser.escritorio_id)] : []),
+              // Get investors (for investor selection, not commission split)
+              supabase.from('users').select('*').eq('user_type', 'Investidor')
+            ];
+            
+            // Also get master if escritório has one
+            if (currentUser.escritorio_id) {
+              const { data: escritorioData } = await supabase
+                .from('users')
+                .select('master_id')
+                .eq('id', currentUser.escritorio_id)
+                .single();
+              
+              if (escritorioData?.master_id) {
+                assessorQueries.push(
+                  supabase.from('users').select('*').eq('id', escritorioData.master_id)
+                );
+              }
+            }
+            
+            const assessorResults = await Promise.all(assessorQueries);
+            allUsers = assessorResults.reduce((acc, result) => {
+              if (result.data) {
+                acc.push(...result.data);
+              }
+              return acc;
+            }, [] as User[]);
             break;
+            
           default:
             return;
         }
         
-        const { data, error } = await query.order('full_name');
-        if (error) throw error;
-        
-        const users = data || [];
+        // Remove duplicates
+        const uniqueUsers = allUsers.filter((user, index, self) => 
+          index === self.findIndex(u => u.id === user.id)
+        );
         
         // Separate users by type
-        setInvestors(users.filter(u => u.user_type === 'Investidor'));
-        setMasters(users.filter(u => u.user_type === 'Master'));
-        setEscritorios(users.filter(u => u.user_type === 'Escritório'));
-        setAssessors(users.filter(u => u.user_type === 'Assessor'));
+        setInvestors(uniqueUsers.filter(u => u.user_type === 'Investidor'));
+        setMasters(uniqueUsers.filter(u => u.user_type === 'Master'));
+        setEscritorios(uniqueUsers.filter(u => u.user_type === 'Escritório'));
+        setAssessors(uniqueUsers.filter(u => u.user_type === 'Assessor'));
         
       } catch (err) {
         console.error('Error loading network users:', err);
