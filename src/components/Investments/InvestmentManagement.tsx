@@ -304,6 +304,9 @@ const InvestmentManagement: React.FC = () => {
         const assessors = allUsers.filter(u => u.user_type === 'Assessor');
         
         console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+        console.log('Masters data:', masters.map(m => ({ id: m.id, name: m.name, email: m.email, user_type: m.user_type })));
+        console.log('Escritórios data:', escritorios.map(e => ({ id: e.id, name: e.name, email: e.email, user_type: e.user_type })));
+        console.log('Assessors data:', assessors.map(a => ({ id: a.id, name: a.name, email: a.email, user_type: a.user_type })));
         
         setMasters(masters);
         setEscritorios(escritorios);
@@ -408,6 +411,9 @@ const InvestmentManagement: React.FC = () => {
             const assessors = filteredUsers.filter(u => u.user_type === 'Assessor');
             
             console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+        console.log('Masters data:', masters.map(m => ({ id: m.id, name: m.name, email: m.email, user_type: m.user_type })));
+        console.log('Escritórios data:', escritorios.map(e => ({ id: e.id, name: e.name, email: e.email, user_type: e.user_type })));
+        console.log('Assessors data:', assessors.map(a => ({ id: a.id, name: a.name, email: a.email, user_type: a.user_type })));
             
             setMasters(masters);
             setEscritorios(escritorios);
@@ -897,7 +903,7 @@ const InvestmentManagement: React.FC = () => {
                           <option value="">Selecione um master</option>
                           {masters.map(master => (
                             <option key={master.id} value={master.id}>
-                              {master.name}
+                              {master.name || master.email || 'Nome não disponível'}
                             </option>
                           ))}
                         </select>
@@ -927,7 +933,7 @@ const InvestmentManagement: React.FC = () => {
                           <option value="">Selecione um escritório</option>
                           {escritorios.map(escritorio => (
                             <option key={escritorio.id} value={escritorio.id}>
-                              {escritorio.name}
+                              {escritorio.name || escritorio.email || 'Nome não disponível'}
                             </option>
                           ))}
                         </select>
@@ -957,7 +963,7 @@ const InvestmentManagement: React.FC = () => {
                           <option value="">Selecione um assessor</option>
                           {assessors.map(assessor => (
                             <option key={assessor.id} value={assessor.id}>
-                              {assessor.name}
+                              {assessor.name || assessor.email || 'Nome não disponível'}
                             </option>
                           ))}
                         </select>
