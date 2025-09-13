@@ -52,10 +52,20 @@ interface User {
   id: string;
   email: string;
   name: string;
-  full_name?: string; // Optional for backward compatibility
+  full_name?: string; // Alias for name for compatibility
   user_type: 'Global' | 'Master' | 'Escritório' | 'Assessor' | 'Investidor';
+  parent_id: string | null;
+  phone: string | null;
+  document: string | null;
+  cpf?: string | null;
+  pix?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
   master_id?: string;
   escritorio_id?: string;
+  assessor_id?: string;
 }
 
 const InvestmentManagement: React.FC = () => {
