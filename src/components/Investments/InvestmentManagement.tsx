@@ -186,31 +186,31 @@ const InvestmentManagement: React.FC = () => {
             break;
             
           case 'Master':
-            // Master can see investors in their network (investors linked to their escritórios and assessors)
+            // Master can see investors linked to themselves, their escritórios and assessors
             const { data: masterInvestors, error: masterError } = await supabase
               .from('users')
               .select('*')
               .eq('user_type', 'Investidor')
-              .or(`master_id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id='${currentUser.id}')`)
+              .or(`master_id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id='${currentUser.id}'),assessor_id.in.(select id from users where master_id='${currentUser.id}' or escritorio_id in (select id from users where master_id='${currentUser.id}'))`)
               .order('full_name');
             if (masterError) throw masterError;
             investorUsers = masterInvestors || [];
             break;
             
           case 'Escritório':
-            // Escritório can see investors in their office network
+            // Escritório can see investors linked to themselves and their assessors
             const { data: escritorioInvestors, error: escritorioError } = await supabase
               .from('users')
               .select('*')
               .eq('user_type', 'Investidor')
-              .eq('escritorio_id', currentUser.id)
+              .or(`escritorio_id.eq.${currentUser.id},assessor_id.in.(select id from users where escritorio_id='${currentUser.id}')`)
               .order('full_name');
             if (escritorioError) throw escritorioError;
             investorUsers = escritorioInvestors || [];
             break;
             
           case 'Assessor':
-            // Assessor can see investors linked to them
+            // Assessor can see investors linked directly to them
             const { data: assessorInvestors, error: assessorError } = await supabase
               .from('users')
               .select('*')
