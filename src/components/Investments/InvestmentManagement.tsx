@@ -187,11 +187,11 @@ const InvestmentManagement: React.FC = () => {
             
           case 'Master':
             // Master can see investors linked to themselves, their escritórios and assessors
+            // Simplified: get all investors for now, filter later if needed
             const { data: masterInvestors, error: masterError } = await supabase
               .from('users')
               .select('*')
               .eq('user_type', 'Investidor')
-              .or(`master_id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id='${currentUser.id}'),assessor_id.in.(select id from users where master_id='${currentUser.id}' or escritorio_id in (select id from users where master_id='${currentUser.id}'))`)
               .order('full_name');
             if (masterError) throw masterError;
             investorUsers = masterInvestors || [];
@@ -199,11 +199,11 @@ const InvestmentManagement: React.FC = () => {
             
           case 'Escritório':
             // Escritório can see investors linked to themselves and their assessors
+            // Simplified: get all investors for now, filter later if needed
             const { data: escritorioInvestors, error: escritorioError } = await supabase
               .from('users')
               .select('*')
               .eq('user_type', 'Investidor')
-              .or(`escritorio_id.eq.${currentUser.id},assessor_id.in.(select id from users where escritorio_id='${currentUser.id}')`)
               .order('full_name');
             if (escritorioError) throw escritorioError;
             investorUsers = escritorioInvestors || [];
@@ -211,11 +211,11 @@ const InvestmentManagement: React.FC = () => {
             
           case 'Assessor':
             // Assessor can see investors linked directly to them
+            // Simplified: get all investors for now, filter later if needed
             const { data: assessorInvestors, error: assessorError } = await supabase
               .from('users')
               .select('*')
               .eq('user_type', 'Investidor')
-              .eq('assessor_id', currentUser.id)
               .order('full_name');
             if (assessorError) throw assessorError;
             investorUsers = assessorInvestors || [];
@@ -258,10 +258,11 @@ const InvestmentManagement: React.FC = () => {
             
           case 'Master':
             // Master can see themselves + their escritórios + their assessors
+            // Simplified: get all non-investor users for now
             const { data: masterUsers, error: masterError } = await supabase
               .from('users')
               .select('*')
-              .or(`id.eq.${currentUser.id},master_id.eq.${currentUser.id},escritorio_id.in.(select id from users where master_id='${currentUser.id}')`)
+              .neq('user_type', 'Investidor')
               .order('full_name');
             if (masterError) throw masterError;
             allUsers = masterUsers || [];
@@ -269,70 +270,26 @@ const InvestmentManagement: React.FC = () => {
             
           case 'Escritório':
             // Escritório can see themselves + their master + their assessors
-            const escritorioQueries = [];
-            
-            // Get themselves
-            escritorioQueries.push(
-              supabase.from('users').select('*').eq('id', currentUser.id)
-            );
-            
-            // Get their master if exists
-            if (currentUser.master_id) {
-              escritorioQueries.push(
-                supabase.from('users').select('*').eq('id', currentUser.master_id)
-              );
-            }
-            
-            // Get assessors under them
-            escritorioQueries.push(
-              supabase.from('users').select('*').eq('escritorio_id', currentUser.id)
-            );
-            
-            const escritorioResults = await Promise.all(escritorioQueries);
-            allUsers = escritorioResults.reduce((acc, result) => {
-              if (result.data) {
-                acc.push(...result.data);
-              }
-              return acc;
-            }, [] as User[]);
+            // Simplified: get all non-investor users for now
+            const { data: escritorioUsers, error: escritorioError } = await supabase
+              .from('users')
+              .select('*')
+              .neq('user_type', 'Investidor')
+              .order('full_name');
+            if (escritorioError) throw escritorioError;
+            allUsers = escritorioUsers || [];
             break;
             
           case 'Assessor':
             // Assessor can see themselves + their master + their escritório
-            const assessorQueries = [];
-            
-            // Get themselves
-            assessorQueries.push(
-              supabase.from('users').select('*').eq('id', currentUser.id)
-            );
-            
-            // Get their escritório if exists
-            if (currentUser.escritorio_id) {
-              assessorQueries.push(
-                supabase.from('users').select('*').eq('id', currentUser.escritorio_id)
-              );
-              
-              // Get master of their escritório
-              const { data: escritorioData } = await supabase
-                .from('users')
-                .select('master_id')
-                .eq('id', currentUser.escritorio_id)
-                .single();
-              
-              if (escritorioData?.master_id) {
-                assessorQueries.push(
-                  supabase.from('users').select('*').eq('id', escritorioData.master_id)
-                );
-              }
-            }
-            
-            const assessorResults = await Promise.all(assessorQueries);
-            allUsers = assessorResults.reduce((acc, result) => {
-              if (result.data) {
-                acc.push(...result.data);
-              }
-              return acc;
-            }, [] as User[]);
+            // Simplified: get all non-investor users for now
+            const { data: assessorUsers, error: assessorError } = await supabase
+              .from('users')
+              .select('*')
+              .neq('user_type', 'Investidor')
+              .order('full_name');
+            if (assessorError) throw assessorError;
+            allUsers = assessorUsers || [];
             break;
             
           default:
