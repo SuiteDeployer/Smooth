@@ -716,6 +716,11 @@ export default function InvestmentManagement() {
     return <div>Carregando...</div>;
   }
 
+  console.log('=== INVESTMENT MANAGEMENT RENDER ===');
+  console.log('userProfile:', userProfile);
+  console.log('investments:', investments);
+  console.log('investments.length:', investments.length);
+
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -749,9 +754,11 @@ export default function InvestmentManagement() {
           </div>
           
           <div className="overflow-x-auto">
+            {console.log('=== RENDERING TABLE ===')}
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  {console.log('=== RENDERING TABLE HEADERS ===')}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
@@ -761,6 +768,7 @@ export default function InvestmentManagement() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  {console.log('=== RENDERING ACTIONS HEADER ===')}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
