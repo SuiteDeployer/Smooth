@@ -6,6 +6,7 @@ import LoginForm from './components/Auth/LoginForm';
 import EmptyDashboard from './components/Dashboard/EmptyDashboard';
 import UserManagement from './components/Users/UserManagement';
 import DebentureManagement from './components/Debentures/DebentureManagement';
+import SeriesManagement from './components/Series/SeriesManagement';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -104,6 +105,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DebentureManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Gerenciamento de séries */}
+            <Route
+              path="/debentures/:debentureId/series"
+              element={
+                <ProtectedRoute>
+                  <SeriesManagement />
                 </ProtectedRoute>
               }
             />

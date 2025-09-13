@@ -295,6 +295,12 @@ const DebentureManagement: React.FC = () => {
                   {isGlobalUser && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
+                        onClick={() => navigate(`/debentures/${debenture.id}/series`)}
+                        className="text-purple-600 hover:text-purple-900"
+                      >
+                        Séries
+                      </button>
+                      <button
                         onClick={() => handleEdit(debenture)}
                         className="text-blue-600 hover:text-blue-900"
                       >
@@ -305,6 +311,16 @@ const DebentureManagement: React.FC = () => {
                         className="text-red-600 hover:text-red-900"
                       >
                         Deletar
+                      </button>
+                    </td>
+                  )}
+                  {!isGlobalUser && canViewDebentures && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => navigate(`/debentures/${debenture.id}/series`)}
+                        className="text-purple-600 hover:text-purple-900"
+                      >
+                        Ver Séries
                       </button>
                     </td>
                   )}
