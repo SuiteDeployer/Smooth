@@ -159,12 +159,12 @@ CREATE POLICY "Master users can insert network investments" ON public.investment
             WHERE users.id = auth.uid() 
             AND users.user_type = 'Master'
             AND (
-                NEW.master_id = auth.uid()
-                OR NEW.escritorio_id IN (
+                master_id = auth.uid()
+                OR escritorio_id IN (
                     SELECT id FROM public.users 
                     WHERE master_id = auth.uid()
                 )
-                OR NEW.assessor_id IN (
+                OR assessor_id IN (
                     SELECT id FROM public.users 
                     WHERE master_id = auth.uid() 
                     OR escritorio_id IN (
@@ -183,8 +183,8 @@ CREATE POLICY "Escritorio users can insert office investments" ON public.investm
             WHERE users.id = auth.uid() 
             AND users.user_type = 'Escritório'
             AND (
-                NEW.escritorio_id = auth.uid()
-                OR NEW.assessor_id IN (
+                escritorio_id = auth.uid()
+                OR assessor_id IN (
                     SELECT id FROM public.users 
                     WHERE escritorio_id = auth.uid()
                 )
@@ -198,7 +198,7 @@ CREATE POLICY "Assessor users can insert own investments" ON public.investments
             SELECT 1 FROM public.users 
             WHERE users.id = auth.uid() 
             AND users.user_type = 'Assessor'
-            AND NEW.assessor_id = auth.uid()
+            AND assessor_id = auth.uid()
         )
     );
 
