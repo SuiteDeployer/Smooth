@@ -8,16 +8,9 @@ interface CreateUserData {
   user_type: string
   cpf?: string
   phone?: string
-  document?: string
   pix?: string
   status?: string
   parent_id?: string
-}
-
-interface Role {
-  id: string
-  role_name: string
-  hierarchy_level: number
 }
 
 interface User {
@@ -26,19 +19,14 @@ interface User {
   email: string
   cpf?: string
   phone?: string
-  document?: string
   pix?: string
   status: string
   user_type: string
   parent_id?: string
   created_at: string
   updated_at: string
-  created_by?: string
   can_edit?: boolean
   can_delete?: boolean
-  // Compatibilidade com código antigo
-  full_name?: string
-  role_name?: string
 }
 
 interface LoadingStates {
@@ -112,19 +100,14 @@ export function useUserManagement() {
         email: userData.email,
         cpf: userData.cpf,
         phone: userData.phone,
-        document: userData.document,
         pix: userData.pix,
         status: userData.status,
         user_type: userData.user_type,
         parent_id: userData.parent_id,
         created_at: userData.created_at,
         updated_at: userData.updated_at,
-        created_by: userData.created_by,
         can_edit: true, // RLS já filtra o que pode ser visto
-        can_delete: true, // RLS já filtra o que pode ser visto
-        // Compatibilidade com código antigo
-        full_name: userData.name,
-        role_name: userData.user_type
+        can_delete: true // RLS já filtra o que pode ser visto
       }))
       
       setUsers(mappedUsers)
@@ -170,13 +153,9 @@ export function useUserManagement() {
           user_type: userData.user_type,
           cpf: userData.cpf,
           phone: userData.phone,
-          document: userData.document,
           pix: userData.pix,
           status: userData.status || 'Ativo',
-          parent_id: userData.parent_id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          created_by: user.id
+          parent_id: userData.parent_id
         })
         .select()
         .single()
@@ -221,7 +200,6 @@ export function useUserManagement() {
           user_type: updates.user_type,
           cpf: updates.cpf,
           phone: updates.phone,
-          document: updates.document,
           pix: updates.pix,
           status: updates.status,
           parent_id: updates.parent_id,
