@@ -6,23 +6,21 @@ import AppLayout from '../Layout/AppLayout';
 
 interface Investment {
   id: number;
-  debenture_id: string;
   series_id: string;
-  investor_id: string;
-  assessor_id: string;
-  escritorio_id: string;
-  master_id: string;
-  investment_amount: number;
+  investor_user_id: string;
+  assessor_user_id: string;
+  invested_amount: number;
   investment_date: string;
   maturity_date: string;
-  assessor_commission_percentage: number;
-  escritorio_commission_percentage: number;
-  master_commission_percentage: number;
-  assessor_commission_amount: number;
-  escritorio_commission_amount: number;
-  master_commission_amount: number;
+  interest_type: string;
+  interest_rate: number;
+  commission_master: number;
+  commission_escritorio: number;
+  commission_assessor: number;
   status: string;
-  notes?: string;
+  auto_renewal?: boolean;
+  contract_hash?: string;
+  contract_signed_at?: string;
   created_at: string;
   updated_at: string;
 }
