@@ -98,133 +98,76 @@ export function useUserManagement() {
         .order('created_at', { ascending: false })
       
       if (error) {
-        console.error('❌ Erro na query de usuários:', error)
-        throw error
+        console.error('❌ Erro ao buscar usuários:', error)
+        setErrorState('fetchUsers', error.message)
+        return
       }
       
-      console.log('✅ Usuários carregados:', data?.length || 0)
-      console.log('📊 Dados dos usuários:', data)
+      console.log('✅ Usuários encontrados:', data?.length || 0)
+      setUsers(data || [])
       
-      // Mapear dados para o formato esperado
-      const mappedUsers = (data || []).map((userData: any) => ({
-        id: userData.id,
-        name: userData.name,
-        email: userData.email,
-        cpf: userData.cpf,
-        phone: userData.phone,
-        document: userData.document,
-        pix: userData.pix,
-        status: userData.status,
-        user_type: userData.user_type,
-        parent_id: userData.parent_id,
-        created_at: userData.created_at,
-        updated_at: userData.updated_at,
-        created_by: userData.created_by,
-        can_edit: true, // RLS já filtra o que pode ser visto
-        can_delete: true, // RLS já filtra o que pode ser visto
-        // Compatibilidade com código antigo
-        full_name: userData.name,
-        role_name: userData.user_type
-      }))
-      
-      setUsers(mappedUsers)
-    } catch (err: any) {
-      console.error('❌ Erro ao buscar usuários:', err)
-      setErrorState('fetchUsers', err.message)
+    } catch (error: any) {
+      console.error('❌ Erro inesperado ao buscar usuários:', error)
+      setErrorState('fetchUsers', error.message)
     } finally {
       setLoadingState('fetchUsers', false)
     }
   }
 
   // Criar usuário
-  const createUser = async (userData: CreateUserData) => {
+  const createUser = useCallback(async (userData: CreateUserData) => {
     if (!user) throw new Error('Usuário não autenticado')
     
     try {
       setLoadingState('createUser', true)
       setErrorState('createUser', null)
       
-      console.log('➕ Criando usuário:', userData)
+      console.log('📝 Criando usuário:', userData)
       
-      // Primeiro criar o usuário no auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: 'admin123', // Senha padrão
-        email_confirm: true
-      })
-      
-      if (authError) {
-        console.error('❌ Erro ao criar usuário no auth:', authError)
-        throw authError
-      }
-      
-      console.log('✅ Usuário criado no auth:', authData.user?.id)
-      
-      // Depois criar o registro na tabela users
       const { data, error } = await supabase
         .from('users')
-        .insert({
-          id: authData.user!.id,
-          name: userData.name,
-          email: userData.email,
-          user_type: userData.user_type,
-          cpf: userData.cpf,
-          phone: userData.phone,
-          document: userData.document,
-          pix: userData.pix,
-          status: userData.status || 'Ativo',
-          parent_id: userData.parent_id,
+        .insert([{
+          ...userData,
+          created_by: user.id,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          created_by: user.id
-        })
+          updated_at: new Date().toISOString()
+        }])
         .select()
         .single()
       
       if (error) {
-        console.error('❌ Erro ao criar usuário na tabela:', error)
-        // Se falhar, tentar deletar do auth
-        await supabase.auth.admin.deleteUser(authData.user!.id)
+        console.error('❌ Erro ao criar usuário:', error)
+        setErrorState('createUser', error.message)
         throw error
       }
       
-      console.log('✅ Usuário criado com sucesso:', data)
-      
-      // Atualizar lista
-      await fetchUsers()
-      
+      console.log('✅ Usuário criado:', data)
+      await fetchUsers() // Recarregar lista
       return data
-    } catch (err: any) {
-      console.error('❌ Erro ao criar usuário:', err)
-      setErrorState('createUser', err.message)
-      throw err
+      
+    } catch (error: any) {
+      console.error('❌ Erro inesperado ao criar usuário:', error)
+      setErrorState('createUser', error.message)
+      throw error
     } finally {
       setLoadingState('createUser', false)
     }
-  }
+  }, [user, fetchUsers])
 
   // Atualizar usuário
-  const updateUser = async (userId: string, updates: Partial<CreateUserData>) => {
+  const updateUser = useCallback(async (userId: string, updateData: Partial<CreateUserData>) => {
     if (!user) throw new Error('Usuário não autenticado')
     
     try {
       setLoadingState('updateUser', true)
       setErrorState('updateUser', null)
       
-      console.log('🔄 Atualizando usuário:', userId, updates)
+      console.log('📝 Atualizando usuário:', userId, updateData)
       
       const { data, error } = await supabase
         .from('users')
         .update({
-          name: updates.name,
-          email: updates.email,
-          user_type: updates.user_type,
-          cpf: updates.cpf,
-          phone: updates.phone,
-          document: updates.document,
-          pix: updates.pix,
-          status: updates.status,
-          parent_id: updates.parent_id,
+          ...updateData,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId)
@@ -233,26 +176,25 @@ export function useUserManagement() {
       
       if (error) {
         console.error('❌ Erro ao atualizar usuário:', error)
+        setErrorState('updateUser', error.message)
         throw error
       }
       
-      console.log('✅ Usuário atualizado com sucesso:', data)
-      
-      // Atualizar lista
-      await fetchUsers()
-      
+      console.log('✅ Usuário atualizado:', data)
+      await fetchUsers() // Recarregar lista
       return data
-    } catch (err: any) {
-      console.error('❌ Erro ao atualizar usuário:', err)
-      setErrorState('updateUser', err.message)
-      throw err
+      
+    } catch (error: any) {
+      console.error('❌ Erro inesperado ao atualizar usuário:', error)
+      setErrorState('updateUser', error.message)
+      throw error
     } finally {
       setLoadingState('updateUser', false)
     }
-  }
+  }, [user, fetchUsers])
 
   // Deletar usuário
-  const deleteUser = async (userId: string) => {
+  const deleteUser = useCallback(async (userId: string) => {
     if (!user) throw new Error('Usuário não autenticado')
     
     try {
@@ -261,7 +203,6 @@ export function useUserManagement() {
       
       console.log('🗑️ Deletando usuário:', userId)
       
-      // Deletar da tabela users (RLS vai verificar permissões)
       const { error } = await supabase
         .from('users')
         .delete()
@@ -269,52 +210,90 @@ export function useUserManagement() {
       
       if (error) {
         console.error('❌ Erro ao deletar usuário:', error)
+        setErrorState('deleteUser', error.message)
         throw error
       }
       
-      // Deletar do auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId)
-      if (authError) {
-        console.warn('⚠️ Erro ao deletar do auth (pode já ter sido deletado):', authError)
-      }
+      console.log('✅ Usuário deletado')
+      await fetchUsers() // Recarregar lista
       
-      console.log('✅ Usuário deletado com sucesso')
-      
-      // Atualizar lista
-      await fetchUsers()
-    } catch (err: any) {
-      console.error('❌ Erro ao deletar usuário:', err)
-      setErrorState('deleteUser', err.message)
-      throw err
+    } catch (error: any) {
+      console.error('❌ Erro inesperado ao deletar usuário:', error)
+      setErrorState('deleteUser', error.message)
+      throw error
     } finally {
       setLoadingState('deleteUser', false)
     }
-  }
+  }, [user, fetchUsers])
 
-  // Carregar usuários quando o componente monta
+  // Limpar todos os erros
+  const clearAllErrors = useCallback(() => {
+    setErrorStates({
+      createUser: null,
+      updateUser: null,
+      deleteUser: null,
+      fetchUsers: null
+    })
+  }, [])
+
+  // Carregar usuários na inicialização
   useEffect(() => {
     if (user) {
       fetchUsers()
     }
   }, [user])
 
+  // Criar objetos de mutação compatíveis com React Query
+  const createUserMutation = {
+    mutateAsync: createUser,
+    isLoading: loadingStates.createUser,
+    error: errorStates.createUser,
+    reset: () => setErrorState('createUser', null)
+  }
+
+  const updateUserMutation = {
+    mutateAsync: updateUser,
+    isLoading: loadingStates.updateUser,
+    error: errorStates.updateUser,
+    reset: () => setErrorState('updateUser', null)
+  }
+
+  const deleteUserMutation = {
+    mutateAsync: deleteUser,
+    isLoading: loadingStates.deleteUser,
+    error: errorStates.deleteUser,
+    reset: () => setErrorState('deleteUser', null)
+  }
+
   return {
+    // Dados principais
     users,
+    subordinates: { users }, // Compatibilidade com código antigo
+    
+    // Estados de loading e erro
     loadingStates,
     errorStates,
+    
+    // Funções principais
     fetchUsers,
-    createUser,
-    updateUser,
-    deleteUser,
+    createUser: createUserMutation,
+    updateUser: updateUserMutation,
+    deleteUser: deleteUserMutation,
+    clearAllErrors,
+    
+    // Dados auxiliares
+    availableRoles: {
+      data: [
+        { id: '1', role_name: 'Global', hierarchy_level: 1 },
+        { id: '2', role_name: 'Master', hierarchy_level: 2 },
+        { id: '3', role_name: 'Escritório', hierarchy_level: 3 },
+        { id: '4', role_name: 'Assessor', hierarchy_level: 4 },
+        { id: '5', role_name: 'Investidor', hierarchy_level: 5 }
+      ]
+    },
+    
     // Compatibilidade com código antigo
-    subordinatesData: users,
-    availableRoles: [
-      { id: '1', role_name: 'Global', hierarchy_level: 1 },
-      { id: '2', role_name: 'Master', hierarchy_level: 2 },
-      { id: '3', role_name: 'Escritório', hierarchy_level: 3 },
-      { id: '4', role_name: 'Assessor', hierarchy_level: 4 },
-      { id: '5', role_name: 'Investidor', hierarchy_level: 5 }
-    ]
+    subordinatesData: users
   }
 }
 
