@@ -177,18 +177,32 @@ const DebentureManagement: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('debentures')
-        .insert([{
-          name: formData.name,
-          total_emission_value: parseFloat(formData.total_emission_value.replace(/[^\d,]/g, '').replace(',', '.')),
-          issuer_name: formData.issuer_name,
-          status: formData.status,
-          emission_date: new Date().toISOString().split('T')[0], // Data atual
-          created_by: userProfile?.id
-        }]);
+      const debentureData = {
+        name: formData.name,
+        total_emission_value: parseFloat(formData.total_emission_value.replace(/[^\d,]/g, '').replace(',', '.')),
+        issuer_name: formData.issuer_name,
+        status: formData.status,
+        emission_date: new Date().toISOString().split('T')[0], // Data atual
+        created_by: userProfile?.id
+      };
+      
+      console.log('Dados da debênture a serem inseridos:', debentureData);
+      console.log('UserProfile:', userProfile);
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from('debentures')
+        .insert([debentureData])
+        .select();
+
+      if (error) {
+        console.error('Erro detalhado ao criar debênture:', error);
+        console.error('Código do erro:', error.code);
+        console.error('Mensagem do erro:', error.message);
+        console.error('Detalhes do erro:', error.details);
+        throw error;
+      }
+
+      console.log('Debênture criada com sucesso:', data);
 
       toast.success('Debênture criada com sucesso!');
       setShowForm(false);
