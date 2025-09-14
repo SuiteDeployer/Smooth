@@ -499,14 +499,17 @@ const InvestmentManagement: React.FC = () => {
     setSuccess('');
     
     try {
+      console.log('Form data before submit:', formData);
+      console.log('Selected series:', selectedSeries);
+      
       const investmentData = {
         series_id: formData.series_id,
         investor_user_id: formData.investor_id,
-        assessor_user_id: formData.assessor_id,
-        invested_amount: parseFloat(formData.investment_amount),
+        assessor_user_id: currentUser?.id, // Usar ID do usuário atual
+        invested_amount: parseFloat(formData.investment_amount) || 0,
         investment_date: getTodayDate(),
         maturity_date: calculateMaturityDate(),
-        interest_type: 'fixed', // Valor padrão
+        interest_type: 'fixed',
         interest_rate: selectedSeries?.remuneration_year || 0,
         commission_master: parseFloat(formData.master_commission_percentage) || 0,
         commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
@@ -514,12 +517,19 @@ const InvestmentManagement: React.FC = () => {
         status: 'active'
       };
       
-      const { error } = await supabase
-        .from('investments')
-        .insert([investmentData]);
-        
-      if (error) throw error;
+      console.log('Investment data to insert:', investmentData);
       
+      const { data, error } = await supabase
+        .from('investments')
+        .insert([investmentData])
+        .select();
+        
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Investment created:', data);
       setSuccess('Investimento criado com sucesso!');
       
       // Reset form
@@ -541,19 +551,15 @@ const InvestmentManagement: React.FC = () => {
       // Close modal
       setIsModalOpen(false);
       
-      // Reload investments
-      const { data } = await supabase
+      // Reload investments with simple query
+      const { data: investments } = await supabase
         .from('investments')
-        .select(`
-          *,
-          series(series_letter, commercial_name, debentures(name)),
-          investor:users!investments_investor_user_id_fkey(full_name),
-          assessor:users!investments_assessor_user_id_fkey(full_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
-      setInvestments(data || []);
+      setInvestments(investments || []);
       
     } catch (err: any) {
+      console.error('Error creating investment:', err);
       setError(err.message || 'Erro ao criar investimento');
     } finally {
       setLoading(false);
