@@ -54,7 +54,8 @@ const UserManagement = () => {
     updateUser, 
     deleteUser, 
     availableRoles: availableRolesData,
-    clearAllErrors 
+    clearAllErrors,
+    loadingStates
   } = useUserManagement()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -271,8 +272,18 @@ const UserManagement = () => {
       createUser.reset && createUser.reset()
       clearErrors()
       
-      // Submeter para a API
-      const result = await createUser.mutateAsync(data)
+      // Submeter para a API - converter dados para formato esperado
+      const userData = {
+        email: data.email,
+        name: data.full_name,
+        user_type: data.role_name,
+        cpf: data.cpf_cnpj,
+        phone: data.phone,
+        pix: data.pix_key,
+        status: data.status,
+        parent_id: data.superior_user_id
+      }
+      const result = await createUser.mutateAsync(userData)
       
       // Mostrar mensagem de sucesso com informações das credenciais
       const credentials = (result as any)?.credentials || (result as any)?.data?.credentials
@@ -467,9 +478,10 @@ const UserManagement = () => {
   // Verificar se deve mostrar campo de superior
   const shouldShowSuperiorField = watchedRoleName && watchedRoleName !== 'Global'
 
-  const filteredUsers = subordinates.data?.filter(user => 
-    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = subordinates.users?.filter(user => 
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || []
 
   const getRoleColor = (role: string) => {
@@ -541,7 +553,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {subordinates.isLoading ? (
+              {loadingStates?.fetchUsers ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     Carregando usuários...
@@ -581,10 +593,10 @@ const UserManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
-                        <div className="font-medium">{user.pix_key || 'N/A'}</div>
-                        {user.pix_key && user.pix_key_type && (
-                          <div className="text-xs text-gray-500 capitalize">
-                            {user.pix_key_type.replace('_', '/')}
+                        <div className="font-medium">{user.pix || 'N/A'}</div>
+                        {user.pix && (
+                          <div className="text-sm text-gray-500">
+                            PIX
                           </div>
                         )}
                       </div>
