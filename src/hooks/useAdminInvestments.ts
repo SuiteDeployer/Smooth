@@ -7,6 +7,9 @@ export interface Investment {
   series_id: string;
   investor_user_id: string;
   assessor_user_id: string;
+  master_user_id: string;         // ✅ Adicionado
+  escritorio_user_id: string;     // ✅ Adicionado
+  global_user_id?: string | null; // ✅ Adicionado (opcional)
   invested_amount: number;
   investment_date: string;
   maturity_date: string;
@@ -19,6 +22,7 @@ export interface Investment {
   commission_master?: number;
   commission_escritorio?: number;
   commission_assessor?: number;
+  commission_global?: number;      // ✅ Adicionado (opcional)
   created_at: string;
   updated_at: string;
   // Relacionamentos (Supabase pode retornar como arrays ou objetos únicos)
@@ -152,6 +156,9 @@ export function useAdminInvestments() {
           series_id,
           investor_user_id,
           assessor_user_id,
+          master_user_id,
+          escritorio_user_id,
+          global_user_id,
           invested_amount,
           investment_date,
           maturity_date,
@@ -164,6 +171,7 @@ export function useAdminInvestments() {
           commission_master,
           commission_escritorio,
           commission_assessor,
+          commission_global,
           created_at,
           updated_at,
           series (

@@ -9,6 +9,9 @@ interface Investment {
   series_id: string;
   investor_user_id: string;
   assessor_user_id: string;
+  master_user_id: string;         // ✅ Adicionado
+  escritorio_user_id: string;     // ✅ Adicionado
+  global_user_id?: string | null; // ✅ Adicionado (opcional)
   invested_amount: number;
   investment_date: string;
   maturity_date: string;
@@ -17,6 +20,7 @@ interface Investment {
   commission_master: number;
   commission_escritorio: number;
   commission_assessor: number;
+  commission_global?: number;      // ✅ Adicionado (opcional)
   status: string;
   auto_renewal?: boolean;
   contract_hash?: string;
@@ -505,7 +509,10 @@ const InvestmentManagement: React.FC = () => {
       const investmentData = {
         series_id: formData.series_id,
         investor_user_id: formData.investor_id,
-        assessor_user_id: currentUser?.id, // Usar ID do usuário atual
+        assessor_user_id: formData.assessor_id,     // ✅ Do dropdown, não do usuário atual
+        master_user_id: formData.master_id,         // ✅ Do dropdown
+        escritorio_user_id: formData.escritorio_id, // ✅ Do dropdown
+        global_user_id: null, // Por enquanto null, pode ser implementado depois
         invested_amount: parseFloat(formData.investment_amount) || 0,
         investment_date: getTodayDate(),
         maturity_date: calculateMaturityDate(),
@@ -514,6 +521,7 @@ const InvestmentManagement: React.FC = () => {
         commission_master: parseFloat(formData.master_commission_percentage) || 0,
         commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
         commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
+        commission_global: 0, // Por enquanto 0, pode ser implementado depois
         status: 'active'
       };
       

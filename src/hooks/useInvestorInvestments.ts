@@ -4,11 +4,21 @@ import { useAuth } from '../contexts/AuthContext'
 
 export interface Investment {
   id: string
+  series_id: string
+  investor_user_id: string
+  assessor_user_id: string
+  master_user_id: string         // ✅ Adicionado
+  escritorio_user_id: string     // ✅ Adicionado
+  global_user_id?: string | null // ✅ Adicionado (opcional)
   invested_amount: number
   investment_date: string
   maturity_date: string
   interest_rate: number
   interest_type: string
+  commission_master?: number      // ✅ Adicionado
+  commission_escritorio?: number  // ✅ Adicionado
+  commission_assessor?: number    // ✅ Adicionado
+  commission_global?: number      // ✅ Adicionado (opcional)
   status: string
   series: {
     id: string
