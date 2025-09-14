@@ -218,7 +218,7 @@ export function useUserManagement() {
             hierarchy_level
           )
         `)
-        .eq('auth_user_id', user.id)
+        .eq('id', user.id)
         .single()
 
       if (userError) throw userError
@@ -278,7 +278,7 @@ export function useUserManagement() {
             hierarchy_level
           )
         `)
-        .eq('auth_user_id', user.id)
+        .eq('id', user.id)
         .single()
 
       if (userError) throw userError
