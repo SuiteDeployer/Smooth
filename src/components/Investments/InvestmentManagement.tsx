@@ -423,20 +423,22 @@ const InvestmentManagement: React.FC = () => {
   useEffect(() => {
     const loadInvestments = async () => {
       try {
+        console.log('Loading investments...');
         const { data, error } = await supabase
           .from('investments')
-          .select(`
-            *,
-            series(series_letter, commercial_name, debentures(name)),
-            investor:users!investments_investor_user_id_fkey(full_name),
-            assessor:users!investments_assessor_user_id_fkey(full_name)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error loading investments:', error);
+          throw error;
+        }
+        
+        console.log('Investments loaded:', data?.length || 0);
         setInvestments(data || []);
       } catch (err) {
         console.error('Error loading investments:', err);
+        setError('Erro ao carregar investimentos: ' + (err as Error).message);
       }
     };
     
@@ -659,13 +661,13 @@ const InvestmentManagement: React.FC = () => {
                         #{investment.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {(investment as any).series?.debentures?.name || 'N/A'}
+                        Série: {investment.series_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {(investment as any).series?.series_letter || 'N/A'} - {(investment as any).series?.commercial_name || 'N/A'}
+                        -
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {(investment as any).investor?.full_name || 'N/A'}
+                        ID: {investment.investor_user_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.invested_amount)}
@@ -678,8 +680,8 @@ const InvestmentManagement: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          investment.status === 'Ativo' ? 'bg-green-100 text-green-800' :
-                          investment.status === 'Vencido' ? 'bg-red-100 text-red-800' :
+                          investment.status === 'active' ? 'bg-green-100 text-green-800' :
+                          investment.status === 'expired' ? 'bg-red-100 text-red-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}>
                           {investment.status}
