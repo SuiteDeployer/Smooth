@@ -429,12 +429,9 @@ const InvestmentManagement: React.FC = () => {
           .from('investments')
           .select(`
             *,
-            debentures(name),
-            series(series_letter, commercial_name),
-            investor:users!investments_investor_id_fkey(full_name),
-            assessor:users!investments_assessor_id_fkey(full_name),
-            escritorio:users!investments_escritorio_id_fkey(full_name),
-            master:users!investments_master_id_fkey(full_name)
+            series(series_letter, commercial_name, debentures(name)),
+            investor:users!investments_investor_user_id_fkey(full_name),
+            assessor:users!investments_assessor_user_id_fkey(full_name)
           `)
           .order('created_at', { ascending: false });
           
@@ -503,21 +500,18 @@ const InvestmentManagement: React.FC = () => {
     
     try {
       const investmentData = {
-        debenture_id: formData.debenture_id,
         series_id: formData.series_id,
-        investor_id: formData.investor_id,
-        assessor_id: formData.assessor_id,
-        escritorio_id: formData.escritorio_id,
-        master_id: formData.master_id,
-        investment_amount: parseFloat(formData.investment_amount),
+        investor_user_id: formData.investor_id,
+        assessor_user_id: formData.assessor_id,
+        invested_amount: parseFloat(formData.investment_amount),
         investment_date: getTodayDate(),
         maturity_date: calculateMaturityDate(),
-        assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
-        escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
-        master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
-        notes: formData.notes,
-        created_by: user?.id,
-        updated_by: user?.id
+        interest_type: 'fixed', // Valor padrão
+        interest_rate: selectedSeries?.remuneration_year || 0,
+        commission_master: parseFloat(formData.master_commission_percentage) || 0,
+        commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
+        commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
+        status: 'active'
       };
       
       const { error } = await supabase
@@ -552,12 +546,9 @@ const InvestmentManagement: React.FC = () => {
         .from('investments')
         .select(`
           *,
-          debentures(name),
-          series(series_letter, commercial_name),
-          investor:users!investments_investor_id_fkey(full_name),
-          assessor:users!investments_assessor_id_fkey(full_name),
-          escritorio:users!investments_escritorio_id_fkey(full_name),
-          master:users!investments_master_id_fkey(full_name)
+          series(series_letter, commercial_name, debentures(name)),
+          investor:users!investments_investor_user_id_fkey(full_name),
+          assessor:users!investments_assessor_user_id_fkey(full_name)
         `)
         .order('created_at', { ascending: false });
       setInvestments(data || []);
@@ -670,7 +661,7 @@ const InvestmentManagement: React.FC = () => {
                         #{investment.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {(investment as any).debentures?.name || 'N/A'}
+                        {(investment as any).series?.debentures?.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {(investment as any).series?.series_letter || 'N/A'} - {(investment as any).series?.commercial_name || 'N/A'}
@@ -679,7 +670,7 @@ const InvestmentManagement: React.FC = () => {
                         {(investment as any).investor?.full_name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(investment.investment_amount)}
+                        {formatCurrency(investment.invested_amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(investment.investment_date)}
