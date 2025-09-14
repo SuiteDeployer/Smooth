@@ -8,9 +8,9 @@ import toast from 'react-hot-toast';
 interface Debenture {
   id: string;
   name: string;
-  total_amount: number;
-  issuer: string;
-  status: 'Ativa' | 'Inativa' | 'Finalizada';
+  total_emission_value: number;
+  issuer_name: string;
+  status: 'active' | 'inactive' | 'finished';
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -44,9 +44,9 @@ const DebentureManagement: React.FC = () => {
   const [selectedDebentureId, setSelectedDebentureId] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
-    total_amount: '',
-    issuer: '',
-    status: 'Ativa' as Debenture['status']
+    total_emission_value: '',
+    issuer_name: '',
+    status: 'active' as Debenture['status']
   });
 
   const [seriesFormData, setSeriesFormData] = useState({
@@ -181,9 +181,10 @@ const DebentureManagement: React.FC = () => {
         .from('debentures')
         .insert([{
           name: formData.name,
-          total_amount: parseFloat(formData.total_amount.replace(/[^\d,]/g, '').replace(',', '.')),
-          issuer: formData.issuer,
+          total_emission_value: parseFloat(formData.total_emission_value.replace(/[^\d,]/g, '').replace(',', '.')),
+          issuer_name: formData.issuer_name,
           status: formData.status,
+          emission_date: new Date().toISOString().split('T')[0], // Data atual
           created_by: userProfile?.id
         }]);
 
@@ -208,8 +209,8 @@ const DebentureManagement: React.FC = () => {
     setEditingDebenture(debenture);
     setFormData({
       name: debenture.name,
-      total_amount: debenture.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
-      issuer: debenture.issuer,
+      total_emission_value: debenture.total_emission_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+      issuer_name: debenture.issuer_name,
       status: debenture.status
     });
     setShowForm(true);
@@ -228,8 +229,8 @@ const DebentureManagement: React.FC = () => {
         .from('debentures')
         .update({
           name: formData.name,
-          total_amount: parseFloat(formData.total_amount.replace(/[^\d,]/g, '').replace(',', '.')),
-          issuer: formData.issuer,
+          total_emission_value: parseFloat(formData.total_emission_value.replace(/[^\d,]/g, '').replace(',', '.')),
+          issuer_name: formData.issuer_name,
           status: formData.status,
           updated_at: new Date().toISOString()
         })
@@ -418,9 +419,9 @@ const DebentureManagement: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      total_amount: '',
-      issuer: '',
-      status: 'Ativa'
+      total_emission_value: '',
+      issuer_name: '',
+      status: 'active'
     });
   };
 
@@ -520,7 +521,7 @@ const DebentureManagement: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {debentures.map((debenture) => {
                 const seriesTotal = calculateSeriesTotal(debenture.id);
-                const available = debenture.total_amount - seriesTotal;
+                const available = debenture.total_emission_value - seriesTotal;
                 const debenturesSeries = series.filter(s => s.debenture_id === debenture.id);
                 
                 return (
@@ -534,17 +535,18 @@ const DebentureManagement: React.FC = () => {
                         {debenture.name}
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(debenture.total_emission_value)}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(seriesTotal)}</td>
                     <td className="px-4 py-2 text-sm text-green-600">{formatCurrency(available)}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{debenture.issuer}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{debenture.issuer_name}</td>
                     <td className="px-4 py-2 text-sm">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        debenture.status === 'Ativa' ? 'bg-green-100 text-green-800' :
-                        debenture.status === 'Inativa' ? 'bg-yellow-100 text-yellow-800' :
+                        debenture.status === 'active' ? 'bg-green-100 text-green-800' :
+                        debenture.status === 'inactive' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {debenture.status}
+                        {debenture.status === 'active' ? 'Ativa' : 
+                         debenture.status === 'inactive' ? 'Inativa' : 'Finalizada'}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{formatDate(debenture.created_at)}</td>
@@ -708,12 +710,12 @@ const DebentureManagement: React.FC = () => {
                   <input
                     type="text"
                     required
-                    value={formData.total_amount}
+                    value={formData.total_emission_value}
                     onChange={(e) => {
                       // Formatar como moeda brasileira
                       const value = e.target.value.replace(/\D/g, '');
                       const formatted = (parseInt(value) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                      setFormData({...formData, total_amount: formatted});
+                      setFormData({...formData, total_emission_value: formatted});
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="2.000.000,00"
@@ -727,8 +729,8 @@ const DebentureManagement: React.FC = () => {
                   <input
                     type="text"
                     required
-                    value={formData.issuer}
-                    onChange={(e) => setFormData({...formData, issuer: e.target.value})}
+                    value={formData.issuer_name}
+                    onChange={(e) => setFormData({...formData, issuer_name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Ex: Conta Global"
                   />
@@ -743,9 +745,9 @@ const DebentureManagement: React.FC = () => {
                     onChange={(e) => setFormData({...formData, status: e.target.value as Debenture['status']})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="Ativa">Ativa</option>
-                    <option value="Inativa">Inativa</option>
-                    <option value="Finalizada">Finalizada</option>
+                    <option value="active">Ativa</option>
+                    <option value="inactive">Inativa</option>
+                    <option value="finished">Finalizada</option>
                   </select>
                 </div>
 
