@@ -808,13 +808,13 @@ const InvestmentManagement: React.FC = () => {
         </div>
 
         {/* Investments Table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden" style={{ minWidth: '1200px' }}>
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-medium text-gray-900">Investimentos Criados</h2>
           </div>
           
           <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse">
+            <table className="w-full border-collapse">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
