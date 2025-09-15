@@ -57,9 +57,7 @@ const DebentureManagement: React.FC = () => {
     max_commission_month: '', // Campo calculado automaticamente
     remuneration_year: '',
     remuneration_month: '', // Campo calculado automaticamente
-    minimum_investment: '',
-    interest_rate: '',
-    max_commission_percentage: ''
+    minimum_investment: ''
   });
 
   // Verificar permissões de usuário
@@ -384,10 +382,11 @@ const DebentureManagement: React.FC = () => {
         term_months: parseInt(seriesFormData.term_months) || 0,
         captacao_amount: parseFloat(seriesFormData.captacao_amount) || 0,
         max_commission_year: parseFloat(seriesFormData.max_commission_year) || 0,
+        max_commission_month: parseFloat(seriesFormData.max_commission_month) || 0,
         remuneration_year: parseFloat(seriesFormData.remuneration_year) || 0,
+        remuneration_month: parseFloat(seriesFormData.remuneration_month) || 0,
         minimum_investment: parseFloat(seriesFormData.minimum_investment) || 0,
-        interest_rate: parseFloat(seriesFormData.interest_rate) || 0,
-        max_commission_percentage: parseFloat(seriesFormData.max_commission_percentage) || 0
+        created_by: userProfile?.id
       };
 
       if (editingSeries) {
@@ -447,9 +446,7 @@ const DebentureManagement: React.FC = () => {
       max_commission_month: '',
       remuneration_year: '',
       remuneration_month: '',
-      minimum_investment: '',
-      interest_rate: '',
-      max_commission_percentage: ''
+      minimum_investment: ''
     });
   };
 
@@ -915,38 +912,6 @@ const DebentureManagement: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="1000"
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Taxa de Juros (%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={seriesFormData.interest_rate}
-                      onChange={(e) => setSeriesFormData({...seriesFormData, interest_rate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="10.5"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Comissão Máxima Total (%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={seriesFormData.max_commission_percentage}
-                      onChange={(e) => setSeriesFormData({...seriesFormData, max_commission_percentage: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="5.0"
-                    />
-                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-4">
