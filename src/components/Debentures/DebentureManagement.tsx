@@ -8,9 +8,9 @@ import toast from 'react-hot-toast';
 interface Debenture {
   id: string;
   name: string;
-  total_emission_value: number;
-  issuer_name: string;
-  status: 'active' | 'inactive' | 'finished';
+  total_amount: number;
+  issuer: string;
+  status: 'Ativa' | 'Inativa' | 'Finalizada';
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -37,16 +37,15 @@ const DebentureManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showSeriesForm, setShowSeriesForm] = useState(false);
-  const [expandedDebenture, setExpandedDebenture] = useState<string | null>(null);
   const [series, setSeries] = useState<Serie[]>([]);
   const [editingDebenture, setEditingDebenture] = useState<Debenture | null>(null);
   const [editingSeries, setEditingSeries] = useState<Serie | null>(null);
   const [selectedDebentureId, setSelectedDebentureId] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
-    total_emission_value: '',
-    issuer_name: '',
-    status: 'active' as Debenture['status']
+    total_amount: '',
+    issuer: '',
+    status: 'Ativa' as Debenture['status']
   });
 
   const [seriesFormData, setSeriesFormData] = useState({
@@ -179,10 +178,9 @@ const DebentureManagement: React.FC = () => {
     try {
       const debentureData = {
         name: formData.name,
-        total_emission_value: parseFloat(formData.total_emission_value.replace(/[^\d,]/g, '').replace(',', '.')),
-        issuer_name: formData.issuer_name,
+        total_amount: parseFloat(formData.total_amount.replace(/[^\d,]/g, '').replace(',', '.')),
+        issuer: formData.issuer,
         status: formData.status,
-        emission_date: new Date().toISOString().split('T')[0], // Data atual
         created_by: userProfile?.id
       };
       
@@ -223,8 +221,8 @@ const DebentureManagement: React.FC = () => {
     setEditingDebenture(debenture);
     setFormData({
       name: debenture.name,
-      total_emission_value: debenture.total_emission_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
-      issuer_name: debenture.issuer_name,
+      total_amount: debenture.total_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+      issuer: debenture.issuer,
       status: debenture.status
     });
     setShowForm(true);
@@ -243,8 +241,8 @@ const DebentureManagement: React.FC = () => {
         .from('debentures')
         .update({
           name: formData.name,
-          total_emission_value: parseFloat(formData.total_emission_value.replace(/[^\d,]/g, '').replace(',', '.')),
-          issuer_name: formData.issuer_name,
+          total_amount: parseFloat(formData.total_amount.replace(/[^\d,]/g, '').replace(',', '.')),
+          issuer: formData.issuer,
           status: formData.status,
           updated_at: new Date().toISOString()
         })
@@ -433,9 +431,9 @@ const DebentureManagement: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      total_emission_value: '',
-      issuer_name: '',
-      status: 'active'
+      total_amount: '',
+      issuer: '',
+      status: 'Ativa'
     });
   };
 
@@ -476,10 +474,6 @@ const DebentureManagement: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const toggleExpanded = (debentureId: string) => {
-    setExpandedDebenture(expandedDebenture === debentureId ? null : debentureId);
   };
 
   if (loading) {
@@ -540,46 +534,34 @@ const DebentureManagement: React.FC = () => {
                 
                 return (
                 <React.Fragment key={debenture.id}>
-                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpanded(debenture.id)}>
+                  <tr className="hover:bg-gray-50">
                     <td className="px-4 py-2 text-sm font-medium text-gray-900">
-                      <div className="flex items-center">
-                        <span className="mr-2">
-                          {expandedDebenture === debenture.id ? '▼' : '▶'}
-                        </span>
-                        {debenture.name}
-                      </div>
+                      {debenture.name}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(debenture.total_emission_value)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(debenture.total_amount)}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(seriesTotal)}</td>
                     <td className="px-4 py-2 text-sm text-green-600">{formatCurrency(available)}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{debenture.issuer_name}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{debenture.issuer}</td>
                     <td className="px-4 py-2 text-sm">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        debenture.status === 'active' ? 'bg-green-100 text-green-800' :
-                        debenture.status === 'inactive' ? 'bg-yellow-100 text-yellow-800' :
+                        debenture.status === 'Ativa' ? 'bg-green-100 text-green-800' :
+                        debenture.status === 'Inativa' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {debenture.status === 'active' ? 'Ativa' : 
-                         debenture.status === 'inactive' ? 'Inativa' : 'Finalizada'}
+                        {debenture.status}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{formatDate(debenture.created_at)}</td>
                     {isGlobalUser && (
                       <td className="px-4 py-2 text-sm font-medium space-x-2">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(debenture);
-                          }}
+                          onClick={() => handleEdit(debenture)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Editar
                         </button>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(debenture.id);
-                          }}
+                          onClick={() => handleDelete(debenture.id)}
                           className="text-red-600 hover:text-red-900"
                         >
                           Deletar
@@ -588,26 +570,23 @@ const DebentureManagement: React.FC = () => {
                     )}
                   </tr>
                   
-                  {expandedDebenture === debenture.id && (
-                    <tr>
-                      <td colSpan={isGlobalUser ? 8 : 7} className="px-4 py-4 bg-gray-50">
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <h4 className="text-lg font-medium text-gray-900">
-                              Séries da {debenture.name}
-                            </h4>
-                            {isGlobalUser && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCreateSeries(debenture.id);
-                                }}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                              >
-                                Nova Série
-                              </button>
-                            )}
-                          </div>
+                  {/* Área de séries sempre visível */}
+                  <tr>
+                    <td colSpan={isGlobalUser ? 8 : 7} className="px-4 py-4 bg-gray-50">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-lg font-medium text-gray-900">
+                            Séries da {debenture.name}
+                          </h4>
+                          {isGlobalUser && (
+                            <button
+                              onClick={() => handleCreateSeries(debenture.id)}
+                              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                            >
+                              Nova Série
+                            </button>
+                          )}
+                        </div>
                           
                           {debenturesSeries.length > 0 ? (
                             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -672,7 +651,6 @@ const DebentureManagement: React.FC = () => {
                         </div>
                       </td>
                     </tr>
-                  )}
                 </React.Fragment>
                 );
               })}
