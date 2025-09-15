@@ -751,7 +751,19 @@ const InvestmentManagement: React.FC = () => {
       
       // Carregar dados relacionados
       await handleDebentureChange(investment.debenture_id);
-      setSelectedSeries(investment.series || null);
+      
+      // Buscar série completa
+      if (investment.series_id) {
+        const { data: seriesData } = await supabase
+          .from('series')
+          .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
+          .eq('id', investment.series_id)
+          .single();
+        
+        setSelectedSeries(seriesData || null);
+      } else {
+        setSelectedSeries(null);
+      }
       
       // Abrir modal
       setIsModalOpen(true);
