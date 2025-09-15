@@ -32,6 +32,37 @@ interface Investment {
   commission_assessor: number;
   global_user_id: string;
   commission_global: number;
+  // Dados relacionados via queries separadas
+  debentures?: {
+    id: string;
+    name: string;
+    issuer: string;
+  };
+  series?: {
+    id: string;
+    series_letter: string;
+    commercial_name: string;
+  };
+  investor?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  assessor?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  escritorio?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  master?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 interface Debenture {
@@ -428,23 +459,72 @@ const InvestmentManagement: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Load investments
+  // Load investments with related data using separate queries
   useEffect(() => {
     const loadInvestments = async () => {
       try {
         console.log('Loading investments...');
-        const { data, error } = await supabase
+        
+        // 1. Buscar investimentos (query principal que funciona)
+        const { data: investmentsData, error: investmentsError } = await supabase
           .from('investments')
           .select('*')
           .order('created_at', { ascending: false });
           
-        if (error) {
-          console.error('Error loading investments:', error);
-          throw error;
+        if (investmentsError) {
+          console.error('Error loading investments:', investmentsError);
+          throw investmentsError;
         }
         
-        console.log('Investments loaded:', data?.length || 0);
-        setInvestments(data || []);
+        console.log('Investments loaded:', investmentsData?.length || 0);
+        
+        if (!investmentsData || investmentsData.length === 0) {
+          setInvestments([]);
+          return;
+        }
+        
+        // 2. Buscar dados relacionados separadamente
+        const debentureIds = [...new Set(investmentsData.map(inv => inv.debenture_id))];
+        const seriesIds = [...new Set(investmentsData.map(inv => inv.series_id))];
+        const userIds = [...new Set([
+          ...investmentsData.map(inv => inv.investor_user_id),
+          ...investmentsData.map(inv => inv.assessor_user_id),
+          ...investmentsData.map(inv => inv.escritorio_user_id),
+          ...investmentsData.map(inv => inv.master_user_id)
+        ])];
+        
+        // Buscar debêntures
+        const { data: debenturesData } = await supabase
+          .from('debentures')
+          .select('id, name, issuer')
+          .in('id', debentureIds);
+          
+        // Buscar séries
+        const { data: seriesData } = await supabase
+          .from('series')
+          .select('id, series_letter, commercial_name')
+          .in('id', seriesIds);
+          
+        // Buscar usuários
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .in('id', userIds);
+        
+        // 3. Combinar dados
+        const enrichedInvestments = investmentsData.map(investment => ({
+          ...investment,
+          debentures: debenturesData?.find(d => d.id === investment.debenture_id),
+          series: seriesData?.find(s => s.id === investment.series_id),
+          investor: usersData?.find(u => u.id === investment.investor_user_id),
+          assessor: usersData?.find(u => u.id === investment.assessor_user_id),
+          escritorio: usersData?.find(u => u.id === investment.escritorio_user_id),
+          master: usersData?.find(u => u.id === investment.master_user_id)
+        }));
+        
+        console.log('Enriched investments with related data:', enrichedInvestments.length);
+        setInvestments(enrichedInvestments);
+        
       } catch (err) {
         console.error('Error loading investments:', err);
         setError('Erro ao carregar investimentos: ' + (err as Error).message);
@@ -683,13 +763,13 @@ const InvestmentManagement: React.FC = () => {
                         #{investment.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        Série: {investment.series_id}
+                        {investment.debentures?.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        -
+                        {investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ID: {investment.investor_user_id}
+                        {investment.investor?.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}
