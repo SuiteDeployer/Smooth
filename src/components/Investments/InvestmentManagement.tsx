@@ -6,27 +6,32 @@ import AppLayout from '../Layout/AppLayout';
 
 interface Investment {
   id: number;
+  debenture_id: string;
   series_id: string;
   investor_user_id: string;
   assessor_user_id: string;
-  master_user_id: string;         // ✅ Adicionado
-  escritorio_user_id: string;     // ✅ Adicionado
-  global_user_id?: string | null; // ✅ Adicionado (opcional)
-  invested_amount: number;
+  escritorio_user_id: string;
+  master_user_id: string;
+  investment_amount: number;
   investment_date: string;
   maturity_date: string;
-  interest_type: string;
-  interest_rate: number;
+  assessor_commission_percentage: number;
+  escritorio_commission_percentage: number;
+  master_commission_percentage: number;
+  assessor_commission_amount?: number;
+  escritorio_commission_amount?: number;
+  master_commission_amount?: number;
+  status: string;
+  notes?: string;
+  created_at: string;
+  updated_at?: string;
+  created_by: string;
+  updated_by?: string;
   commission_master: number;
   commission_escritorio: number;
   commission_assessor: number;
-  commission_global?: number;      // ✅ Adicionado (opcional)
-  status: string;
-  auto_renewal?: boolean;
-  contract_hash?: string;
-  contract_signed_at?: string;
-  created_at: string;
-  updated_at: string;
+  global_user_id: string;
+  commission_global: number;
 }
 
 interface Debenture {
@@ -507,22 +512,25 @@ const InvestmentManagement: React.FC = () => {
       console.log('Selected series:', selectedSeries);
       
       const investmentData = {
+        debenture_id: formData.debenture_id,
         series_id: formData.series_id,
         investor_user_id: formData.investor_id,
-        assessor_user_id: formData.assessor_id,     // ✅ Do dropdown, não do usuário atual
-        master_user_id: formData.master_id,         // ✅ Do dropdown
-        escritorio_user_id: formData.escritorio_id, // ✅ Do dropdown
-        global_user_id: null, // Por enquanto null, pode ser implementado depois
-        invested_amount: parseFloat(formData.investment_amount) || 0,
+        assessor_user_id: formData.assessor_id,
+        master_user_id: formData.master_id,
+        escritorio_user_id: formData.escritorio_id,
+        global_user_id: userProfile?.id || '',
+        investment_amount: parseFloat(formData.investment_amount) || 0,
         investment_date: getTodayDate(),
         maturity_date: calculateMaturityDate(),
-        interest_type: 'fixed',
-        interest_rate: selectedSeries?.remuneration_year || 0,
+        assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
+        escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
+        master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
         commission_master: parseFloat(formData.master_commission_percentage) || 0,
         commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
         commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
-        commission_global: 0, // Por enquanto 0, pode ser implementado depois
-        status: 'active'
+        commission_global: 0,
+        status: 'active',
+        created_by: userProfile?.id || ''
       };
       
       console.log('Investment data to insert:', investmentData);
@@ -684,7 +692,7 @@ const InvestmentManagement: React.FC = () => {
                         ID: {investment.investor_user_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(investment.invested_amount)}
+                        {formatCurrency(investment.investment_amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(investment.investment_date)}
