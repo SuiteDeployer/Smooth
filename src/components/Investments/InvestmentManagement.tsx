@@ -63,6 +63,11 @@ interface Investment {
     name: string;
     email: string;
   };
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 interface Debenture {
@@ -490,7 +495,8 @@ const InvestmentManagement: React.FC = () => {
           ...investmentsData.map(inv => inv.investor_user_id),
           ...investmentsData.map(inv => inv.assessor_user_id),
           ...investmentsData.map(inv => inv.escritorio_user_id),
-          ...investmentsData.map(inv => inv.master_user_id)
+          ...investmentsData.map(inv => inv.master_user_id),
+          ...investmentsData.map(inv => inv.created_by)
         ])];
         
         // Buscar debêntures
@@ -519,7 +525,8 @@ const InvestmentManagement: React.FC = () => {
           investor: usersData?.find(u => u.id === investment.investor_user_id),
           assessor: usersData?.find(u => u.id === investment.assessor_user_id),
           escritorio: usersData?.find(u => u.id === investment.escritorio_user_id),
-          master: usersData?.find(u => u.id === investment.master_user_id)
+          master: usersData?.find(u => u.id === investment.master_user_id),
+          creator: usersData?.find(u => u.id === investment.created_by)
         }));
         
         console.log('Enriched investments with related data:', enrichedInvestments.length);
@@ -773,7 +780,7 @@ const InvestmentManagement: React.FC = () => {
                         {investment.investor?.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {investment.assessor?.name || 'N/A'}
+                        {investment.creator?.name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}
