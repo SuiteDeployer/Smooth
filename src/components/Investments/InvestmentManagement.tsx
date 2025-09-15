@@ -817,53 +817,53 @@ const InvestmentManagement: React.FC = () => {
             <table className="w-full border-collapse">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investidor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investidor</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {investments.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-3 py-12 text-center text-gray-500">
                       Nenhum investimento encontrado
                     </td>
                   </tr>
                 ) : (
                   investments.map((investment) => (
                     <tr key={investment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         #{investment.id}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {investment.debentures?.name || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {investment.investor?.name || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {investment.creator?.name || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(investment.investment_date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(investment.maturity_date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           investment.status === 'active' ? 'bg-green-100 text-green-800' :
                           investment.status === 'expired' ? 'bg-red-100 text-red-800' :
@@ -872,7 +872,7 @@ const InvestmentManagement: React.FC = () => {
                           {investment.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
                         {(userProfile?.user_type === 'Global' || 
                           userProfile?.user_type === 'Master' || 
                           userProfile?.user_type === 'Escritório' || 
