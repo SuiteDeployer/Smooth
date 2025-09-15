@@ -22,12 +22,14 @@ interface Serie {
   series_letter: string;
   commercial_name: string;
   term_months: number;
-  captacao_amount: number;
   max_commission_year: number;
+  max_commission_month: number;
   remuneration_year: number;
-  minimum_investment: number;
-  interest_rate: number;
-  max_commission_percentage: number;
+  remuneration_month: number;
+  captacao_amount: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
 }
 
 const DebentureManagement: React.FC = () => {
@@ -56,8 +58,7 @@ const DebentureManagement: React.FC = () => {
     max_commission_year: '',
     max_commission_month: '', // Campo calculado automaticamente
     remuneration_year: '',
-    remuneration_month: '', // Campo calculado automaticamente
-    minimum_investment: ''
+    remuneration_month: '' // Campo calculado automaticamente
   });
 
   // Verificar permissões de usuário
@@ -321,10 +322,7 @@ const DebentureManagement: React.FC = () => {
       max_commission_year: String(serie.max_commission_year || ''),
       max_commission_month: commissionMonth,
       remuneration_year: String(serie.remuneration_year || ''),
-      remuneration_month: remunerationMonth,
-      minimum_investment: String(serie.minimum_investment || ''),
-      interest_rate: String(serie.interest_rate || ''),
-      max_commission_percentage: String(serie.max_commission_percentage || '')
+      remuneration_month: remunerationMonth
     });
     setShowSeriesForm(true);
   };
@@ -385,7 +383,6 @@ const DebentureManagement: React.FC = () => {
         max_commission_month: parseFloat(seriesFormData.max_commission_month) || 0,
         remuneration_year: parseFloat(seriesFormData.remuneration_year) || 0,
         remuneration_month: parseFloat(seriesFormData.remuneration_month) || 0,
-        minimum_investment: parseFloat(seriesFormData.minimum_investment) || 0,
         created_by: userProfile?.id
       };
 
@@ -445,8 +442,7 @@ const DebentureManagement: React.FC = () => {
       max_commission_year: '',
       max_commission_month: '',
       remuneration_year: '',
-      remuneration_month: '',
-      minimum_investment: ''
+      remuneration_month: ''
     });
   };
 
@@ -526,7 +522,7 @@ const DebentureManagement: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {debentures.map((debenture) => {
                 const seriesTotal = calculateSeriesTotal(debenture.id);
-                const available = debenture.total_emission_value - seriesTotal;
+                const available = debenture.total_amount - seriesTotal;
                 const debenturesSeries = series.filter(s => s.debenture_id === debenture.id);
                 
                 return (
@@ -699,12 +695,12 @@ const DebentureManagement: React.FC = () => {
                   <input
                     type="text"
                     required
-                    value={formData.total_emission_value}
+                    value={formData.total_amount}
                     onChange={(e) => {
                       // Formatar como moeda brasileira
                       const value = e.target.value.replace(/\D/g, '');
                       const formatted = (parseInt(value) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                      setFormData({...formData, total_emission_value: formatted});
+                      setFormData({...formData, total_amount: formatted});
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="2.000.000,00"
@@ -718,8 +714,8 @@ const DebentureManagement: React.FC = () => {
                   <input
                     type="text"
                     required
-                    value={formData.issuer_name}
-                    onChange={(e) => setFormData({...formData, issuer_name: e.target.value})}
+                    value={formData.issuer}
+                    onChange={(e) => setFormData({...formData, issuer: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Ex: Conta Global"
                   />
@@ -897,21 +893,6 @@ const DebentureManagement: React.FC = () => {
                       />
                     </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Investimento Mínimo
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={seriesFormData.minimum_investment}
-                    onChange={(e) => setSeriesFormData({...seriesFormData, minimum_investment: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="1000"
-                  />
                 </div>
 
                 <div className="flex space-x-3 pt-4">
