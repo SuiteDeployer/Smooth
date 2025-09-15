@@ -766,7 +766,22 @@ const InvestmentManagement: React.FC = () => {
         notes: investment.notes || ''
       });
       
-      // Carregar dados relacionados
+      // Carregar investidores (necessário para popular o dropdown)
+      console.log('Loading investors for edit modal...');
+      const { data: investorData, error: investorError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('user_type', 'Investidor')
+        .order('name');
+        
+      if (investorError) {
+        console.error('Error loading investors for edit:', investorError);
+      } else {
+        console.log('Loaded investors for edit:', investorData?.length || 0);
+        setInvestors(investorData || []);
+      }
+      
+      // Carregar dados relacionados (séries da debênture)
       await handleDebentureChange(investment.debenture_id);
       
       // Buscar série completa
