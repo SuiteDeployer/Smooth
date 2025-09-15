@@ -813,8 +813,8 @@ const InvestmentManagement: React.FC = () => {
             <h2 className="text-lg font-medium text-gray-900">Investimentos Criados</h2>
           </div>
           
-          <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1400px' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto border-collapse">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
@@ -826,7 +826,7 @@ const InvestmentManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Ações</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -872,7 +872,7 @@ const InvestmentManagement: React.FC = () => {
                           {investment.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium w-32">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {(userProfile?.user_type === 'Global' || 
                           userProfile?.user_type === 'Master' || 
                           userProfile?.user_type === 'Escritório' || 
