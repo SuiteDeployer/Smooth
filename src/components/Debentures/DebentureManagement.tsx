@@ -85,13 +85,45 @@ const DebentureManagement: React.FC = () => {
     if (debentures.length > 0) {
       const fetchAllSeries = async () => {
         try {
-          const { data, error } = await supabase
-            .from('series')
-            .select('*')
-            .order('series_letter', { ascending: true });
+          const [seriesResponse, investmentsResponse] = await Promise.all([
+            supabase
+              .from('series')
+              .select('*')
+              .order('series_letter', { ascending: true }),
+            supabase
+              .from('investments')
+              .select('series_id, investment_amount, status, debenture_id')
+              .eq('status', 'active')
+          ]);
 
-          if (error) throw error;
-          setSeries(data || []);
+          if (seriesResponse.error) throw seriesResponse.error;
+          if (investmentsResponse.error) throw investmentsResponse.error;
+
+          console.log('🔍 DEBUG - All investments found:', investmentsResponse.data);
+
+          // Calcular captação por série
+          const investments = investmentsResponse.data || [];
+          const captationBySeries = {};
+
+          investments.forEach(investment => {
+            console.log('🔍 DEBUG - Processing investment:', investment);
+            const amount = parseFloat(investment.investment_amount) || 0;
+            if (investment.series_id) {
+              captationBySeries[investment.series_id] = (captationBySeries[investment.series_id] || 0) + amount;
+            }
+          });
+
+          console.log('🔍 DEBUG - Captation by series:', captationBySeries);
+
+          // Adicionar captação calculada às séries
+          const seriesWithCaptation = (seriesResponse.data || []).map(serie => ({
+            ...serie,
+            current_captation: captationBySeries[serie.id] || 0,
+            captation_percentage: serie.captacao_amount > 0 ? 
+              ((captationBySeries[serie.id] || 0) / serie.captacao_amount) * 100 : 0
+          }));
+
+          setSeries(seriesWithCaptation);
         } catch (error) {
           console.error('Erro ao buscar todas as séries:', error);
         }
