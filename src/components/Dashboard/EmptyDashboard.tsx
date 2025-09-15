@@ -95,13 +95,19 @@ const EmptyDashboard: React.FC = () => {
             </button>
           )}
 
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md">
-            <div className="text-2xl mb-2">🚧</div>
-            <h3 className="text-lg font-semibold mb-2 text-gray-600">Em Desenvolvimento</h3>
-            <p className="text-sm text-gray-500">
-              Comissões e Remunerações serão implementadas em breve
-            </p>
-          </div>
+          {/* Card Comissões - oculto para Investidores */}
+          {userProfile?.user_type !== 'Investidor' && (
+            <button
+              onClick={() => navigate('/comissoes')}
+              className="bg-orange-600 hover:bg-orange-700 text-white p-6 rounded-lg shadow-md transition-colors"
+            >
+              <div className="text-2xl mb-2">💳</div>
+              <h3 className="text-lg font-semibold mb-2">Comissões</h3>
+              <p className="text-sm opacity-90">
+                Gerenciar e acompanhar comissões do sistema
+              </p>
+            </button>
+          )}
         </div>
 
         {/* Development Info */}
@@ -115,6 +121,7 @@ const EmptyDashboard: React.FC = () => {
             <p>✅ Área de gerenciamento de usuários</p>
             <p>✅ Área de gerenciamento de debêntures</p>
             <p>✅ Área de gerenciamento de investimentos</p>
+            <p>✅ Área de gerenciamento de comissões</p>
             <p>✅ Políticas RLS hierárquicas</p>
             <p>✅ Split de comissionamento</p>
           </div>
