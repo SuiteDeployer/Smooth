@@ -512,7 +512,7 @@ const InvestmentManagement: React.FC = () => {
         // Buscar séries
         const { data: seriesData } = await supabase
           .from('series')
-          .select('id, series_letter, commercial_name')
+          .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
           .in('id', seriesIds);
           
         // Buscar usuários
