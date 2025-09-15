@@ -751,21 +751,6 @@ const InvestmentManagement: React.FC = () => {
       setIsEditing(true);
       setEditingInvestment(investment);
       
-      // Preencher formulário com dados do investimento
-      setFormData({
-        debenture_id: investment.debenture_id,
-        series_id: investment.series_id,
-        investor_id: investment.investor_user_id,
-        assessor_id: investment.assessor_user_id,
-        escritorio_id: investment.escritorio_user_id,
-        master_id: investment.master_user_id,
-        investment_amount: investment.investment_amount.toString(),
-        assessor_commission_percentage: investment.assessor_commission_percentage.toString(),
-        escritorio_commission_percentage: investment.escritorio_commission_percentage.toString(),
-        master_commission_percentage: investment.master_commission_percentage.toString(),
-        notes: investment.notes || ''
-      });
-      
       // Carregar investidores (necessário para popular o dropdown)
       console.log('Loading investors for edit modal...');
       const { data: investorData, error: investorError } = await supabase
@@ -781,21 +766,58 @@ const InvestmentManagement: React.FC = () => {
         setInvestors(investorData || []);
       }
       
-      // Carregar dados relacionados (séries da debênture)
-      await handleDebentureChange(investment.debenture_id);
+      // Carregar séries da debênture ANTES de definir o formData
+      console.log('Loading series for debenture:', investment.debenture_id);
+      if (investment.debenture_id) {
+        try {
+          const { data: seriesData, error: seriesError } = await supabase
+            .from('series')
+            .select('*')
+            .eq('debenture_id', investment.debenture_id)
+            .order('series_letter');
+            
+          if (seriesError) throw seriesError;
+          console.log('Loaded series for edit:', seriesData?.length || 0);
+          setSeries(seriesData || []);
+        } catch (err) {
+          console.error('Error loading series for edit:', err);
+        }
+      }
       
-      // Buscar série completa
+      // Buscar série completa para exibir informações
       if (investment.series_id) {
-        const { data: seriesData } = await supabase
+        const { data: selectedSeriesData } = await supabase
           .from('series')
           .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
           .eq('id', investment.series_id)
           .single();
         
-        setSelectedSeries(seriesData || null);
+        console.log('Loaded selected series for edit:', selectedSeriesData);
+        setSelectedSeries(selectedSeriesData || null);
       } else {
         setSelectedSeries(null);
       }
+      
+      // Preencher formulário com dados do investimento APÓS carregar as listas
+      setFormData({
+        debenture_id: investment.debenture_id,
+        series_id: investment.series_id,
+        investor_id: investment.investor_user_id,
+        assessor_id: investment.assessor_user_id,
+        escritorio_id: investment.escritorio_user_id,
+        master_id: investment.master_user_id,
+        investment_amount: investment.investment_amount.toString(),
+        assessor_commission_percentage: investment.assessor_commission_percentage.toString(),
+        escritorio_commission_percentage: investment.escritorio_commission_percentage.toString(),
+        master_commission_percentage: investment.master_commission_percentage.toString(),
+        notes: investment.notes || ''
+      });
+      
+      console.log('Form data set for edit:', {
+        debenture_id: investment.debenture_id,
+        series_id: investment.series_id,
+        investor_id: investment.investor_user_id
+      });
       
       // Abrir modal
       setIsModalOpen(true);
