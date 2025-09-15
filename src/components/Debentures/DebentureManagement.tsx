@@ -146,14 +146,42 @@ const DebentureManagement: React.FC = () => {
 
   const fetchSeries = async (debentureId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('series')
-        .select('*')
-        .eq('debenture_id', debentureId)
-        .order('series_letter', { ascending: true });
+      const [seriesResponse, investmentsResponse] = await Promise.all([
+        supabase
+          .from('series')
+          .select('*')
+          .eq('debenture_id', debentureId)
+          .order('series_letter', { ascending: true }),
+        supabase
+          .from('investments')
+          .select('series_id, investment_amount, status')
+          .eq('debenture_id', debentureId)
+          .eq('status', 'active')
+      ]);
 
-      if (error) throw error;
-      setSeries(data || []);
+      if (seriesResponse.error) throw seriesResponse.error;
+      if (investmentsResponse.error) throw investmentsResponse.error;
+
+      // Calcular captação por série
+      const investments = investmentsResponse.data || [];
+      const captationBySeries = {};
+
+      investments.forEach(investment => {
+        const amount = parseFloat(investment.investment_amount) || 0;
+        if (investment.series_id) {
+          captationBySeries[investment.series_id] = (captationBySeries[investment.series_id] || 0) + amount;
+        }
+      });
+
+      // Adicionar captação calculada às séries
+      const seriesWithCaptation = (seriesResponse.data || []).map(serie => ({
+        ...serie,
+        current_captation: captationBySeries[serie.id] || 0,
+        captation_percentage: serie.captacao_amount > 0 ? 
+          ((captationBySeries[serie.id] || 0) / serie.captacao_amount) * 100 : 0
+      }));
+
+      setSeries(seriesWithCaptation);
     } catch (error) {
       console.error('Erro ao buscar séries:', error);
       toast.error('Erro ao carregar séries');
@@ -590,6 +618,7 @@ const DebentureManagement: React.FC = () => {
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nome Comercial</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Prazo</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Captação</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Progresso</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Comissão/Ano</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remuneração/Ano</th>
                                     {isGlobalUser && (
@@ -603,7 +632,66 @@ const DebentureManagement: React.FC = () => {
                                       <td className="px-4 py-2 text-sm font-medium text-gray-900">{serie.series_letter}</td>
                                       <td className="px-4 py-2 text-sm text-gray-900">{serie.commercial_name}</td>
                                       <td className="px-4 py-2 text-sm text-gray-900">{serie.term_months} meses</td>
-                                      <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(serie.captacao_amount)}</td>
+                                      <td className="px-4 py-2 text-sm">
+                                        <div className="space-y-1">
+                                          <div className="text-xs">
+                                            <span className="font-medium text-green-700">
+                                              Captado: {formatCurrency(serie.current_captation || 0)}
+                                            </span>
+                                          </div>
+                                          <div className="text-xs">
+                                            <span className="font-medium text-blue-700">
+                                              Disponível: {formatCurrency((serie.captacao_amount || 0) - (serie.current_captation || 0))}
+                                            </span>
+                                          </div>
+                                          <div className="text-xs text-gray-600">
+                                            Limite: {formatCurrency(serie.captacao_amount)}
+                                          </div>
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-2 text-sm">
+                                        {(() => {
+                                          const captado = serie.current_captation || 0;
+                                          const limite = serie.captacao_amount || 0;
+                                          const percentual = limite > 0 ? (captado / limite) * 100 : 0;
+                                          
+                                          let barColor = 'bg-green-500';
+                                          let bgColor = 'bg-green-50';
+                                          let textColor = 'text-green-700';
+                                          let status = 'Disponível';
+                                          
+                                          if (percentual >= 100) {
+                                            barColor = 'bg-red-500';
+                                            bgColor = 'bg-red-50';
+                                            textColor = 'text-red-700';
+                                            status = 'Esgotada';
+                                          } else if (percentual >= 80) {
+                                            barColor = 'bg-yellow-500';
+                                            bgColor = 'bg-yellow-50';
+                                            textColor = 'text-yellow-700';
+                                            status = 'Quase Esgotada';
+                                          }
+                                          
+                                          return (
+                                            <div className="space-y-2">
+                                              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
+                                                {status}
+                                              </div>
+                                              <div className="w-full">
+                                                <div className="flex justify-between text-xs mb-1">
+                                                  <span className="font-medium">{percentual.toFixed(1)}%</span>
+                                                </div>
+                                                <div className="bg-gray-200 rounded-full h-2">
+                                                  <div 
+                                                    className={`${barColor} h-2 rounded-full transition-all duration-300`}
+                                                    style={{ width: `${Math.min(percentual, 100)}%` }}
+                                                  ></div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          );
+                                        })()}
+                                      </td>
                                       <td className="px-4 py-2 text-sm text-gray-900">{serie.max_commission_year}%</td>
                                       <td className="px-4 py-2 text-sm text-gray-900">{serie.remuneration_year}%</td>
                                       {isGlobalUser && (
