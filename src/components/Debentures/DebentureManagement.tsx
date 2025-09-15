@@ -167,14 +167,20 @@ const DebentureManagement: React.FC = () => {
 
       // Calcular captação por série
       const investments = investmentsResponse.data || [];
+      console.log('🔍 DEBUG - Investments found:', investments);
+      console.log('🔍 DEBUG - Debenture ID:', debentureId);
+      
       const captationBySeries = {};
 
       investments.forEach(investment => {
+        console.log('🔍 DEBUG - Processing investment:', investment);
         const amount = parseFloat(investment.investment_amount) || 0;
         if (investment.series_id) {
           captationBySeries[investment.series_id] = (captationBySeries[investment.series_id] || 0) + amount;
         }
       });
+
+      console.log('🔍 DEBUG - Captation by series:', captationBySeries);
 
       // Adicionar captação calculada às séries
       const seriesWithCaptation = (seriesResponse.data || []).map(serie => ({
