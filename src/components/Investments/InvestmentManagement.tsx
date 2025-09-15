@@ -732,21 +732,33 @@ const InvestmentManagement: React.FC = () => {
       
       console.log('Investment saved:', data);
       
+      // Debug da condição para geração de comissões
+      console.log('🔍 DEBUG - isEditing:', isEditing);
+      console.log('🔍 DEBUG - data:', data);
+      console.log('🔍 DEBUG - data[0]:', data && data[0]);
+      console.log('🔍 DEBUG - Condição completa:', !isEditing && data && data[0]);
+      
       // Gerar comissões automaticamente para novos investimentos
       if (!isEditing && data && data[0]) {
         const newInvestmentId = data[0].id;
         console.log('🔄 Gerando comissões para investimento:', newInvestmentId);
         
-        const commissionResult = await generateCommissions(newInvestmentId);
-        
-        if (commissionResult.success) {
-          console.log('✅ Comissões geradas:', commissionResult.data);
-          setSuccess(`Investimento criado com sucesso! ${commissionResult.data.commissionsCreated} comissões geradas para ${commissionResult.data.totalUsers} usuários.`);
-        } else {
-          console.error('❌ Erro ao gerar comissões:', commissionResult.error);
-          setSuccess('Investimento criado com sucesso, mas houve erro ao gerar comissões. Verifique no controle de comissões.');
+        try {
+          const commissionResult = await generateCommissions(newInvestmentId);
+          
+          if (commissionResult.success) {
+            console.log('✅ Comissões geradas:', commissionResult.data);
+            setSuccess(`Investimento criado com sucesso! ${commissionResult.data.commissionsCreated} comissões geradas para ${commissionResult.data.totalUsers} usuários.`);
+          } else {
+            console.error('❌ Erro ao gerar comissões:', commissionResult.error);
+            setSuccess('Investimento criado com sucesso, mas houve erro ao gerar comissões. Verifique no controle de comissões.');
+          }
+        } catch (error) {
+          console.error('💥 Erro fatal ao gerar comissões:', error);
+          setSuccess('Investimento criado com sucesso, mas houve erro fatal ao gerar comissões.');
         }
       } else {
+        console.log('⚠️ Condição não atendida para geração de comissões');
         setSuccess(isEditing ? 'Investimento atualizado com sucesso!' : 'Investimento criado com sucesso!');
       }
       
