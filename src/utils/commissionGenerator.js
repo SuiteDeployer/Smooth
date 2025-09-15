@@ -9,15 +9,10 @@ export async function generateCommissions(investmentId) {
   try {
     console.log('🔄 Gerando comissões para investimento:', investmentId);
 
-    // 1. Buscar dados do investimento e série
+    // 1. Buscar dados do investimento
     const { data: investment, error: investmentError } = await supabase
       .from('investments')
-      .select(`
-        *,
-        series (
-          term_months
-        )
-      `)
+      .select('*')
       .eq('id', investmentId)
       .single();
 
@@ -29,13 +24,28 @@ export async function generateCommissions(investmentId) {
       throw new Error('Investimento não encontrado');
     }
 
+    // 2. Buscar dados da série separadamente
+    const { data: series, error: seriesError } = await supabase
+      .from('series')
+      .select('term_months')
+      .eq('id', investment.series_id)
+      .single();
+
+    if (seriesError) {
+      throw new Error(`Erro ao buscar série: ${seriesError.message}`);
+    }
+
+    if (!series) {
+      throw new Error('Série não encontrada');
+    }
+
     console.log('📊 Dados do investimento:', {
       id: investment.id,
       amount: investment.investment_amount,
-      termMonths: investment.series.term_months
+      termMonths: series.term_months
     });
 
-    // 2. Preparar dados dos usuários e suas comissões
+    // 3. Preparar dados dos usuários e suas comissões
     const commissionUsers = [
       {
         userId: investment.master_user_id,
@@ -59,15 +69,15 @@ export async function generateCommissions(investmentId) {
       }
     ];
 
-    // 3. Filtrar apenas usuários com comissão > 0
+    // 4. Filtrar apenas usuários com comissão > 0
     const activeUsers = commissionUsers.filter(user => user.percentage > 0);
     
     console.log('👥 Usuários com comissão:', activeUsers);
 
-    // 4. Gerar registros de comissão para cada usuário
+    // 5. Gerar registros de comissão para cada usuário
     const commissionRecords = [];
     const investmentAmount = parseFloat(investment.investment_amount);
-    const termMonths = investment.series.term_months;
+    const termMonths = series.term_months;
 
     for (const user of activeUsers) {
       // Calcular valor total da comissão para este usuário
@@ -96,7 +106,7 @@ export async function generateCommissions(investmentId) {
 
     console.log(`📋 Total de comissões a criar: ${commissionRecords.length}`);
 
-    // 5. Inserir todas as comissões no banco
+    // 6. Inserir todas as comissões no banco
     if (commissionRecords.length > 0) {
       const { data: insertedCommissions, error: insertError } = await supabase
         .from('commissions')
