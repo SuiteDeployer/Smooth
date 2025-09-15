@@ -30,6 +30,9 @@ interface Serie {
   created_at: string;
   updated_at: string;
   created_by: string;
+  // Propriedades calculadas
+  current_captation?: number;
+  captation_percentage?: number;
 }
 
 const DebentureManagement: React.FC = () => {
