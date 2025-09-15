@@ -469,79 +469,79 @@ const InvestmentManagement: React.FC = () => {
   };
 
   // Load investments with related data using separate queries
-  useEffect(() => {
-    const loadInvestments = async () => {
-      try {
-        console.log('Loading investments...');
+  const loadInvestments = async () => {
+    try {
+      console.log('Loading investments...');
+      
+      // 1. Buscar investimentos (query principal que funciona)
+      const { data: investmentsData, error: investmentsError } = await supabase
+        .from('investments')
+        .select('*')
+        .order('created_at', { ascending: false });
         
-        // 1. Buscar investimentos (query principal que funciona)
-        const { data: investmentsData, error: investmentsError } = await supabase
-          .from('investments')
-          .select('*')
-          .order('created_at', { ascending: false });
-          
-        if (investmentsError) {
-          console.error('Error loading investments:', investmentsError);
-          throw investmentsError;
-        }
-        
-        console.log('Investments loaded:', investmentsData?.length || 0);
-        
-        if (!investmentsData || investmentsData.length === 0) {
-          setInvestments([]);
-          return;
-        }
-        
-        // 2. Buscar dados relacionados separadamente
-        const debentureIds = [...new Set(investmentsData.map(inv => inv.debenture_id))];
-        const seriesIds = [...new Set(investmentsData.map(inv => inv.series_id))];
-        const userIds = [...new Set([
-          ...investmentsData.map(inv => inv.investor_user_id),
-          ...investmentsData.map(inv => inv.assessor_user_id),
-          ...investmentsData.map(inv => inv.escritorio_user_id),
-          ...investmentsData.map(inv => inv.master_user_id),
-          ...investmentsData.map(inv => inv.created_by)
-        ])];
-        
-        // Buscar debêntures
-        const { data: debenturesData } = await supabase
-          .from('debentures')
-          .select('id, name, issuer')
-          .in('id', debentureIds);
-          
-        // Buscar séries
-        const { data: seriesData } = await supabase
-          .from('series')
-          .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
-          .in('id', seriesIds);
-          
-        // Buscar usuários
-        const { data: usersData } = await supabase
-          .from('users')
-          .select('id, name, email')
-          .in('id', userIds);
-        
-        // 3. Combinar dados
-        const enrichedInvestments = investmentsData.map(investment => ({
-          ...investment,
-          debentures: debenturesData?.find(d => d.id === investment.debenture_id),
-          series: seriesData?.find(s => s.id === investment.series_id),
-          investor: usersData?.find(u => u.id === investment.investor_user_id),
-          assessor: usersData?.find(u => u.id === investment.assessor_user_id),
-          escritorio: usersData?.find(u => u.id === investment.escritorio_user_id),
-          master: usersData?.find(u => u.id === investment.master_user_id),
-          creator: usersData?.find(u => u.id === investment.created_by)
-        }));
-        
-        console.log('Enriched investments with related data:', enrichedInvestments.length);
-        setInvestments(enrichedInvestments);
-        
-      } catch (err) {
-        console.error('Error loading investments:', err);
-        setError('Erro ao carregar investimentos: ' + (err as Error).message);
+      if (investmentsError) {
+        console.error('Error loading investments:', investmentsError);
+        throw investmentsError;
       }
-    };
-    
+      
+      console.log('Investments loaded:', investmentsData?.length || 0);
+      
+      if (!investmentsData || investmentsData.length === 0) {
+        setInvestments([]);
+        return;
+      }
+      
+      // 2. Buscar dados relacionados separadamente
+      const debentureIds = [...new Set(investmentsData.map(inv => inv.debenture_id))];
+      const seriesIds = [...new Set(investmentsData.map(inv => inv.series_id))];
+      const userIds = [...new Set([
+        ...investmentsData.map(inv => inv.investor_user_id),
+        ...investmentsData.map(inv => inv.assessor_user_id),
+        ...investmentsData.map(inv => inv.escritorio_user_id),
+        ...investmentsData.map(inv => inv.master_user_id),
+        ...investmentsData.map(inv => inv.created_by)
+      ])];
+      
+      // Buscar debêntures
+      const { data: debenturesData } = await supabase
+        .from('debentures')
+        .select('id, name, issuer')
+        .in('id', debentureIds);
+        
+      // Buscar séries
+      const { data: seriesData } = await supabase
+        .from('series')
+        .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
+        .in('id', seriesIds);
+        
+      // Buscar usuários
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', userIds);
+      
+      // 3. Combinar dados
+      const enrichedInvestments = investmentsData.map(investment => ({
+        ...investment,
+        debentures: debenturesData?.find(d => d.id === investment.debenture_id),
+        series: seriesData?.find(s => s.id === investment.series_id),
+        investor: usersData?.find(u => u.id === investment.investor_user_id),
+        assessor: usersData?.find(u => u.id === investment.assessor_user_id),
+        escritorio: usersData?.find(u => u.id === investment.escritorio_user_id),
+        master: usersData?.find(u => u.id === investment.master_user_id),
+        creator: usersData?.find(u => u.id === investment.created_by)
+      }));
+      
+      console.log('Enriched investments with related data:', enrichedInvestments.length);
+      setInvestments(enrichedInvestments);
+      
+    } catch (err) {
+      console.error('Error loading investments:', err);
+      setError('Erro ao carregar investimentos: ' + (err as Error).message);
+    }
+  };
+
+  useEffect(() => {
     loadInvestments();
   }, []);
 
@@ -692,12 +692,8 @@ const InvestmentManagement: React.FC = () => {
       // Close modal
       setIsModalOpen(false);
       
-      // Reload investments with simple query
-      const { data: investments } = await supabase
-        .from('investments')
-        .select('*')
-        .order('created_at', { ascending: false });
-      setInvestments(investments || []);
+      // Reload investments with complete data
+      await loadInvestments();
       
     } catch (err: any) {
       console.error('Error creating investment:', err);
