@@ -150,6 +150,10 @@ const InvestmentManagement: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  // State for editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
 
   // Load current user data
   useEffect(() => {
@@ -597,6 +601,7 @@ const InvestmentManagement: React.FC = () => {
     try {
       console.log('Form data before submit:', formData);
       console.log('Selected series:', selectedSeries);
+      console.log('Is editing:', isEditing);
       
       const investmentData = {
         debenture_id: formData.debenture_id,
@@ -620,20 +625,36 @@ const InvestmentManagement: React.FC = () => {
         created_by: userProfile?.id || ''
       };
       
-      console.log('Investment data to insert:', investmentData);
+      console.log('Investment data to insert/update:', investmentData);
       
-      const { data, error } = await supabase
-        .from('investments')
-        .insert([investmentData])
-        .select();
+      let data, error;
+      
+      if (isEditing && editingInvestment) {
+        // UPDATE existing investment
+        const result = await supabase
+          .from('investments')
+          .update(investmentData)
+          .eq('id', editingInvestment.id)
+          .select();
+        data = result.data;
+        error = result.error;
+      } else {
+        // INSERT new investment
+        const result = await supabase
+          .from('investments')
+          .insert([investmentData])
+          .select();
+        data = result.data;
+        error = result.error;
+      }
         
       if (error) {
         console.error('Supabase error:', error);
         throw error;
       }
       
-      console.log('Investment created:', data);
-      setSuccess('Investimento criado com sucesso!');
+      console.log('Investment saved:', data);
+      setSuccess(isEditing ? 'Investimento atualizado com sucesso!' : 'Investimento criado com sucesso!');
       
       // Reset form
       setFormData({
@@ -703,6 +724,44 @@ const InvestmentManagement: React.FC = () => {
     setSelectedSeries(null);
     setError('');
     setSuccess('');
+    setIsEditing(false);
+    setEditingInvestment(null);
+  };
+
+  // Handle edit investment
+  const handleEditInvestment = async (investment: Investment) => {
+    try {
+      setIsEditing(true);
+      setEditingInvestment(investment);
+      
+      // Preencher formulário com dados do investimento
+      setFormData({
+        debenture_id: investment.debenture_id,
+        series_id: investment.series_id,
+        investor_id: investment.investor_user_id,
+        assessor_id: investment.assessor_user_id,
+        escritorio_id: investment.escritorio_user_id,
+        master_id: investment.master_user_id,
+        investment_amount: investment.investment_amount.toString(),
+        assessor_commission_percentage: investment.assessor_commission_percentage.toString(),
+        escritorio_commission_percentage: investment.escritorio_commission_percentage.toString(),
+        master_commission_percentage: investment.master_commission_percentage.toString(),
+        notes: investment.notes || ''
+      });
+      
+      // Carregar dados relacionados
+      await handleDebentureChange(investment.debenture_id);
+      setSelectedSeries(investment.series || null);
+      
+      // Abrir modal
+      setIsModalOpen(true);
+      setError('');
+      setSuccess('');
+      
+    } catch (err) {
+      console.error('Error loading investment for edit:', err);
+      setError('Erro ao carregar investimento para edição');
+    }
   };
 
   // Format currency
@@ -755,12 +814,13 @@ const InvestmentManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {investments.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                       Nenhum investimento encontrado
                     </td>
                   </tr>
@@ -800,6 +860,19 @@ const InvestmentManagement: React.FC = () => {
                           {investment.status}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {(userProfile?.user_type === 'Global' || 
+                          userProfile?.user_type === 'Master' || 
+                          userProfile?.user_type === 'Escritório' || 
+                          userProfile?.user_type === 'Assessor') && (
+                          <button
+                            onClick={() => handleEditInvestment(investment)}
+                            className="text-blue-600 hover:text-blue-900 mr-3"
+                          >
+                            Editar
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -813,7 +886,9 @@ const InvestmentManagement: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Criar Novo Investimento</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {isEditing ? 'Editar Investimento' : 'Criar Novo Investimento'}
+                </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
@@ -1116,7 +1191,7 @@ const InvestmentManagement: React.FC = () => {
                     disabled={loading}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors disabled:opacity-50"
                   >
-                    {loading ? 'Criando...' : 'Criar Investimento'}
+                    {loading ? (isEditing ? 'Atualizando...' : 'Criando...') : (isEditing ? 'Atualizar Investimento' : 'Criar Investimento')}
                   </button>
                 </div>
               </form>
