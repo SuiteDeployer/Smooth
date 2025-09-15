@@ -101,7 +101,7 @@ const DebentureManagement = () => {
     try {
       setLoading(true)
       
-      const [debenturesResponse, seriesResponse] = await Promise.all([
+      const [debenturesResponse, seriesResponse, investmentsResponse] = await Promise.all([
         supabase
           .from('debentures')
           .select('*')
@@ -111,20 +111,60 @@ const DebentureManagement = () => {
           .from('series')
           .select('*, debentures (*)')
           .eq('status', 'active')
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('investments')
+          .select('series_id, debenture_id, investment_amount, status')
+          .eq('status', 'active')
       ])
 
       if (debenturesResponse.error) {
         console.error('Erro ao buscar debêntures:', debenturesResponse.error)
-      } else {
-        setDebentures(debenturesResponse.data || [])
       }
 
       if (seriesResponse.error) {
         console.error('Erro ao buscar séries:', seriesResponse.error)
-      } else {
-        setSeries(seriesResponse.data || [])
       }
+
+      if (investmentsResponse.error) {
+        console.error('Erro ao buscar investimentos:', investmentsResponse.error)
+      }
+
+      // Calcular captação por série
+      const investments = investmentsResponse.data || []
+      const captationBySeries = {}
+      const captationByDebenture = {}
+
+      investments.forEach(investment => {
+        const amount = parseFloat(investment.investment_amount) || 0
+        
+        // Captação por série
+        if (investment.series_id) {
+          captationBySeries[investment.series_id] = (captationBySeries[investment.series_id] || 0) + amount
+        }
+        
+        // Captação por debênture
+        if (investment.debenture_id) {
+          captationByDebenture[investment.debenture_id] = (captationByDebenture[investment.debenture_id] || 0) + amount
+        }
+      })
+
+      // Adicionar captação calculada às séries
+      const seriesWithCaptation = (seriesResponse.data || []).map(serie => ({
+        ...serie,
+        current_captation: captationBySeries[serie.id] || 0,
+        captation_percentage: serie.captacao_amount > 0 ? 
+          ((captationBySeries[serie.id] || 0) / serie.captacao_amount) * 100 : 0
+      }))
+
+      // Adicionar captação calculada às debêntures
+      const debenturesWithCaptation = (debenturesResponse.data || []).map(debenture => ({
+        ...debenture,
+        current_captation: captationByDebenture[debenture.id] || 0
+      }))
+
+      setDebentures(debenturesWithCaptation)
+      setSeries(seriesWithCaptation)
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
@@ -1151,7 +1191,10 @@ const DebentureManagement = () => {
                                       Prazo
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Valor Captado
+                                      Captação
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Progresso
                                     </th>
                                     {isGlobalUser() && (
                                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1185,8 +1228,65 @@ const DebentureManagement = () => {
                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                                           {serie.duration_months || 0} meses
                                         </td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-green-700">
-                                          {formatCurrency(serie.current_captation || 0)}
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                          <div className="space-y-1">
+                                            <div className="flex justify-between text-xs">
+                                              <span className="font-medium text-green-700">
+                                                Captado: {formatCurrency(serie.current_captation || 0)}
+                                              </span>
+                                            </div>
+                                            <div className="flex justify-between text-xs">
+                                              <span className="font-medium text-blue-700">
+                                                Disponível: {formatCurrency((serie.captacao_amount || 0) - (serie.current_captation || 0))}
+                                              </span>
+                                            </div>
+                                            <div className="text-xs text-gray-600">
+                                              Limite: {formatCurrency(serie.captacao_amount || 0)}
+                                            </div>
+                                          </div>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                          {(() => {
+                                            const captado = serie.current_captation || 0;
+                                            const limite = serie.captacao_amount || 0;
+                                            const percentual = limite > 0 ? (captado / limite) * 100 : 0;
+                                            
+                                            let barColor = 'bg-green-500';
+                                            let bgColor = 'bg-green-50';
+                                            let textColor = 'text-green-700';
+                                            let status = 'Disponível';
+                                            
+                                            if (percentual >= 100) {
+                                              barColor = 'bg-red-500';
+                                              bgColor = 'bg-red-50';
+                                              textColor = 'text-red-700';
+                                              status = 'Esgotada';
+                                            } else if (percentual >= 80) {
+                                              barColor = 'bg-yellow-500';
+                                              bgColor = 'bg-yellow-50';
+                                              textColor = 'text-yellow-700';
+                                              status = 'Quase Esgotada';
+                                            }
+                                            
+                                            return (
+                                              <div className="space-y-2">
+                                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
+                                                  {status}
+                                                </div>
+                                                <div className="w-full">
+                                                  <div className="flex justify-between text-xs mb-1">
+                                                    <span className="font-medium">{percentual.toFixed(1)}%</span>
+                                                  </div>
+                                                  <div className="bg-gray-200 rounded-full h-2">
+                                                    <div 
+                                                      className={`${barColor} h-2 rounded-full transition-all duration-300`}
+                                                      style={{ width: `${Math.min(percentual, 100)}%` }}
+                                                    ></div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
                                         </td>
                                         {isGlobalUser() && (
                                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">

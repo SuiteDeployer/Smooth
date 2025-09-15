@@ -594,6 +594,65 @@ const InvestmentManagement: React.FC = () => {
     
     if (!validateCommissionSplit()) return;
     
+    // Validar limites de captação apenas para novos investimentos
+    if (!isEditing) {
+      const investmentAmount = parseFloat(formData.investment_amount) || 0;
+      
+      if (selectedSeries) {
+        // Buscar captação atual da série
+        const { data: currentInvestments, error: investError } = await supabase
+          .from('investments')
+          .select('investment_amount')
+          .eq('series_id', selectedSeries.id)
+          .eq('status', 'active');
+          
+        if (investError) {
+          setError('Erro ao verificar captação atual da série');
+          setLoading(false);
+          return;
+        }
+        
+        const currentCaptation = currentInvestments?.reduce((sum, inv) => 
+          sum + (parseFloat(inv.investment_amount) || 0), 0) || 0;
+        const maxCaptation = selectedSeries.captacao_amount || 0;
+        const availableCaptation = maxCaptation - currentCaptation;
+        
+        if (investmentAmount > availableCaptation) {
+          setError(`Investimento excede limite da série. Disponível: ${formatCurrency(availableCaptation)} de ${formatCurrency(maxCaptation)}`);
+          setLoading(false);
+          return;
+        }
+        
+        // Verificar limite da debênture se existir
+        if (formData.debenture_id) {
+          const { data: debenture } = await supabase
+            .from('debentures')
+            .select('total_amount')
+            .eq('id', formData.debenture_id)
+            .single();
+            
+          if (debenture?.total_amount) {
+            const { data: debentureInvestments } = await supabase
+              .from('investments')
+              .select('investment_amount')
+              .eq('debenture_id', formData.debenture_id)
+              .eq('status', 'active');
+              
+            const currentDebCaptation = debentureInvestments?.reduce((sum, inv) => 
+              sum + (parseFloat(inv.investment_amount) || 0), 0) || 0;
+            const maxDebCaptation = debenture.total_amount;
+            const availableDebCaptation = maxDebCaptation - currentDebCaptation;
+            
+            if (investmentAmount > availableDebCaptation) {
+              setError(`Investimento excede limite da debênture. Disponível: ${formatCurrency(availableDebCaptation)} de ${formatCurrency(maxDebCaptation)}`);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }
+    }
+    
     setLoading(true);
     setError('');
     setSuccess('');
