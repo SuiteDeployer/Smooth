@@ -602,44 +602,61 @@ const InvestmentManagement: React.FC = () => {
       console.log('Form data before submit:', formData);
       console.log('Selected series:', selectedSeries);
       console.log('Is editing:', isEditing);
-      
-      const investmentData = {
-        debenture_id: formData.debenture_id,
-        series_id: formData.series_id,
-        investor_user_id: formData.investor_id,
-        assessor_user_id: formData.assessor_id,
-        master_user_id: formData.master_id,
-        escritorio_user_id: formData.escritorio_id,
-        global_user_id: userProfile?.id || '',
-        investment_amount: parseFloat(formData.investment_amount) || 0,
-        investment_date: getTodayDate(),
-        maturity_date: calculateMaturityDate(),
-        assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
-        escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
-        master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
-        commission_master: parseFloat(formData.master_commission_percentage) || 0,
-        commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
-        commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
-        commission_global: 0,
-        status: 'active',
-        created_by: userProfile?.id || ''
-      };
-      
-      console.log('Investment data to insert/update:', investmentData);
+      console.log('Editing investment:', editingInvestment);
       
       let data, error;
       
       if (isEditing && editingInvestment) {
-        // UPDATE existing investment
+        // UPDATE existing investment - only update fields that can be changed
+        const updateData = {
+          investment_amount: parseFloat(formData.investment_amount) || 0,
+          assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
+          escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
+          master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
+          commission_master: parseFloat(formData.master_commission_percentage) || 0,
+          commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
+          commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
+          notes: formData.notes || '',
+          updated_at: new Date().toISOString(),
+          updated_by: userProfile?.id || ''
+        };
+        
+        console.log('Update data (preserving existing relationships):', updateData);
+        
         const result = await supabase
           .from('investments')
-          .update(investmentData)
+          .update(updateData)
           .eq('id', editingInvestment.id)
           .select();
         data = result.data;
         error = result.error;
       } else {
-        // INSERT new investment
+        // INSERT new investment - include all required fields
+        const investmentData = {
+          debenture_id: formData.debenture_id,
+          series_id: formData.series_id,
+          investor_user_id: formData.investor_id,
+          assessor_user_id: formData.assessor_id,
+          master_user_id: formData.master_id,
+          escritorio_user_id: formData.escritorio_id,
+          global_user_id: userProfile?.id || '',
+          investment_amount: parseFloat(formData.investment_amount) || 0,
+          investment_date: getTodayDate(),
+          maturity_date: calculateMaturityDate(),
+          assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
+          escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
+          master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
+          commission_master: parseFloat(formData.master_commission_percentage) || 0,
+          commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
+          commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
+          commission_global: 0,
+          status: 'active',
+          notes: formData.notes || '',
+          created_by: userProfile?.id || ''
+        };
+        
+        console.log('Investment data to insert:', investmentData);
+        
         const result = await supabase
           .from('investments')
           .insert([investmentData])
