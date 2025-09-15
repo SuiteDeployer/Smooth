@@ -76,7 +76,7 @@ interface User {
 }
 
 const InvestmentManagement: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
   
   // Modal state
