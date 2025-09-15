@@ -8,6 +8,8 @@ import UserManagement from './components/Users/UserManagement';
 import DebentureManagement from './components/Debentures/DebentureManagement';
 import SeriesManagement from './components/Series/SeriesManagement';
 import InvestmentManagement from './components/Investments/InvestmentManagement';
+import CommissionsDashboard from './features/commissions/pages/SimpleCommissionsDashboard';
+import DashboardLayout from './components/Layout/DashboardLayout';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -126,6 +128,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <InvestmentManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Dashboard de comissões */}
+            <Route
+              path="/comissoes"
+              element={
+                <ProtectedRoute>
+                  <CommissionsDashboard />
                 </ProtectedRoute>
               }
             />
