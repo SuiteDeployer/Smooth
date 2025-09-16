@@ -950,19 +950,21 @@ const InvestmentManagement: React.FC = () => {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Investimentos</h1>
-            <p className="text-gray-600">Crie e gerencie investimentos em debêntures</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Investimentos</h1>
+              <p className="text-gray-600">Crie e gerencie investimentos em debêntures</p>
+            </div>
+            {(userProfile?.user_type === 'Global' || userProfile?.user_type === 'Master') && (
+              <button
+                onClick={handleOpenModal}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+              >
+                <span>+</span>
+                <span>Criar Investimento</span>
+              </button>
+            )}
           </div>
-          <button
-            onClick={handleOpenModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-          >
-            <span>+</span>
-            <span>Criar Investimento</span>
-          </button>
-        </div>
 
         {/* Investments Table */}
         <div className="bg-white shadow rounded-lg overflow-hidden" style={{ minWidth: '1200px' }}>
@@ -1031,9 +1033,7 @@ const InvestmentManagement: React.FC = () => {
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
                         {(userProfile?.user_type === 'Global' || 
-                          userProfile?.user_type === 'Master' || 
-                          userProfile?.user_type === 'Escritório' || 
-                          userProfile?.user_type === 'Assessor') && (
+                          userProfile?.user_type === 'Master') && (
                           <button
                             onClick={() => handleEditInvestment(investment)}
                             className="text-blue-600 hover:text-blue-900 mr-3"
