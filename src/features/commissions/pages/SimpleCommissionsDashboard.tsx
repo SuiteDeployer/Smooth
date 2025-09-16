@@ -130,33 +130,6 @@ const SimpleCommissionsDashboard: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800' },
-      paid: { label: 'Pago', className: 'bg-green-100 text-green-800' },
-      overdue: { label: 'Vencido', className: 'bg-red-100 text-red-800' }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    
-    return (
-      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.className}`}>
-        {config.label}
-      </span>
-    );
-  };
-
   return (
     <AppLayout>
       <div className="space-y-6">
