@@ -263,6 +263,58 @@ const SimpleCommissionsDashboard: React.FC = () => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  // Função para exportar comissões filtradas para CSV
+  const exportToCSV = () => {
+    if (filteredCommissions.length === 0) {
+      alert('Nenhuma comissão para exportar');
+      return;
+    }
+
+    // Preparar dados para CSV
+    const csvData = filteredCommissions.map(commission => ({
+      'ID': `#${commission.id.toString().slice(-6)}`,
+      'Debênture': commission.investment?.debenture?.name || 'N/A',
+      'Série': commission.investment?.series ? 
+        `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
+        'N/A',
+      'Investidor': commission.investment?.investor?.name || 'N/A',
+      'Beneficiário': commission.user?.name || commission.user?.email || 'N/A',
+      'PIX': commission.user?.pix || 'N/A',
+      'Valor': `R$ ${(commission.commission_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      'Parcela': `${commission.installment_number || 0}/${commission.total_installments || 0}`,
+      'Vencimento': commission.commission_date ? new Date(commission.commission_date).toLocaleDateString('pt-BR') : 'N/A',
+      'Status': commission.status === 'pending' ? 'Pendente' : 
+                commission.status === 'paid' ? 'Pago' : 
+                commission.status === 'overdue' ? 'Vencido' : 'N/A'
+    }));
+
+    // Converter para CSV
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => 
+        headers.map(header => {
+          const value = row[header as keyof typeof row];
+          // Escapar aspas e adicionar aspas se contém vírgula
+          return typeof value === 'string' && value.includes(',') 
+            ? `"${value.replace(/"/g, '""')}"` 
+            : value;
+        }).join(',')
+      )
+    ].join('\n');
+
+    // Criar e baixar arquivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `comissoes_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -272,7 +324,10 @@ const SimpleCommissionsDashboard: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Comissões</h1>
             <p className="text-gray-600 mt-1">Gerencie e acompanhe todas as comissões do sistema</p>
           </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+          <button 
+            onClick={exportToCSV}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+          >
             <Download className="w-4 h-4" />
             Exportar Comissões
           </button>
