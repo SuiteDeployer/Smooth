@@ -115,11 +115,13 @@ const SimpleCommissionsDashboard: React.FC = () => {
       let debenturesData: any[] = [];
       let seriesData: any[] = [];
       let investorsData: any[] = [];
+      let creatorsData: any[] = [];
 
       if (investmentsData && investmentsData.length > 0) {
         const debentureIds = [...new Set(investmentsData.map(inv => inv.debenture_id))];
         const seriesIds = [...new Set(investmentsData.map(inv => inv.series_id))];
         const investorIds = [...new Set(investmentsData.map(inv => inv.investor_user_id))];
+        const creatorIds = [...new Set(investmentsData.map(inv => inv.created_by))];
 
         // Buscar debêntures
         const { data: debData } = await supabase
@@ -141,6 +143,13 @@ const SimpleCommissionsDashboard: React.FC = () => {
           .select('id, name, email')
           .in('id', investorIds);
         investorsData = invData || [];
+
+        // Buscar criadores dos investimentos
+        const { data: creatorData } = await supabase
+          .from('users')
+          .select('id, name, email, user_type')
+          .in('id', creatorIds);
+        creatorsData = creatorData || [];
       }
 
       // 3. Combinar dados
@@ -151,7 +160,8 @@ const SimpleCommissionsDashboard: React.FC = () => {
           ...investmentsData.find(inv => inv.id === commission.investment_id),
           debenture: debenturesData?.find(d => d.id === investmentsData.find(inv => inv.id === commission.investment_id)?.debenture_id),
           series: seriesData?.find(s => s.id === investmentsData.find(inv => inv.id === commission.investment_id)?.series_id),
-          investor: investorsData?.find(u => u.id === investmentsData.find(inv => inv.id === commission.investment_id)?.investor_user_id)
+          investor: investorsData?.find(u => u.id === investmentsData.find(inv => inv.id === commission.investment_id)?.investor_user_id),
+          creator: creatorsData?.find(u => u.id === investmentsData.find(inv => inv.id === commission.investment_id)?.created_by)
         } : undefined
       }));
 
@@ -339,7 +349,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
                         <span className="truncate block">
-                          <RestrictedField value={commission.user?.name} />
+                          <RestrictedField value={commission.investment?.creator?.name} />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">

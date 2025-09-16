@@ -311,12 +311,17 @@ const InvestmentManagement: React.FC = () => {
 
   // Auto-select commission users based on hierarchy
   const autoSelectCommissionUsers = () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('❌ Auto-select: currentUser não encontrado');
+      return;
+    }
 
-    console.log('Auto-selecting commission users for:', currentUser.user_type, currentUser.email);
+    console.log('🔄 Auto-selecting commission users for:', currentUser.user_type, currentUser.email);
+    console.log('🔄 Current user parent_id:', currentUser.parent_id);
 
     switch (currentUser.user_type) {
       case 'Master':
+        console.log('🔄 Auto-select Master: Selecionando ele mesmo como master');
         // Master: Auto-select themselves as master
         setFormData(prev => ({
           ...prev,
@@ -327,6 +332,7 @@ const InvestmentManagement: React.FC = () => {
         break;
 
       case 'Escritório':
+        console.log('🔄 Auto-select Escritório: Master =', currentUser.parent_id, ', Escritório =', currentUser.id);
         // Escritório: Auto-select their master and themselves
         setFormData(prev => ({
           ...prev,
@@ -339,6 +345,7 @@ const InvestmentManagement: React.FC = () => {
       case 'Assessor':
         // Assessor: Auto-select master, escritório and themselves
         const escritorio = escritorios.find(e => e.id === currentUser.parent_id);
+        console.log('🔄 Auto-select Assessor: Escritório encontrado =', escritorio?.name, ', Master =', escritorio?.parent_id);
         setFormData(prev => ({
           ...prev,
           master_id: escritorio?.parent_id || '',
@@ -348,6 +355,7 @@ const InvestmentManagement: React.FC = () => {
         break;
 
       case 'Global':
+        console.log('🔄 Auto-select Global: Não selecionando automaticamente');
         // Global: Don't auto-select, let them choose manually
         setFormData(prev => ({
           ...prev,
@@ -356,7 +364,13 @@ const InvestmentManagement: React.FC = () => {
           assessor_id: ''
         }));
         break;
+        
+      default:
+        console.log('❌ Auto-select: Tipo de usuário não reconhecido:', currentUser.user_type);
+        break;
     }
+    
+    console.log('✅ Auto-select concluído');
   };
 
   // Debug modal opening
@@ -462,10 +476,13 @@ const InvestmentManagement: React.FC = () => {
       }
     }
     
-    // Auto-select commission users based on hierarchy
+    // Auto-select commission users based on hierarchy APÓS carregar os dados
     setTimeout(() => {
+      console.log('🔄 Executando auto-select após carregamento dos dados...');
+      console.log('Estado atual - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+      console.log('Current user:', currentUser?.user_type, currentUser?.email, 'Parent ID:', currentUser?.parent_id);
       autoSelectCommissionUsers();
-    }, 100);
+    }, 200); // Aumentando timeout para garantir que dados estejam carregados
     
     setIsModalOpen(true);
   };
