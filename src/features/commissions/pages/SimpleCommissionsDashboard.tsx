@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Search, Filter } from 'lucide-react';
 import AppLayout from '../../../components/Layout/AppLayout';
+import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface Commission {
   id: string;
@@ -13,21 +15,120 @@ interface Commission {
   due_date: string;
   status: 'pending' | 'paid' | 'overdue';
   created_at: string;
+  // Dados relacionados
+  investment?: {
+    id: string;
+    investment_amount: number;
+    debenture?: {
+      name: string;
+    };
+    series?: {
+      series_letter: string;
+      commercial_name: string;
+    };
+    investor?: {
+      name: string;
+      email: string;
+    };
+  };
+  user?: {
+    name: string;
+    email: string;
+    user_type: string;
+  };
 }
 
 const SimpleCommissionsDashboard: React.FC = () => {
+  const { userProfile } = useAuth();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Simular carregamento de dados
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  // Buscar comissões do Supabase
+  const fetchCommissions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('Buscando comissões do Supabase...');
+
+      // Buscar comissões com joins
+      const { data: commissionsData, error: commissionsError } = await supabase
+        .from('commissions')
+        .select(`
+          *,
+          investments!inner(
+            id,
+            investment_amount,
+            debentures(name),
+            series(series_letter, commercial_name),
+            investor:users!investments_investor_user_id_fkey(name, email)
+          ),
+          users!commissions_user_id_fkey(name, email, user_type)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (commissionsError) {
+        console.error('Erro ao buscar comissões:', commissionsError);
+        throw commissionsError;
+      }
+
+      console.log('Comissões encontradas:', commissionsData?.length || 0);
+      console.log('Dados das comissões:', commissionsData);
+
+      setCommissions(commissionsData || []);
+    } catch (err: any) {
+      console.error('Erro ao carregar comissões:', err);
+      setError(err.message || 'Erro ao carregar comissões');
+    } finally {
       setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommissions();
   }, []);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800' },
+      paid: { label: 'Pago', className: 'bg-green-100 text-green-800' },
+      overdue: { label: 'Vencido', className: 'bg-red-100 text-red-800' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    
+    return (
+      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.className}`}>
+        {config.label}
+      </span>
+    );
+  };
+
+  // Filtrar comissões
+  const filteredCommissions = commissions.filter(commission => {
+    const matchesSearch = searchTerm === '' || 
+      commission.investment?.investor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      commission.investment?.investor?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      commission.investment?.debenture?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || commission.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -71,6 +172,19 @@ const SimpleCommissionsDashboard: React.FC = () => {
           </button>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="text-red-600 mr-3">⚠️</div>
+              <div>
+                <h3 className="text-sm font-medium text-red-900">Erro ao carregar comissões</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -108,7 +222,9 @@ const SimpleCommissionsDashboard: React.FC = () => {
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Comissões Geradas</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Comissões Geradas ({filteredCommissions.length})
+            </h2>
           </div>
           
           <div className="overflow-x-auto">
@@ -137,29 +253,32 @@ const SimpleCommissionsDashboard: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ) : commissions.length === 0 ? (
+                ) : filteredCommissions.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="px-3 py-12 text-center text-gray-500">
-                      Nenhuma comissão encontrada
+                      {commissions.length === 0 ? 'Nenhuma comissão encontrada' : 'Nenhuma comissão corresponde aos filtros'}
                     </td>
                   </tr>
                 ) : (
-                  commissions.map((commission) => (
+                  filteredCommissions.map((commission) => (
                     <tr key={commission.id} className="hover:bg-gray-50">
                       <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         #{commission.id}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        -
+                        {commission.investment?.debenture?.name || 'N/A'}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        -
+                        {commission.investment?.series ? 
+                          `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
+                          'N/A'
+                        }
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        -
+                        {commission.investment?.investor?.name || 'N/A'}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        -
+                        {commission.user?.name || 'N/A'}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(commission.amount)}
@@ -194,6 +313,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
               <h3 className="text-sm font-medium text-blue-900">Sistema de Comissões Ativo</h3>
               <p className="text-sm text-blue-700 mt-1">
                 As comissões são geradas automaticamente quando novos investimentos são criados no sistema.
+                {commissions.length > 0 && ` Total de ${commissions.length} comissões encontradas.`}
               </p>
             </div>
           </div>
