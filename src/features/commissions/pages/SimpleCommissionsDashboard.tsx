@@ -60,6 +60,17 @@ const SimpleCommissionsDashboard: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       console.log('Auth user do Supabase:', user?.id, user?.email);
 
+      // Debug: Verificar sessão do Supabase
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔐 Sessão Supabase:', session?.access_token ? 'Token presente' : 'Sem token');
+      console.log('🔐 User da sessão:', session?.user?.id, session?.user?.email);
+      console.log('🔐 Token JWT (primeiros 50 chars):', session?.access_token?.substring(0, 50));
+
+      // Debug: Testar auth.uid() via SQL
+      const { data: authTest, error: authError } = await supabase
+        .rpc('auth_uid_test', {});
+      console.log('🔐 Teste auth.uid() via RPC:', authTest, authError);
+
       // 1. Buscar comissões - deixar RLS do Supabase aplicar as políticas
       const { data: commissionsData, error: commissionsError } = await supabase
         .from('commissions')
