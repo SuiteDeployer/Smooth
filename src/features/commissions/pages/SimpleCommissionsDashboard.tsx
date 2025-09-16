@@ -276,16 +276,16 @@ const SimpleCommissionsDashboard: React.FC = () => {
             <table className="w-full border-collapse">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investidor</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parcela</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">ID</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Debênture</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Série</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Investidor</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Responsável</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Valor</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Parcela</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Vencimento</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Status</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -307,38 +307,55 @@ const SimpleCommissionsDashboard: React.FC = () => {
                 ) : (
                   filteredCommissions.map((commission) => (
                     <tr key={commission.id} className="hover:bg-gray-50">
-                      <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{commission.id}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs font-medium text-gray-900 w-20">
+                        <span className="truncate block" title={`#${commission.id}`}>
+                          #{commission.id.toString().slice(-6)}
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {commission.investment?.debenture?.name || 'N/A'}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
+                        <span className="truncate block" title={commission.investment?.debenture?.name || 'N/A'}>
+                          {commission.investment?.debenture?.name || 'N/A'}
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {commission.investment?.series ? 
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-32">
+                        <span className="truncate block" title={commission.investment?.series ? 
                           `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
                           'N/A'
-                        }
+                        }>
+                          {commission.investment?.series ? 
+                            `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
+                            'N/A'
+                          }
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {commission.investment?.investor?.name || 'N/A'}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-40">
+                        <span className="truncate block" title={commission.investment?.investor?.name || 'N/A'}>
+                          {commission.investment?.investor?.name || 'N/A'}
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {commission.user?.name || 'N/A'}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
+                        <span className="truncate block" title={commission.user?.name || 'N/A'}>
+                          {commission.user?.name || 'N/A'}
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(commission.amount)}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
+                        <span className="truncate block" title={formatCurrency(commission.amount || 0)}>
+                          {formatCurrency(commission.amount || 0)}
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {commission.installment_number}/{commission.total_installments}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-16 text-center">
+                        {commission.installment_number || 0}/{commission.total_installments || 0}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(commission.due_date)}
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
+                        <span className="truncate block">
+                          {commission.due_date ? formatDate(commission.due_date) : 'N/A'}
+                        </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap">
-                        {getStatusBadge(commission.status)}
+                      <td className="px-2 py-3 whitespace-nowrap w-20">
+                        {getStatusBadge(commission.status || 'pending')}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">
+                      <td className="px-2 py-3 whitespace-nowrap text-xs font-medium w-16">
+                        <button className="text-blue-600 hover:text-blue-900 text-xs">
                           Editar
                         </button>
                       </td>
