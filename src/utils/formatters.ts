@@ -1,15 +1,48 @@
-export const formatCurrency = (value: number): string => {
+/**
+ * Verifica se um valor deve ser considerado restrito
+ */
+export const isRestrictedValue = (value: any): boolean => {
+  return value === null || value === undefined || value === '' || value === 'N/A';
+};
+
+/**
+ * Formata valores que podem ser nulos/undefined para exibição
+ */
+export const formatRestrictedValue = (value: any, type: string = 'default'): string => {
+  if (isRestrictedValue(value)) {
+    return '🔒 Restrito';
+  }
+  
+  switch (type) {
+    case 'currency':
+      return formatCurrency(value);
+    case 'percentage':
+      return formatPercentage(value);
+    case 'date':
+      return formatDate(value);
+    case 'datetime':
+      return formatDateTime(value);
+    case 'number':
+      return formatNumber(value);
+    default:
+      return String(value);
+  }
+};
+
+export const formatCurrency = (value: number | null | undefined): string => {
+  if (isRestrictedValue(value)) return '🔒 Restrito';
+  
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
-  }).format(value);
+  }).format(value as number);
 };
 
 export const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return 'N/A';
+  if (isRestrictedValue(dateString)) return '🔒 Restrito';
   
   try {
-    const date = new Date(dateString);
+    const date = new Date(dateString as string);
     if (isNaN(date.getTime())) return 'Data inválida';
     return new Intl.DateTimeFormat('pt-BR').format(date);
   } catch (error) {
@@ -19,10 +52,10 @@ export const formatDate = (dateString: string | null | undefined): string => {
 };
 
 export const formatDateTime = (dateString: string | null | undefined): string => {
-  if (!dateString) return 'N/A';
+  if (isRestrictedValue(dateString)) return '🔒 Restrito';
   
   try {
-    const date = new Date(dateString);
+    const date = new Date(dateString as string);
     if (isNaN(date.getTime())) return 'Data inválida';
     return new Intl.DateTimeFormat('pt-BR', {
       year: 'numeric',
@@ -37,10 +70,14 @@ export const formatDateTime = (dateString: string | null | undefined): string =>
   }
 };
 
-export const formatPercentage = (value: number): string => {
-  return `${value.toFixed(2)}%`;
+export const formatPercentage = (value: number | null | undefined): string => {
+  if (isRestrictedValue(value)) return '🔒 Restrito';
+  
+  return `${(value as number).toFixed(2)}%`;
 };
 
-export const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR').format(value);
+export const formatNumber = (value: number | null | undefined): string => {
+  if (isRestrictedValue(value)) return '🔒 Restrito';
+  
+  return new Intl.NumberFormat('pt-BR').format(value as number);
 };

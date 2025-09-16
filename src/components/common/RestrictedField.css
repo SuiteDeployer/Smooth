@@ -1,0 +1,50 @@
+.restricted-field {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  font-style: italic;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px dashed #dee2e6;
+  font-size: 0.9em;
+  display: inline-block;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.restricted-field:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Variações para diferentes contextos */
+.restricted-field.table-cell {
+  padding: 4px 8px;
+  margin: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.restricted-field.inline {
+  padding: 1px 4px;
+  font-size: inherit;
+}
+
+.restricted-field.large {
+  padding: 8px 12px;
+  font-size: 1em;
+}
+
+/* Tema escuro (se aplicável) */
+@media (prefers-color-scheme: dark) {
+  .restricted-field {
+    background-color: #343a40;
+    color: #adb5bd;
+    border-color: #495057;
+  }
+  
+  .restricted-field:hover {
+    background-color: #495057;
+    border-color: #6c757d;
+  }
+}
+

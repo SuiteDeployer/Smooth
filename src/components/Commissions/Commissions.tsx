@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { supabase } from '../../lib/supabase'
-import { DollarSign, TrendingUp, Calendar } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
+import AppLayout from '../Layout/AppLayout';
+import RestrictedField from '../common/RestrictedField';
+import { DollarSign, TrendingUp, Calendar } from 'lucide-react';
 
 const Commissions = () => {
   const { userProfile } = useAuth()
@@ -140,10 +142,10 @@ const Commissions = () => {
                   {commissions.map((commission) => (
                     <tr key={commission.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {commission.investment?.series?.series_code || 'N/A'} - {commission.investment?.series?.name || 'N/A'}
+                        <RestrictedField value={commission.investment?.series?.series_code} /> - <RestrictedField value={commission.investment?.series?.name} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {commission.investment?.investor?.full_name || 'N/A'}
+                        <RestrictedField value={commission.investment?.investor?.full_name} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(commission.commission_amount)}

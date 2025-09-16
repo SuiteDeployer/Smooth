@@ -2,6 +2,7 @@ import React from 'react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { StatusBadge } from './StatusBadge';
 import { User, CreditCard, Building, DollarSign } from 'lucide-react';
+import RestrictedField from '../common/RestrictedField';
 
 interface CommissionDetailed {
   id: string;
@@ -116,7 +117,7 @@ export const CommissionsTable: React.FC<CommissionsTableProps> = ({
                   <User className="w-4 h-4 text-gray-400 mr-3 flex-shrink-0" />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-gray-800 truncate">
-                      {commission.beneficiary_name || 'N/A'}
+                      <RestrictedField value={commission.beneficiary_name} />
                     </div>
                     <div className="text-xs text-gray-500 capitalize">
                       {commission.commission_type}
