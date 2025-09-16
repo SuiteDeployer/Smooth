@@ -173,7 +173,7 @@ const DebentureManagement: React.FC = () => {
 
   const fetchSeries = async (debentureId: string) => {
     try {
-      const [seriesResponse, investmentsResponse] = await Promise.all([
+      const [seriesResponse, utilizationResponse] = await Promise.all([
         supabase
           .from('series')
           .select('*')
