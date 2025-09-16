@@ -9,10 +9,10 @@ interface Commission {
   investment_id: string;
   user_id: string;
   commission_type: string;
-  amount: number;
+  commission_amount: number;
   installment_number: number;
   total_installments: number;
-  due_date: string;
+  commission_date: string;
   status: 'pending' | 'paid' | 'overdue';
   created_at: string;
   // Dados relacionados
@@ -339,8 +339,8 @@ const SimpleCommissionsDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
-                        <span className="truncate block" title={formatCurrency(commission.amount || 0)}>
-                          {formatCurrency(commission.amount || 0)}
+                        <span className="truncate block" title={formatCurrency(commission.commission_amount || 0)}>
+                          {formatCurrency(commission.commission_amount || 0)}
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-16 text-center">
@@ -348,7 +348,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
                         <span className="truncate block">
-                          {commission.due_date ? formatDate(commission.due_date) : 'N/A'}
+                          {commission.commission_date ? formatDate(commission.commission_date) : 'N/A'}
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap w-20">
