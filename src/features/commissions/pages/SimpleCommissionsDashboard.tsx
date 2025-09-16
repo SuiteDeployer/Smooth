@@ -51,6 +51,9 @@ const SimpleCommissionsDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // Buscar comissões do Supabase
   const fetchCommissions = async () => {
@@ -216,14 +219,47 @@ const SimpleCommissionsDashboard: React.FC = () => {
 
   // Filtrar comissões
   const filteredCommissions = commissions.filter(commission => {
+    // Filtro de busca por texto
     const matchesSearch = searchTerm === '' || 
       commission.investment?.investor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       commission.investment?.investor?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commission.investment?.debenture?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      commission.investment?.debenture?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      commission.investment?.series?.commercial_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
+    // Filtro por status
     const matchesStatus = statusFilter === 'all' || commission.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    // Filtro por data
+    let matchesDate = true;
+    if (dateFilter !== 'all') {
+      const commissionDate = new Date(commission.commission_date);
+      const today = new Date();
+      
+      switch (dateFilter) {
+        case 'today':
+          matchesDate = commissionDate.toDateString() === today.toDateString();
+          break;
+        case 'this_week':
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          matchesDate = commissionDate >= weekStart && commissionDate <= today;
+          break;
+        case 'this_month':
+          matchesDate = commissionDate.getMonth() === today.getMonth() && 
+                       commissionDate.getFullYear() === today.getFullYear();
+          break;
+        case 'custom':
+          if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // Incluir o dia inteiro
+            matchesDate = commissionDate >= start && commissionDate <= end;
+          }
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   return (
@@ -269,7 +305,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -280,6 +316,37 @@ const SimpleCommissionsDashboard: React.FC = () => {
                 <option value="paid">Pago</option>
                 <option value="overdue">Vencido</option>
               </select>
+              
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Todas as Datas</option>
+                <option value="today">Hoje</option>
+                <option value="this_week">Esta Semana</option>
+                <option value="this_month">Este Mês</option>
+                <option value="custom">Período Personalizado</option>
+              </select>
+              
+              {dateFilter === 'custom' && (
+                <>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Data inicial"
+                  />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Data final"
+                  />
+                </>
+              )}
               <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
                 <Filter className="w-4 h-4" />
                 Filtros
