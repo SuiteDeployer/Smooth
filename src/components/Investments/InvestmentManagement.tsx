@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../Layout/AppLayout';
 import { generateCommissions } from '../../utils/commissionGenerator';
+import RestrictedField from '../common/RestrictedField';
 
 interface Investment {
   id: number;
@@ -982,16 +983,16 @@ const InvestmentManagement: React.FC = () => {
                         #{investment.id}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {investment.debentures?.name || 'N/A'}
+                        <RestrictedField value={investment.debentures?.name} />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : 'N/A'}
+                        <RestrictedField value={investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : null} />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {investment.investor?.name || 'N/A'}
+                        <RestrictedField value={investment.investor?.name} />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {investment.creator?.name || 'N/A'}
+                        <RestrictedField value={investment.creator?.name} />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}

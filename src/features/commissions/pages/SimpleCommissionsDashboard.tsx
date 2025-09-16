@@ -3,6 +3,7 @@ import { Download, Search, Filter } from 'lucide-react';
 import AppLayout from '../../../components/Layout/AppLayout';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
+import RestrictedField from '../../../components/common/RestrictedField';
 
 interface Commission {
   id: string;
@@ -319,29 +320,26 @@ const SimpleCommissionsDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
-                        <span className="truncate block" title={commission.investment?.debenture?.name || 'N/A'}>
-                          {commission.investment?.debenture?.name || 'N/A'}
+                        <span className="truncate block">
+                          <RestrictedField value={commission.investment?.debenture?.name} />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-32">
-                        <span className="truncate block" title={commission.investment?.series ? 
-                          `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
-                          'N/A'
-                        }>
-                          {commission.investment?.series ? 
+                        <span className="truncate block">
+                          <RestrictedField value={commission.investment?.series ? 
                             `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
-                            'N/A'
-                          }
+                            null
+                          } />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-40">
-                        <span className="truncate block" title={commission.investment?.investor?.name || 'N/A'}>
-                          {commission.investment?.investor?.name || 'N/A'}
+                        <span className="truncate block">
+                          <RestrictedField value={commission.investment?.investor?.name} />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
-                        <span className="truncate block" title={commission.user?.name || 'N/A'}>
-                          {commission.user?.name || 'N/A'}
+                        <span className="truncate block">
+                          <RestrictedField value={commission.user?.name} />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
@@ -354,7 +352,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
                         <span className="truncate block">
-                          {commission.commission_date ? formatDate(commission.commission_date) : 'N/A'}
+                          <RestrictedField value={commission.commission_date} type="date" />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap w-20">
