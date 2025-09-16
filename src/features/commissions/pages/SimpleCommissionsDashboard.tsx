@@ -41,6 +41,7 @@ interface Commission {
     name: string;
     email: string;
     user_type: string;
+    pix?: string;
   };
 }
 
@@ -114,7 +115,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
       // Buscar usuários das comissões
       const { data: usersData } = await supabase
         .from('users')
-        .select('id, name, email, user_type')
+        .select('id, name, email, user_type, pix')
         .in('id', userIds);
 
       console.log('Usuários encontrados:', usersData?.length || 0);
@@ -422,9 +423,16 @@ const SimpleCommissionsDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
-                        <span className="truncate block" title={commission.user?.name || commission.user?.email || 'N/A'}>
-                          <RestrictedField value={commission.user?.name || commission.user?.email} />
-                        </span>
+                        <div className="truncate">
+                          <div className="font-medium">
+                            <RestrictedField value={commission.user?.name || commission.user?.email} />
+                          </div>
+                          {commission.user?.pix && (
+                            <div className="text-gray-500 text-xs">
+                              PIX: <RestrictedField value={commission.user.pix} />
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
                         <span className="truncate block" title={formatCurrency(commission.commission_amount || 0)}>
