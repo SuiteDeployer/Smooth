@@ -85,32 +85,24 @@ const DebentureManagement: React.FC = () => {
     if (debentures.length > 0) {
       const fetchAllSeries = async () => {
         try {
-          const [seriesResponse, investmentsResponse] = await Promise.all([
+          const [seriesResponse, utilizationResponse] = await Promise.all([
             supabase
               .from('series')
               .select('*')
               .order('series_letter', { ascending: true }),
             supabase
-              .from('investments')
-              .select('series_id, investment_amount, status, debenture_id')
-              .eq('status', 'active')
+              .rpc('get_series_utilization')
           ]);
 
           if (seriesResponse.error) throw seriesResponse.error;
-          if (investmentsResponse.error) throw investmentsResponse.error;
+          if (utilizationResponse.error) throw utilizationResponse.error;
 
-          console.log('🔍 DEBUG - All investments found:', investmentsResponse.data);
+          console.log('🔍 DEBUG - Series utilization (bypass RLS):', utilizationResponse.data);
 
-          // Calcular captação por série
-          const investments = investmentsResponse.data || [];
+          // Converter utilização em objeto para fácil acesso
           const captationBySeries = {};
-
-          investments.forEach(investment => {
-            console.log('🔍 DEBUG - Processing investment:', investment);
-            const amount = parseFloat(investment.investment_amount) || 0;
-            if (investment.series_id) {
-              captationBySeries[investment.series_id] = (captationBySeries[investment.series_id] || 0) + amount;
-            }
+          (utilizationResponse.data || []).forEach(item => {
+            captationBySeries[item.series_id] = parseFloat(item.total_utilization) || 0;
           });
 
           console.log('🔍 DEBUG - Captation by series:', captationBySeries);
@@ -188,31 +180,28 @@ const DebentureManagement: React.FC = () => {
           .eq('debenture_id', debentureId)
           .order('series_letter', { ascending: true }),
         supabase
-          .from('investments')
-          .select('series_id, investment_amount, status')
-          .eq('debenture_id', debentureId)
-          .eq('status', 'active')
+          .rpc('get_series_utilization')
       ]);
 
       if (seriesResponse.error) throw seriesResponse.error;
-      if (investmentsResponse.error) throw investmentsResponse.error;
+      if (utilizationResponse.error) throw utilizationResponse.error;
 
-      // Calcular captação por série
-      const investments = investmentsResponse.data || [];
-      console.log('🔍 DEBUG - Investments found:', investments);
-      console.log('🔍 DEBUG - Debenture ID:', debentureId);
-      
-      const captationBySeries = {};
-
-      investments.forEach(investment => {
-        console.log('🔍 DEBUG - Processing investment:', investment);
-        const amount = parseFloat(investment.investment_amount) || 0;
-        if (investment.series_id) {
-          captationBySeries[investment.series_id] = (captationBySeries[investment.series_id] || 0) + amount;
-        }
+      // Converter utilização em objeto para fácil acesso
+      const allCaptationBySeries = {};
+      (utilizationResponse.data || []).forEach(item => {
+        allCaptationBySeries[item.series_id] = parseFloat(item.total_utilization) || 0;
       });
 
-      console.log('🔍 DEBUG - Captation by series:', captationBySeries);
+      console.log('🔍 DEBUG - All series utilization (bypass RLS):', allCaptationBySeries);
+      console.log('🔍 DEBUG - Debenture ID:', debentureId);
+      
+      // Filtrar apenas captação das séries desta debênture
+      const captationBySeries = {};
+      (seriesResponse.data || []).forEach(serie => {
+        captationBySeries[serie.id] = allCaptationBySeries[serie.id] || 0;
+      });
+
+      console.log('🔍 DEBUG - Captation by series for this debenture:', captationBySeries);
 
       // Adicionar captação calculada às séries
       const seriesWithCaptation = (seriesResponse.data || []).map(serie => ({
