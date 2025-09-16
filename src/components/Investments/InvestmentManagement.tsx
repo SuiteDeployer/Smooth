@@ -848,6 +848,61 @@ const InvestmentManagement: React.FC = () => {
     setEditingInvestment(null);
   };
 
+  // Handle delete investment (apenas Global)
+  const handleDeleteInvestment = async (investment: Investment) => {
+    if (userProfile?.user_type !== 'Global') {
+      alert('Apenas usuários Global podem deletar investimentos');
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Tem certeza que deseja deletar o investimento #${investment.id}?\n\n` +
+      `⚠️ ATENÇÃO: Esta ação também deletará TODAS as comissões relacionadas a este investimento.\n\n` +
+      `Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+      
+      // 1. Primeiro deletar todas as comissões relacionadas
+      console.log('🗑️ Deletando comissões do investimento:', investment.id);
+      const { error: commissionsError } = await supabase
+        .from('commissions')
+        .delete()
+        .eq('investment_id', investment.id);
+
+      if (commissionsError) {
+        console.error('Erro ao deletar comissões:', commissionsError);
+        throw new Error('Erro ao deletar comissões relacionadas');
+      }
+
+      // 2. Depois deletar o investimento
+      console.log('🗑️ Deletando investimento:', investment.id);
+      const { error: investmentError } = await supabase
+        .from('investments')
+        .delete()
+        .eq('id', investment.id);
+
+      if (investmentError) {
+        console.error('Erro ao deletar investimento:', investmentError);
+        throw new Error('Erro ao deletar investimento');
+      }
+
+      // 3. Atualizar lista local
+      setInvestments(prev => prev.filter(inv => inv.id !== investment.id));
+      
+      setSuccess(`Investimento #${investment.id} e suas comissões foram deletados com sucesso!`);
+      
+    } catch (error) {
+      console.error('Erro ao deletar investimento:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao deletar investimento');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle edit investment
   const handleEditInvestment = async (investment: Investment) => {
     try {
@@ -1035,6 +1090,14 @@ const InvestmentManagement: React.FC = () => {
                             className="text-blue-600 hover:text-blue-900 mr-3"
                           >
                             Editar
+                          </button>
+                        )}
+                        {userProfile?.user_type === 'Global' && (
+                          <button
+                            onClick={() => handleDeleteInvestment(investment)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Deletar
                           </button>
                         )}
                       </td>
