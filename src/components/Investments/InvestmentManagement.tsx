@@ -980,7 +980,6 @@ const InvestmentManagement: React.FC = () => {
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Debênture</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Série</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investidor</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimento</th>
@@ -1009,9 +1008,6 @@ const InvestmentManagement: React.FC = () => {
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         <RestrictedField value={investment.investor?.name} />
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedField value={investment.creator?.name} />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}
@@ -1140,19 +1136,6 @@ const InvestmentManagement: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  {/* Responsible */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Responsável
-                    </label>
-                    <input
-                      type="text"
-                      value={currentUser?.full_name || user?.email || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-                      readOnly
-                    />
                   </div>
 
                   {/* Investment Amount */}

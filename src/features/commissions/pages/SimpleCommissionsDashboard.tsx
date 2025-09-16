@@ -304,7 +304,6 @@ const SimpleCommissionsDashboard: React.FC = () => {
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Debênture</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Série</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Investidor</th>
-                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Responsável</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Valor</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Parcela</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Vencimento</th>
@@ -350,13 +349,8 @@ const SimpleCommissionsDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-40">
-                        <span className="truncate block">
+                        <span className="truncate block" title={commission.investment?.investor?.name || 'N/A'}>
                           <RestrictedField value={commission.investment?.investor?.name} />
-                        </span>
-                      </td>
-                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
-                        <span className="truncate block">
-                          <RestrictedField value={commission.investment?.creator?.name} />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
