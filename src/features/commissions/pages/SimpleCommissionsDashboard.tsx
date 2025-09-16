@@ -371,6 +371,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Debênture</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Série</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Investidor</th>
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Beneficiário</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Valor</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Parcela</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Vencimento</th>
@@ -381,7 +382,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-12 text-center">
+                    <td colSpan={11} className="px-3 py-12 text-center">
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                         <span className="ml-2 text-gray-500">Carregando comissões...</span>
@@ -390,7 +391,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                   </tr>
                 ) : filteredCommissions.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-12 text-center text-gray-500">
+                    <td colSpan={11} className="px-3 py-12 text-center text-gray-500">
                       {commissions.length === 0 ? 'Nenhuma comissão encontrada' : 'Nenhuma comissão corresponde aos filtros'}
                     </td>
                   </tr>
@@ -418,6 +419,11 @@ const SimpleCommissionsDashboard: React.FC = () => {
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-40">
                         <span className="truncate block" title={commission.investment?.investor?.name || 'N/A'}>
                           <RestrictedField value={commission.investment?.investor?.name} />
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
+                        <span className="truncate block" title={commission.user?.name || commission.user?.email || 'N/A'}>
+                          <RestrictedField value={commission.user?.name || commission.user?.email} />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
