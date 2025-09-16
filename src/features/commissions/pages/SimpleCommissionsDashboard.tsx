@@ -54,20 +54,10 @@ const SimpleCommissionsDashboard: React.FC = () => {
 
       console.log('Buscando comissões do Supabase...');
 
-      // Buscar comissões com joins
+      // 1. Buscar comissões (query principal)
       const { data: commissionsData, error: commissionsError } = await supabase
         .from('commissions')
-        .select(`
-          *,
-          investments!inner(
-            id,
-            investment_amount,
-            debentures(name),
-            series(series_letter, commercial_name),
-            investor:users!investments_investor_user_id_fkey(name, email)
-          ),
-          users!commissions_user_id_fkey(name, email, user_type)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (commissionsError) {
@@ -76,9 +66,78 @@ const SimpleCommissionsDashboard: React.FC = () => {
       }
 
       console.log('Comissões encontradas:', commissionsData?.length || 0);
-      console.log('Dados das comissões:', commissionsData);
 
-      setCommissions(commissionsData || []);
+      if (!commissionsData || commissionsData.length === 0) {
+        setCommissions([]);
+        return;
+      }
+
+      // 2. Buscar dados relacionados separadamente
+      const investmentIds = [...new Set(commissionsData.map(comm => comm.investment_id))];
+      const userIds = [...new Set(commissionsData.map(comm => comm.user_id))];
+
+      // Buscar investimentos
+      const { data: investmentsData } = await supabase
+        .from('investments')
+        .select('*')
+        .in('id', investmentIds);
+
+      console.log('Investimentos encontrados:', investmentsData?.length || 0);
+
+      // Buscar usuários das comissões
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, name, email, user_type')
+        .in('id', userIds);
+
+      console.log('Usuários encontrados:', usersData?.length || 0);
+
+      // Se temos investimentos, buscar dados relacionados
+      let debenturesData: any[] = [];
+      let seriesData: any[] = [];
+      let investorsData: any[] = [];
+
+      if (investmentsData && investmentsData.length > 0) {
+        const debentureIds = [...new Set(investmentsData.map(inv => inv.debenture_id))];
+        const seriesIds = [...new Set(investmentsData.map(inv => inv.series_id))];
+        const investorIds = [...new Set(investmentsData.map(inv => inv.investor_user_id))];
+
+        // Buscar debêntures
+        const { data: debData } = await supabase
+          .from('debentures')
+          .select('id, name')
+          .in('id', debentureIds);
+        debenturesData = debData || [];
+
+        // Buscar séries
+        const { data: serData } = await supabase
+          .from('series')
+          .select('id, series_letter, commercial_name')
+          .in('id', seriesIds);
+        seriesData = serData || [];
+
+        // Buscar investidores
+        const { data: invData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .in('id', investorIds);
+        investorsData = invData || [];
+      }
+
+      // 3. Combinar dados
+      const enrichedCommissions = commissionsData.map(commission => ({
+        ...commission,
+        user: usersData?.find(u => u.id === commission.user_id),
+        investment: investmentsData?.find(inv => inv.id === commission.investment_id) ? {
+          ...investmentsData.find(inv => inv.id === commission.investment_id),
+          debenture: debenturesData?.find(d => d.id === investmentsData.find(inv => inv.id === commission.investment_id)?.debenture_id),
+          series: seriesData?.find(s => s.id === investmentsData.find(inv => inv.id === commission.investment_id)?.series_id),
+          investor: investorsData?.find(u => u.id === investmentsData.find(inv => inv.id === commission.investment_id)?.investor_user_id)
+        } : undefined
+      }));
+
+      console.log('Comissões enriquecidas:', enrichedCommissions.length);
+      setCommissions(enrichedCommissions);
     } catch (err: any) {
       console.error('Erro ao carregar comissões:', err);
       setError(err.message || 'Erro ao carregar comissões');
