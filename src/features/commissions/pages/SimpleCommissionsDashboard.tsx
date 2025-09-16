@@ -54,6 +54,11 @@ const SimpleCommissionsDashboard: React.FC = () => {
 
       console.log('Buscando comissões do Supabase...');
       console.log('Usuário atual:', userProfile?.user_type, userProfile?.email);
+      console.log('ID do usuário (userProfile.id):', userProfile?.id);
+
+      // Debug: Verificar auth.uid() do Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Auth user do Supabase:', user?.id, user?.email);
 
       // 1. Buscar comissões - deixar RLS do Supabase aplicar as políticas
       const { data: commissionsData, error: commissionsError } = await supabase
@@ -67,6 +72,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
       }
 
       console.log('Comissões encontradas (após RLS):', commissionsData?.length || 0);
+      console.log('Primeiras 3 comissões:', commissionsData?.slice(0, 3));
 
       if (!commissionsData || commissionsData.length === 0) {
         setCommissions([]);
