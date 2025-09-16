@@ -55,29 +55,18 @@ const SimpleCommissionsDashboard: React.FC = () => {
       console.log('Buscando comissões do Supabase...');
       console.log('Usuário atual:', userProfile?.user_type, userProfile?.email);
 
-      // 1. Buscar comissões com filtro RLS baseado no tipo de usuário
-      let commissionsQuery = supabase
+      // 1. Buscar comissões - deixar RLS do Supabase aplicar as políticas
+      const { data: commissionsData, error: commissionsError } = await supabase
         .from('commissions')
         .select('*')
         .order('created_at', { ascending: false });
-
-      // Aplicar filtro RLS: apenas Global vê todas as comissões
-      if (userProfile?.user_type !== 'Global') {
-        // Outros usuários veem apenas suas próprias comissões
-        commissionsQuery = commissionsQuery.eq('user_id', userProfile?.id);
-        console.log('Aplicando filtro RLS - usuário só vê suas comissões:', userProfile?.id);
-      } else {
-        console.log('Usuário Global - vê todas as comissões');
-      }
-
-      const { data: commissionsData, error: commissionsError } = await commissionsQuery;
 
       if (commissionsError) {
         console.error('Erro ao buscar comissões:', commissionsError);
         throw commissionsError;
       }
 
-      console.log('Comissões encontradas:', commissionsData?.length || 0);
+      console.log('Comissões encontradas (após RLS):', commissionsData?.length || 0);
 
       if (!commissionsData || commissionsData.length === 0) {
         setCommissions([]);
