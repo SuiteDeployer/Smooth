@@ -55,6 +55,12 @@ const SimpleCommissionsDashboard: React.FC = () => {
   const [dateFilter, setDateFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  // Estados para edição em lote (apenas Global)
+  const [selectedCommissions, setSelectedCommissions] = useState<Set<string>>(new Set());
+  const [bulkEditMode, setBulkEditMode] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<'pending' | 'paid' | 'overdue'>('pending');
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   // Buscar comissões do Supabase
   const fetchCommissions = async () => {
@@ -315,6 +321,64 @@ const SimpleCommissionsDashboard: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  // Funções para edição em lote (apenas Global)
+  const toggleCommissionSelection = (commissionId: string) => {
+    const newSelected = new Set(selectedCommissions);
+    if (newSelected.has(commissionId)) {
+      newSelected.delete(commissionId);
+    } else {
+      newSelected.add(commissionId);
+    }
+    setSelectedCommissions(newSelected);
+  };
+
+  const selectAllCommissions = () => {
+    if (selectedCommissions.size === filteredCommissions.length) {
+      setSelectedCommissions(new Set());
+    } else {
+      setSelectedCommissions(new Set(filteredCommissions.map(c => c.id)));
+    }
+  };
+
+  const bulkUpdateStatus = async () => {
+    if (selectedCommissions.size === 0) {
+      alert('Selecione pelo menos uma comissão');
+      return;
+    }
+
+    setBulkLoading(true);
+    try {
+      const { error } = await supabase
+        .from('commissions')
+        .update({ status: bulkStatus })
+        .in('id', Array.from(selectedCommissions));
+
+      if (error) {
+        console.error('Erro ao atualizar status:', error);
+        alert('Erro ao atualizar status das comissões');
+        return;
+      }
+
+      // Atualizar dados localmente
+      setCommissions(prev => prev.map(commission => 
+        selectedCommissions.has(commission.id) 
+          ? { ...commission, status: bulkStatus }
+          : commission
+      ));
+
+      // Limpar seleção e sair do modo de edição
+      setSelectedCommissions(new Set());
+      setBulkEditMode(false);
+      
+      alert(`${selectedCommissions.size} comissões atualizadas com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      alert('Erro ao atualizar status das comissões');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -324,13 +388,27 @@ const SimpleCommissionsDashboard: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Comissões</h1>
             <p className="text-gray-600 mt-1">Gerencie e acompanhe todas as comissões do sistema</p>
           </div>
-          <button 
-            onClick={exportToCSV}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Exportar Comissões
-          </button>
+          <div className="flex gap-2">
+            {userProfile?.user_type === 'Global' && (
+              <button 
+                onClick={() => setBulkEditMode(!bulkEditMode)}
+                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
+                  bulkEditMode 
+                    ? 'bg-red-600 hover:bg-red-700 text-white' 
+                    : 'bg-gray-600 hover:bg-gray-700 text-white'
+                }`}
+              >
+                {bulkEditMode ? 'Cancelar Edição' : 'Editar em Lote'}
+              </button>
+            )}
+            <button 
+              onClick={exportToCSV}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Exportar Comissões
+            </button>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -411,6 +489,49 @@ const SimpleCommissionsDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Painel de Edição em Lote (apenas Global) */}
+        {userProfile?.user_type === 'Global' && bulkEditMode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedCommissions.size} comissão(ões) selecionada(s)
+                </span>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-blue-900">Alterar status para:</label>
+                  <select
+                    value={bulkStatus}
+                    onChange={(e) => setBulkStatus(e.target.value as 'pending' | 'paid' | 'overdue')}
+                    className="px-3 py-1 border border-blue-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="pending">Pendente</option>
+                    <option value="paid">Pago</option>
+                    <option value="overdue">Vencido</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedCommissions(new Set());
+                    setBulkEditMode(false);
+                  }}
+                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={bulkUpdateStatus}
+                  disabled={selectedCommissions.size === 0 || bulkLoading}
+                  className="px-4 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-md font-medium"
+                >
+                  {bulkLoading ? 'Atualizando...' : 'Aplicar Alterações'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -423,6 +544,16 @@ const SimpleCommissionsDashboard: React.FC = () => {
             <table className="w-full border-collapse">
               <thead className="bg-gray-50">
                 <tr>
+                  {userProfile?.user_type === 'Global' && bulkEditMode && (
+                    <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedCommissions.size === filteredCommissions.length && filteredCommissions.length > 0}
+                        onChange={selectAllCommissions}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
+                  )}
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">ID</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Debênture</th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Série</th>
@@ -438,22 +569,32 @@ const SimpleCommissionsDashboard: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={11} className="px-3 py-12 text-center">
+                    <td colSpan={userProfile?.user_type === 'Global' && bulkEditMode ? 12 : 11} className="px-3 py-12 text-center">
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <span className="ml-2 text-gray-500">Carregando comissões...</span>
+                        <span className="ml-2 text-gray-600">Carregando comissões...</span>
                       </div>
                     </td>
                   </tr>
                 ) : filteredCommissions.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-3 py-12 text-center text-gray-500">
+                    <td colSpan={userProfile?.user_type === 'Global' && bulkEditMode ? 12 : 11} className="px-3 py-12 text-center text-gray-500">
                       {commissions.length === 0 ? 'Nenhuma comissão encontrada' : 'Nenhuma comissão corresponde aos filtros'}
                     </td>
                   </tr>
                 ) : (
                   filteredCommissions.map((commission) => (
                     <tr key={commission.id} className="hover:bg-gray-50">
+                      {userProfile?.user_type === 'Global' && bulkEditMode && (
+                        <td className="px-2 py-3 whitespace-nowrap w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedCommissions.has(commission.id)}
+                            onChange={() => toggleCommissionSelection(commission.id)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+                      )}
                       <td className="px-2 py-3 whitespace-nowrap text-xs font-medium text-gray-900 w-20">
                         <span className="truncate block" title={`#${commission.id}`}>
                           #{commission.id.toString().slice(-6)}
