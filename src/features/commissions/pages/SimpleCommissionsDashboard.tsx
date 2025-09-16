@@ -376,9 +376,11 @@ const SimpleCommissionsDashboard: React.FC = () => {
                         {getStatusBadge(commission.status || 'pending')}
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs font-medium w-16">
-                        <button className="text-blue-600 hover:text-blue-900 text-xs">
-                          Editar
-                        </button>
+                        {userProfile?.user_type === 'Global' && (
+                          <button className="text-blue-600 hover:text-blue-900 text-xs">
+                            Editar
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
