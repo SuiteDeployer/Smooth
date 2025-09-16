@@ -31,6 +31,11 @@ interface Commission {
       name: string;
       email: string;
     };
+    creator?: {
+      name: string;
+      email: string;
+      user_type: string;
+    };
   };
   user?: {
     name: string;
@@ -144,12 +149,14 @@ const SimpleCommissionsDashboard: React.FC = () => {
           .in('id', investorIds);
         investorsData = invData || [];
 
-        // Buscar criadores dos investimentos
+        // Buscar criadores dos investimentos (usando created_by que existe na tabela)
         const { data: creatorData } = await supabase
           .from('users')
           .select('id, name, email, user_type')
           .in('id', creatorIds);
         creatorsData = creatorData || [];
+
+        console.log('Criadores encontrados:', creatorsData.length);
       }
 
       // 3. Combinar dados
