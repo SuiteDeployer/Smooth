@@ -373,6 +373,7 @@ const UserManagement: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Investidor">Investidor</option>
+                    <option value="Agente">Agente</option>
                     <option value="Head">Head</option>
                     <option value="Escritório">Escritório</option>
                     <option value="Master">Master</option>
