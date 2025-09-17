@@ -15,6 +15,14 @@ export interface HeadPerformance {
   clients_count: number;
 }
 
+export interface AgentePerformance {
+  agente_id: string;
+  agente_name: string;
+  total_investments: number;
+  total_amount: number;
+  clients_count: number;
+}
+
 export interface RecentInvestment {
   id: string;
   investor_name: string;
@@ -62,6 +70,13 @@ export interface DashboardMetrics {
     bottom_performers: HeadPerformance[];
     users: DashboardUser[];
   };
+  agentes: {
+    total: number;
+    new_this_month: number;
+    top_performers: AgentePerformance[];
+    bottom_performers: AgentePerformance[];
+    users: DashboardUser[];
+  };
   investidores: {
     total: number;
     new_this_month: number;
@@ -100,6 +115,7 @@ export interface DashboardMetrics {
       Master: number;
       Escritório: number;
       Head: number;
+      Agente: number;
     };
     recent: RecentCommission[];
   };
@@ -117,6 +133,7 @@ export type ModalType =
   | 'masters' 
   | 'escritorios' 
   | 'heades' 
+  | 'agentes'
   | 'investidores' 
   | 'investments' 
   | 'remuneracao' 

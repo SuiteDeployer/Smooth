@@ -98,7 +98,7 @@ interface User {
   email: string;
   name: string;
   full_name?: string; // Alias for name for compatibility
-  user_type: 'Global' | 'Master' | 'Escritório' | 'Head' | 'Investidor';
+  user_type: 'Global' | 'Master' | 'Escritório' | 'Head' | 'Agente' | 'Investidor';
   parent_id: string | null;
   phone: string | null;
   document: string | null;

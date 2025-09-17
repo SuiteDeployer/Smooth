@@ -11,6 +11,8 @@ import InvestmentManagement from './components/Investments/InvestmentManagement'
 import CommissionsDashboard from './features/commissions/pages/SimpleCommissionsDashboard';
 import RemuneracaoManagement from './features/remuneracao/pages/RemuneracaoManagement';
 import DashboardLayout from './components/Layout/DashboardLayout';
+import AgenteDashboard from './components/Dashboard/AgenteDashboard';
+import AgenteProfile from './components/Profile/AgenteProfile';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -149,6 +151,26 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RemuneracaoManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Dashboard do Agente */}
+            <Route
+              path="/agente/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AgenteDashboard />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Perfil do Agente */}
+            <Route
+              path="/agente/profile"
+              element={
+                <ProtectedRoute>
+                  <AgenteProfile />
                 </ProtectedRoute>
               }
             />
