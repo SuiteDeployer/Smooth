@@ -7,7 +7,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  user_type: 'Global' | 'Master' | 'Escritório' | 'Head' | 'Investidor';
+  user_type: 'Global' | 'Master' | 'Escritório' | 'Head' | 'Agente' | 'Investidor';
   parent_id: string | null;
   phone: string | null;
   document: string | null; // Temporário - será migrado para cpf
