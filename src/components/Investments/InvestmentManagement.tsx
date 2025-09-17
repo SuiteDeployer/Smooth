@@ -816,10 +816,13 @@ const InvestmentManagement: React.FC = () => {
         head_id: '',
         escritorio_id: '',
         master_id: '',
+        agente_id: '',
         investment_amount: '',
         head_commission_percentage: '',
         escritorio_commission_percentage: '',
         master_commission_percentage: '',
+        agente_commission_percentage: '',
+        investor_percentage: '',
         notes: ''
       });
       setSelectedSeries(null);
@@ -870,10 +873,13 @@ const InvestmentManagement: React.FC = () => {
       head_id: '',
       escritorio_id: '',
       master_id: '',
+      agente_id: '',
       investment_amount: '',
       head_commission_percentage: '',
       escritorio_commission_percentage: '',
       master_commission_percentage: '',
+      agente_commission_percentage: '',
+      investor_percentage: '',
       notes: ''
     });
     setSelectedSeries(null);
@@ -999,10 +1005,13 @@ const InvestmentManagement: React.FC = () => {
         head_id: investment.head_user_id,
         escritorio_id: investment.escritorio_user_id,
         master_id: investment.master_user_id,
+        agente_id: '', // Campo novo, não existe no investment atual
         investment_amount: investment.investment_amount.toString(),
         head_commission_percentage: investment.head_commission_percentage.toString(),
         escritorio_commission_percentage: investment.escritorio_commission_percentage.toString(),
         master_commission_percentage: investment.master_commission_percentage.toString(),
+        agente_commission_percentage: '', // Campo novo, não existe no investment atual
+        investor_percentage: '', // Campo novo, não existe no investment atual
         notes: investment.notes || ''
       });
       
