@@ -629,7 +629,7 @@ const DebentureManagement: React.FC = () => {
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Prazo</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Captação</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Progresso</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Comissão/Ano</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Percentual/Ano</th>
 
                                     {isGlobalUser && (
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
@@ -927,7 +927,7 @@ const DebentureManagement: React.FC = () => {
 
                 {/* Seção de Comissão com cálculo automático */}
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="text-sm font-medium text-blue-900 mb-3">Comissão Máxima</h3>
+                  <h3 className="text-sm font-medium text-blue-900 mb-3">Percentual Máximo</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">

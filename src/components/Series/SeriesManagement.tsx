@@ -462,7 +462,7 @@ const SeriesManagement: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Comissão Máxima ao Ano (%)
+                      Percentual Máximo ao Ano (%)
                     </label>
                     <input
                       type="number"
@@ -477,7 +477,7 @@ const SeriesManagement: React.FC = () => {
                     />
                     {formData.max_commission_year && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Comissão ao mês: {(parseFloat(formData.max_commission_year) / 12).toFixed(2)}%
+                        Percentual ao mês: {(parseFloat(formData.max_commission_year) / 12).toFixed(2)}%
                       </p>
                     )}
                   </div>

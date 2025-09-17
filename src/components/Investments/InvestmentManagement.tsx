@@ -599,7 +599,7 @@ const InvestmentManagement: React.FC = () => {
     if (selectedSeries) {
       const maxCommission = selectedSeries.max_commission_year;
       if (total > maxCommission) {
-        setError(`O total dos percentuais de comissão não pode ultrapassar ${maxCommission}% (máximo da série)`);
+        setError(`O total dos percentuais de comissão não pode ultrapassar ${maxCommission}% (percentual máximo da série)`);
         return false;
       }
     }
@@ -1278,11 +1278,11 @@ const InvestmentManagement: React.FC = () => {
                         <p>{selectedSeries.remuneration_month}%</p>
                       </div>
                       <div>
-                        <span className="font-medium">Comissão Máxima ao Ano:</span>
+                        <span className="font-medium">Percentual Máximo ao Ano:</span>
                         <p>{selectedSeries.max_commission_year}%</p>
                       </div>
                       <div>
-                        <span className="font-medium">Comissão Máxima ao Mês:</span>
+                        <span className="font-medium">Percentual Máximo ao Mês:</span>
                         <p>{selectedSeries.max_commission_month}%</p>
                       </div>
                     </div>
@@ -1392,7 +1392,7 @@ const InvestmentManagement: React.FC = () => {
                     </div>
                     {selectedSeries && (
                       <div className="text-sm text-gray-600 mt-1">
-                        Máximo permitido pela série: {selectedSeries.max_commission_year}%
+                        Percentual máximo permitido pela série: {selectedSeries.max_commission_year}%
                       </div>
                     )}
                   </div>

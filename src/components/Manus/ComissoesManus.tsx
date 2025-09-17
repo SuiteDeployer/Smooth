@@ -305,7 +305,7 @@ const ComissoesManus = () => {
             <strong>Demonstração:</strong> Dados baseados nos 11 investimentos reais (R$ 745.000 total). 
             Comissões calculadas conforme distribuição definida em cada investimento: 
             algumas com Master 8%, Escritório 2%, Head 2%; outras com Master 12%, Escritório 0%, Head 0%; 
-            e outras distribuições que sempre totalizam 12% (comissão máxima da série).
+            e outras distribuições que sempre totalizam 12% (percentual máximo da série).
           </p>
         </div>    </div>
         </div>
