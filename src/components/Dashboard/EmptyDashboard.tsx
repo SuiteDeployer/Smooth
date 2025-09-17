@@ -108,6 +108,18 @@ const EmptyDashboard: React.FC = () => {
               </p>
             </button>
           )}
+
+          {/* Card Remuneração - visível para todos */}
+          <button
+            onClick={() => navigate('/remuneracao')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white p-6 rounded-lg shadow-md transition-colors"
+          >
+            <div className="text-2xl mb-2">💎</div>
+            <h3 className="text-lg font-semibold mb-2">Remuneração</h3>
+            <p className="text-sm opacity-90">
+              Acompanhar remunerações dos investimentos
+            </p>
+          </button>
         </div>
 
         {/* Development Info */}

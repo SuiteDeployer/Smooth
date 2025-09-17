@@ -766,7 +766,27 @@ const InvestmentManagement: React.FC = () => {
           
           if (commissionResult.success) {
             console.log('✅ Comissões geradas:', commissionResult.data);
-            setSuccess(`Investimento criado com sucesso! ${commissionResult.data.commissionsCreated} comissões geradas para ${commissionResult.data.totalUsers} usuários.`);
+            
+            // Gerar remunerações para o investimento
+            try {
+              console.log('🔄 Gerando remunerações para investimento:', newInvestmentId);
+              
+              const { error: remunerationError } = await supabase
+                .rpc('generate_remunerations_for_investment', {
+                  investment_id_param: newInvestmentId
+                });
+              
+              if (remunerationError) {
+                console.error('❌ Erro ao gerar remunerações:', remunerationError);
+                setSuccess(`Investimento criado com sucesso! ${commissionResult.data.commissionsCreated} comissões geradas, mas houve erro ao gerar remunerações.`);
+              } else {
+                console.log('✅ Remunerações geradas com sucesso');
+                setSuccess(`Investimento criado com sucesso! ${commissionResult.data.commissionsCreated} comissões e remunerações geradas para ${commissionResult.data.totalUsers} usuários.`);
+              }
+            } catch (error) {
+              console.error('💥 Erro fatal ao gerar remunerações:', error);
+              setSuccess(`Investimento criado com sucesso! ${commissionResult.data.commissionsCreated} comissões geradas, mas houve erro fatal ao gerar remunerações.`);
+            }
           } else {
             console.error('❌ Erro ao gerar comissões:', commissionResult.error);
             setSuccess('Investimento criado com sucesso, mas houve erro ao gerar comissões. Verifique no controle de comissões.');

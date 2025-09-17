@@ -88,6 +88,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   Comissões
                 </button>
               )}
+              {/* Remuneração - visível para todos */}
+              <button
+                onClick={() => navigate('/remuneracao')}
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Remuneração
+              </button>
             </nav>
 
             {/* User Info & Logout */}

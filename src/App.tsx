@@ -9,6 +9,7 @@ import DebentureManagement from './components/Debentures/DebentureManagement';
 import SeriesManagement from './components/Series/SeriesManagement';
 import InvestmentManagement from './components/Investments/InvestmentManagement';
 import CommissionsDashboard from './features/commissions/pages/SimpleCommissionsDashboard';
+import RemuneracaoManagement from './features/remuneracao/pages/RemuneracaoManagement';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import './App.css';
 
@@ -138,6 +139,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CommissionsDashboard />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Rota protegida - Gerenciamento de remuneração */}
+            <Route
+              path="/remuneracao"
+              element={
+                <ProtectedRoute>
+                  <RemuneracaoManagement />
                 </ProtectedRoute>
               }
             />
