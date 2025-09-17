@@ -629,9 +629,14 @@ const EnhancedUserManagement = () => {
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Selecione...</option>
-                    {availableRoles.data?.filter((role: string) => role !== 'Investidor').map((role: string) => (
-                      <option key={role} value={role}>{role}</option>
-                    ))}
+                    {(() => {
+                      console.log('🔍 DEBUG - availableRoles.data:', availableRoles.data);
+                      const filteredRoles = availableRoles.data?.filter((role: string) => role !== 'Investidor');
+                      console.log('🔍 DEBUG - filteredRoles:', filteredRoles);
+                      return filteredRoles?.map((role: string) => (
+                        <option key={role} value={role}>{role}</option>
+                      ));
+                    })()}
                   </select>
                 </div>
 
