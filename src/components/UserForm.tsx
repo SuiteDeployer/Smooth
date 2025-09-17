@@ -78,7 +78,8 @@ export const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
         'Master': ['Global'],
         'Escritório': ['Global', 'Master'],
         'Head': ['Global', 'Master', 'Escritório'],
-        'Investidor': ['Global', 'Master', 'Escritório', 'Head']
+        'Agente': ['Global', 'Master', 'Escritório', 'Head'],
+        'Investidor': ['Global', 'Master', 'Escritório', 'Head', 'Agente']
       };
 
       const validSuperiorRoles = hierarchyMap[selectedRole] || [];
