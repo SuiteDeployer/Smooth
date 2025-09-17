@@ -13,8 +13,6 @@ interface Series {
   term_months: number;
   max_commission_year: number;
   max_commission_month: number;
-  remuneration_year: number;
-  remuneration_month: number;
   captacao_amount: number;
   created_at: string;
   updated_at: string;
@@ -44,7 +42,6 @@ const SeriesManagement: React.FC = () => {
     commercial_name: '',
     term_months: '',
     max_commission_year: '',
-    remuneration_year: '',
     captacao_amount: ''
   });
 
@@ -132,7 +129,6 @@ const SeriesManagement: React.FC = () => {
 
     try {
       const maxCommissionYear = parseFloat(formData.max_commission_year);
-      const remunerationYear = parseFloat(formData.remuneration_year);
       
       const { error } = await supabase
         .from('series')
@@ -143,8 +139,6 @@ const SeriesManagement: React.FC = () => {
           term_months: parseInt(formData.term_months),
           max_commission_year: maxCommissionYear,
           max_commission_month: maxCommissionYear / 12,
-          remuneration_year: remunerationYear,
-          remuneration_month: remunerationYear / 12,
           captacao_amount: captacaoAmount,
           created_by: userProfile?.id
         }]);
@@ -173,7 +167,6 @@ const SeriesManagement: React.FC = () => {
       commercial_name: seriesItem.commercial_name,
       term_months: seriesItem.term_months.toString(),
       max_commission_year: seriesItem.max_commission_year.toString(),
-      remuneration_year: seriesItem.remuneration_year.toString(),
       captacao_amount: seriesItem.captacao_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
     });
     setShowForm(true);
@@ -196,7 +189,6 @@ const SeriesManagement: React.FC = () => {
 
     try {
       const maxCommissionYear = parseFloat(formData.max_commission_year);
-      const remunerationYear = parseFloat(formData.remuneration_year);
       
       const { error } = await supabase
         .from('series')
@@ -206,8 +198,6 @@ const SeriesManagement: React.FC = () => {
           term_months: parseInt(formData.term_months),
           max_commission_year: maxCommissionYear,
           max_commission_month: maxCommissionYear / 12,
-          remuneration_year: remunerationYear,
-          remuneration_month: remunerationYear / 12,
           captacao_amount: captacaoAmount,
           updated_at: new Date().toISOString()
         })
@@ -258,7 +248,6 @@ const SeriesManagement: React.FC = () => {
       commercial_name: '',
       term_months: '',
       max_commission_year: '',
-      remuneration_year: '',
       captacao_amount: ''
     });
   };
@@ -353,9 +342,6 @@ const SeriesManagement: React.FC = () => {
                   Comissão (Ano/Mês)
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Remuneração (Ano/Mês)
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Captação
                 </th>
                 {isGlobalUser && (
@@ -380,11 +366,6 @@ const SeriesManagement: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       {formatPercentage(seriesItem.max_commission_year)} / {formatPercentage(seriesItem.max_commission_month)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatPercentage(seriesItem.remuneration_year)} / {formatPercentage(seriesItem.remuneration_month)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -492,33 +473,11 @@ const SeriesManagement: React.FC = () => {
                       value={formData.max_commission_year}
                       onChange={(e) => setFormData({...formData, max_commission_year: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="12.00"
+                      placeholder="8.00"
                     />
                     {formData.max_commission_year && (
                       <p className="text-xs text-gray-500 mt-1">
                         Comissão ao mês: {(parseFloat(formData.max_commission_year) / 12).toFixed(2)}%
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Remuneração ao Ano (%)
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={formData.remuneration_year}
-                      onChange={(e) => setFormData({...formData, remuneration_year: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="24.00"
-                    />
-                    {formData.remuneration_year && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Remuneração ao mês: {(parseFloat(formData.remuneration_year) / 12).toFixed(2)}%
                       </p>
                     )}
                   </div>
