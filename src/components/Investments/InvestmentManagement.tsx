@@ -86,8 +86,8 @@ interface Series {
   series_letter: string;
   commercial_name: string;
   term_months: number;
-  max_commission_year: number;
-  max_commission_month: number;
+  max_percentage_year: number;
+  max_percentage_month: number;
   remuneration_year: number;
   remuneration_month: number;
   captacao_amount: number;
@@ -530,7 +530,7 @@ const InvestmentManagement: React.FC = () => {
       // Buscar séries
       const { data: seriesData } = await supabase
         .from('series')
-        .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
+        .select('id, debenture_id, series_letter, commercial_name, term_months, max_percentage_year, max_percentage_month, remuneration_year, remuneration_month, captacao_amount')
         .in('id', seriesIds);
         
       // Buscar usuários
@@ -597,7 +597,7 @@ const InvestmentManagement: React.FC = () => {
     
     // Only validate against series maximum, not 100%
     if (selectedSeries) {
-      const maxCommission = selectedSeries.max_commission_year;
+      const maxCommission = selectedSeries.max_percentage_year;
       if (total > maxCommission) {
         setError(`O total dos percentuais de comissão não pode ultrapassar ${maxCommission}% (percentual máximo da série)`);
         return false;
@@ -966,7 +966,7 @@ const InvestmentManagement: React.FC = () => {
       if (investment.series_id) {
         const { data: selectedSeriesData } = await supabase
           .from('series')
-          .select('id, debenture_id, series_letter, commercial_name, term_months, max_commission_year, max_commission_month, remuneration_year, remuneration_month, captacao_amount')
+          .select('id, debenture_id, series_letter, commercial_name, term_months, max_percentage_year, max_percentage_month, remuneration_year, remuneration_month, captacao_amount')
           .eq('id', investment.series_id)
           .single();
         
@@ -1279,11 +1279,11 @@ const InvestmentManagement: React.FC = () => {
                       </div>
                       <div>
                         <span className="font-medium">Percentual Máximo ao Ano:</span>
-                        <p>{selectedSeries.max_commission_year}%</p>
+                        <p>{selectedSeries.max_percentage_year}%</p>
                       </div>
                       <div>
                         <span className="font-medium">Percentual Máximo ao Mês:</span>
-                        <p>{selectedSeries.max_commission_month}%</p>
+                        <p>{selectedSeries.max_percentage_month}%</p>
                       </div>
                     </div>
                   </div>
@@ -1386,13 +1386,13 @@ const InvestmentManagement: React.FC = () => {
                   <div className="mt-4 p-3 bg-white rounded border">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Total dos Percentuais:</span>
-                      <span className={`font-bold ${getCommissionTotal() > (selectedSeries?.max_commission_year || 100) ? 'text-red-600' : 'text-green-600'}`}>
+                      <span className={`font-bold ${getCommissionTotal() > (selectedSeries?.max_percentage_year || 100) ? 'text-red-600' : 'text-green-600'}`}>
                         {getCommissionTotal().toFixed(2)}%
                       </span>
                     </div>
                     {selectedSeries && (
                       <div className="text-sm text-gray-600 mt-1">
-                        Percentual máximo permitido pela série: {selectedSeries.max_commission_year}%
+                        Percentual máximo permitido pela série: {selectedSeries.max_percentage_year}%
                       </div>
                     )}
                   </div>

@@ -22,8 +22,8 @@ interface Serie {
   series_letter: string;
   commercial_name: string;
   term_months: number;
-  max_commission_year: number;
-  max_commission_month: number;
+  max_percentage_year: number;
+  max_percentage_month: number;
   captacao_amount: number;
   created_at: string;
   updated_at: string;
@@ -56,8 +56,8 @@ const DebentureManagement: React.FC = () => {
     commercial_name: '',
     term_months: '',
     captacao_amount: '',
-    max_commission_year: '',
-    max_commission_month: '' // Campo calculado automaticamente
+    max_percentage_year: '',
+    max_percentage_month: '' // Campo calculado automaticamente
   });
 
   // Verificar permissões de usuário
@@ -134,8 +134,8 @@ const DebentureManagement: React.FC = () => {
     const monthValue = calculateMonthlyValues(value);
     setSeriesFormData({
       ...seriesFormData,
-      max_commission_year: value,
-      max_commission_month: monthValue
+      max_percentage_year: value,
+      max_percentage_month: monthValue
     });
   };
 
@@ -357,14 +357,14 @@ const DebentureManagement: React.FC = () => {
     setSelectedDebentureId(serie.debenture_id);
     
     // Calcular valores mensais ao carregar dados para edição
-    const commissionMonth = calculateMonthlyValues(String(serie.max_commission_year || ''));
+    const commissionMonth = calculateMonthlyValues(String(serie.max_percentage_year || ''));
     setSeriesFormData({
       series_letter: serie.series_letter || '',
       commercial_name: serie.commercial_name || '',
       term_months: String(serie.term_months || ''),
       captacao_amount: String(serie.captacao_amount || ''),
-      max_commission_year: String(serie.max_commission_year || ''),
-      max_commission_month: commissionMonth
+      max_percentage_year: String(serie.max_percentage_year || ''),
+      max_percentage_month: commissionMonth
     });
     setShowSeriesForm(true);
   };
@@ -421,8 +421,8 @@ const DebentureManagement: React.FC = () => {
         commercial_name: seriesFormData.commercial_name,
         term_months: parseInt(seriesFormData.term_months) || 0,
         captacao_amount: parseFloat(seriesFormData.captacao_amount) || 0,
-        max_commission_year: parseFloat(seriesFormData.max_commission_year) || 0,
-        max_commission_month: parseFloat(seriesFormData.max_commission_month) || 0,
+        max_percentage_year: parseFloat(seriesFormData.max_percentage_year) || 0,
+        max_percentage_month: parseFloat(seriesFormData.max_percentage_month) || 0,
         created_by: userProfile?.id
       };
 
@@ -479,8 +479,8 @@ const DebentureManagement: React.FC = () => {
       commercial_name: '',
       term_months: '',
       captacao_amount: '',
-      max_commission_year: '',
-      max_commission_month: ''
+      max_percentage_year: '',
+      max_percentage_month: ''
     });
   };
 
@@ -702,7 +702,7 @@ const DebentureManagement: React.FC = () => {
                                           );
                                         })()}
                                       </td>
-                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.max_commission_year}%</td>
+                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.max_percentage_year}%</td>
 
                                       {isGlobalUser && (
                                         <td className="px-4 py-2 text-sm font-medium space-x-2">
@@ -938,7 +938,7 @@ const DebentureManagement: React.FC = () => {
                         required
                         min="0"
                         step="0.01"
-                        value={seriesFormData.max_commission_year}
+                        value={seriesFormData.max_percentage_year}
                         onChange={(e) => handleCommissionYearChange(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="12"
@@ -950,7 +950,7 @@ const DebentureManagement: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={seriesFormData.max_commission_month}
+                        value={seriesFormData.max_percentage_month}
                         readOnly
                         className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
                         placeholder="1.00"

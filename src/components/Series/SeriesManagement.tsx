@@ -11,8 +11,8 @@ interface Series {
   series_letter: string;
   commercial_name: string;
   term_months: number;
-  max_commission_year: number;
-  max_commission_month: number;
+  max_percentage_year: number;
+  max_percentage_month: number;
   captacao_amount: number;
   created_at: string;
   updated_at: string;
@@ -41,7 +41,7 @@ const SeriesManagement: React.FC = () => {
     series_letter: '',
     commercial_name: '',
     term_months: '',
-    max_commission_year: '',
+    max_percentage_year: '',
     captacao_amount: ''
   });
 
@@ -128,7 +128,7 @@ const SeriesManagement: React.FC = () => {
     }
 
     try {
-      const maxCommissionYear = parseFloat(formData.max_commission_year);
+      const maxCommissionYear = parseFloat(formData.max_percentage_year);
       
       const { error } = await supabase
         .from('series')
@@ -137,8 +137,8 @@ const SeriesManagement: React.FC = () => {
           series_letter: formData.series_letter,
           commercial_name: formData.commercial_name,
           term_months: parseInt(formData.term_months),
-          max_commission_year: maxCommissionYear,
-          max_commission_month: maxCommissionYear / 12,
+          max_percentage_year: maxCommissionYear,
+          max_percentage_month: maxCommissionYear / 12,
           captacao_amount: captacaoAmount,
           created_by: userProfile?.id
         }]);
@@ -166,7 +166,7 @@ const SeriesManagement: React.FC = () => {
       series_letter: seriesItem.series_letter,
       commercial_name: seriesItem.commercial_name,
       term_months: seriesItem.term_months.toString(),
-      max_commission_year: seriesItem.max_commission_year.toString(),
+      max_percentage_year: seriesItem.max_percentage_year.toString(),
       captacao_amount: seriesItem.captacao_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
     });
     setShowForm(true);
@@ -188,7 +188,7 @@ const SeriesManagement: React.FC = () => {
     }
 
     try {
-      const maxCommissionYear = parseFloat(formData.max_commission_year);
+      const maxCommissionYear = parseFloat(formData.max_percentage_year);
       
       const { error } = await supabase
         .from('series')
@@ -196,8 +196,8 @@ const SeriesManagement: React.FC = () => {
           series_letter: formData.series_letter,
           commercial_name: formData.commercial_name,
           term_months: parseInt(formData.term_months),
-          max_commission_year: maxCommissionYear,
-          max_commission_month: maxCommissionYear / 12,
+          max_percentage_year: maxCommissionYear,
+          max_percentage_month: maxCommissionYear / 12,
           captacao_amount: captacaoAmount,
           updated_at: new Date().toISOString()
         })
@@ -247,7 +247,7 @@ const SeriesManagement: React.FC = () => {
       series_letter: '',
       commercial_name: '',
       term_months: '',
-      max_commission_year: '',
+      max_percentage_year: '',
       captacao_amount: ''
     });
   };
@@ -365,7 +365,7 @@ const SeriesManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {formatPercentage(seriesItem.max_commission_year)} / {formatPercentage(seriesItem.max_commission_month)}
+                      {formatPercentage(seriesItem.max_percentage_year)} / {formatPercentage(seriesItem.max_percentage_month)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -470,14 +470,14 @@ const SeriesManagement: React.FC = () => {
                       step="0.01"
                       min="0"
                       max="100"
-                      value={formData.max_commission_year}
-                      onChange={(e) => setFormData({...formData, max_commission_year: e.target.value})}
+                      value={formData.max_percentage_year}
+                      onChange={(e) => setFormData({...formData, max_percentage_year: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="8.00"
                     />
-                    {formData.max_commission_year && (
+                    {formData.max_percentage_year && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Percentual ao mês: {(parseFloat(formData.max_commission_year) / 12).toFixed(2)}%
+                        Percentual ao mês: {(parseFloat(formData.max_percentage_year) / 12).toFixed(2)}%
                       </p>
                     )}
                   </div>
