@@ -1294,30 +1294,7 @@ const InvestmentManagement: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Series Information Display */}
-                {selectedSeries && (
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Informações da Série</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">Remuneração ao Ano:</span>
-                        <p>{selectedSeries.remuneration_year}%</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Remuneração ao Mês:</span>
-                        <p>{selectedSeries.remuneration_month}%</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Percentual Máximo ao Ano:</span>
-                        <p>{selectedSeries.max_percentage_year}%</p>
-                      </div>
-                      <div>
-                        <span className="font-medium">Percentual Máximo ao Mês:</span>
-                        <p>{selectedSeries.max_percentage_month}%</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Commission Split */}
                 <div className="bg-blue-50 p-4 rounded-md">
