@@ -283,6 +283,10 @@ const UserManagement: React.FC = () => {
         // Head só pode ter Escritório como superior
         availableUsers = availableUsers.filter(u => u.user_type === 'Escritório');
         break;
+      case 'Agente':
+        // Agente só pode ter Head como superior
+        availableUsers = availableUsers.filter(u => u.user_type === 'Head');
+        break;
       case 'Investidor':
         // Investidor pode ter qualquer tipo como superior
         availableUsers = availableUsers;
