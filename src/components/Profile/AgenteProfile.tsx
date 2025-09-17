@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -194,12 +193,12 @@ export default function AgenteProfile({ userId, isReadOnly = false }: AgenteProf
             <Label htmlFor="address">Endereço</Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Textarea
+              <textarea
                 id="address"
                 value={profile.address || ''}
                 onChange={(e) => handleInputChange('address', e.target.value)}
                 disabled={isReadOnly}
-                className="pl-10 min-h-[80px]"
+                className="pl-10 min-h-[80px] w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder="Endereço completo..."
               />
             </div>
