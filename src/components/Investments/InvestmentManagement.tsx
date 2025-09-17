@@ -128,10 +128,13 @@ const InvestmentManagement: React.FC = () => {
     head_id: '',
     escritorio_id: '',
     master_id: '',
+    agente_id: '',
     investment_amount: '',
     head_commission_percentage: '',
     escritorio_commission_percentage: '',
     master_commission_percentage: '',
+    agente_commission_percentage: '',
+    investor_percentage: '',
     notes: ''
   });
 
@@ -142,6 +145,7 @@ const InvestmentManagement: React.FC = () => {
   const [masters, setMasters] = useState<User[]>([]);
   const [escritorios, setEscritorios] = useState<User[]>([]);
   const [heads, setHeads] = useState<User[]>([]);
+  const [agentes, setAgentes] = useState<User[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   
   // State for selected series info
@@ -294,12 +298,14 @@ const InvestmentManagement: React.FC = () => {
         const masters = filteredUsers.filter(u => u.user_type === 'Master');
         const escritorios = filteredUsers.filter(u => u.user_type === 'Escritório');
         const heads = filteredUsers.filter(u => u.user_type === 'Head');
+        const agentes = filteredUsers.filter(u => u.user_type === 'Agente');
         
-        console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length);
+        console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length, 'Agentes:', agentes.length);
         
         setMasters(masters);
         setEscritorios(escritorios);
         setHeads(heads);
+        setAgentes(agentes);
         
       } catch (err) {
         console.error('Error loading commission users:', err);
@@ -462,12 +468,14 @@ const InvestmentManagement: React.FC = () => {
             const masters = filteredUsers.filter(u => u.user_type === 'Master');
             const escritorios = filteredUsers.filter(u => u.user_type === 'Escritório');
             const heads = filteredUsers.filter(u => u.user_type === 'Head');
+            const agentes = filteredUsers.filter(u => u.user_type === 'Agente');
             
-            console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length);
+            console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length, 'Agentes:', agentes.length);
             
             setMasters(masters);
             setEscritorios(escritorios);
             setHeads(heads);
+            setAgentes(agentes);
           }
         }
         
@@ -835,7 +843,14 @@ const InvestmentManagement: React.FC = () => {
     const head = parseFloat(formData.head_commission_percentage) || 0;
     const escritorio = parseFloat(formData.escritorio_commission_percentage) || 0;
     const master = parseFloat(formData.master_commission_percentage) || 0;
-    return head + escritorio + master;
+    const agente = parseFloat(formData.agente_commission_percentage) || 0;
+    return head + escritorio + master + agente;
+  };
+
+  const getPercentualTotal = () => {
+    const commission = getCommissionTotal();
+    const investor = parseFloat(formData.investor_percentage) || 0;
+    return commission + investor;
   };
 
   // Open modal
@@ -1201,25 +1216,7 @@ const InvestmentManagement: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Investor */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Investidor *
-                    </label>
-                    <select
-                      value={formData.investor_id}
-                      onChange={(e) => setFormData(prev => ({ ...prev, investor_id: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="">Selecione um investidor</option>
-                      {investors.map(investor => (
-                        <option key={investor.id} value={investor.id}>
-                          {investor.full_name || investor.name} ({investor.email})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+
 
                   {/* Investment Amount */}
                   <div>
@@ -1291,13 +1288,13 @@ const InvestmentManagement: React.FC = () => {
 
                 {/* Commission Split */}
                 <div className="bg-blue-50 p-4 rounded-md">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Split de Comissionamento</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Split de Percentual</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     {/* Master */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Master
+                        Master <span className="text-xs text-blue-600">(Comissão)</span>
                       </label>
                       <select
                         value={formData.master_id}
@@ -1326,7 +1323,7 @@ const InvestmentManagement: React.FC = () => {
                     {/* Escritório */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Escritório
+                        Escritório <span className="text-xs text-blue-600">(Comissão)</span>
                       </label>
                       <select
                         value={formData.escritorio_id}
@@ -1355,7 +1352,7 @@ const InvestmentManagement: React.FC = () => {
                     {/* Head */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Head
+                        Head <span className="text-xs text-blue-600">(Comissão)</span>
                       </label>
                       <select
                         value={formData.head_id}
@@ -1380,21 +1377,107 @@ const InvestmentManagement: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
+
+                    {/* Agente */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Agente <span className="text-xs text-blue-600">(Comissão)</span>
+                      </label>
+                      <select
+                        value={formData.agente_id}
+                        onChange={(e) => setFormData(prev => ({ ...prev, agente_id: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                      >
+                        <option value="">Selecione um agente</option>
+                        {agentes.map(agente => (
+                          <option key={agente.id} value={agente.id}>
+                            {agente.email || agente.full_name || agente.name || `Agente ${agente.id}`}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Percentual (%)"
+                        value={formData.agente_commission_percentage}
+                        onChange={(e) => setFormData(prev => ({ ...prev, agente_commission_percentage: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Investidor */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Investidor <span className="text-xs text-green-600">(Remuneração)</span>
+                      </label>
+                      <select
+                        value={formData.investor_id}
+                        onChange={(e) => setFormData(prev => ({ ...prev, investor_id: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                        required
+                      >
+                        <option value="">Selecione um investidor</option>
+                        {investors.map(investor => (
+                          <option key={investor.id} value={investor.id}>
+                            {investor.full_name || investor.name} ({investor.email})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Percentual (%)"
+                        value={formData.investor_percentage}
+                        onChange={(e) => setFormData(prev => ({ ...prev, investor_percentage: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
 
-                  {/* Commission Total */}
-                  <div className="mt-4 p-3 bg-white rounded border">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Total dos Percentuais:</span>
-                      <span className={`font-bold ${getCommissionTotal() > (selectedSeries?.max_percentage_year || 100) ? 'text-red-600' : 'text-green-600'}`}>
-                        {getCommissionTotal().toFixed(2)}%
-                      </span>
-                    </div>
-                    {selectedSeries && (
-                      <div className="text-sm text-gray-600 mt-1">
-                        Percentual máximo permitido pela série: {selectedSeries.max_percentage_year}%
+                  {/* Totals */}
+                  <div className="mt-4 space-y-3">
+                    {/* Commission Total */}
+                    <div className="p-3 bg-blue-50 rounded border">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-blue-800">Total Comissão:</span>
+                        <span className={`font-bold ${getCommissionTotal() > (selectedSeries?.max_percentage_year || 100) ? 'text-red-600' : 'text-blue-600'}`}>
+                          {getCommissionTotal().toFixed(2)}%
+                        </span>
                       </div>
-                    )}
+                      <div className="text-xs text-blue-600 mt-1">
+                        Master + Escritório + Head + Agente
+                      </div>
+                    </div>
+
+                    {/* Investor Percentage */}
+                    <div className="p-3 bg-green-50 rounded border">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-green-800">Remuneração Investidor:</span>
+                        <span className="font-bold text-green-600">
+                          {(parseFloat(formData.investor_percentage) || 0).toFixed(2)}%
+                        </span>
+                      </div>
+                      <div className="text-xs text-green-600 mt-1">
+                        Percentual destinado à remuneração
+                      </div>
+                    </div>
+
+                    {/* Total General */}
+                    <div className="p-3 bg-gray-50 rounded border">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Total Geral:</span>
+                        <span className={`font-bold ${getPercentualTotal() > (selectedSeries?.max_percentage_year || 100) ? 'text-red-600' : 'text-gray-700'}`}>
+                          {getPercentualTotal().toFixed(2)}%
+                        </span>
+                      </div>
+                      {selectedSeries && (
+                        <div className="text-sm text-gray-600 mt-1">
+                          Percentual máximo permitido pela série: {selectedSeries.max_percentage_year}%
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
