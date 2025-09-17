@@ -257,33 +257,45 @@ const InvestmentManagement: React.FC = () => {
             break;
             
           case 'Master':
-            // Master can see themselves + their escritórios + their heads
+            // Master can see themselves + their escritórios + their heads + their agentes
             filteredUsers = allUsers.filter(user => 
               user.id === currentUser.id || // themselves
               user.parent_id === currentUser.id || // direct subordinates (escritórios)
               allUsers.some(escritorio => 
                 escritorio.parent_id === currentUser.id && 
                 user.parent_id === escritorio.id
-              ) // heads under their escritórios
+              ) || // heads under their escritórios
+              allUsers.some(head => 
+                allUsers.some(escritorio => 
+                  escritorio.parent_id === currentUser.id && 
+                  head.parent_id === escritorio.id
+                ) && 
+                user.parent_id === head.id
+              ) // agentes under their heads
             );
             break;
             
           case 'Escritório':
-            // Escritório can see themselves + their master + their heads
+            // Escritório can see themselves + their master + their heads + their agentes
             filteredUsers = allUsers.filter(user => 
               user.id === currentUser.id || // themselves
               user.id === currentUser.parent_id || // their master
-              user.parent_id === currentUser.id // their heads
+              user.parent_id === currentUser.id || // their heads
+              allUsers.some(head => 
+                head.parent_id === currentUser.id && 
+                user.parent_id === head.id
+              ) // agentes under their heads
             );
             break;
             
           case 'Head':
-            // Head can see themselves + their escritório + their master
+            // Head can see themselves + their escritório + their master + their agentes
             const escritorio = allUsers.find(u => u.id === currentUser.parent_id);
             filteredUsers = allUsers.filter(user => 
               user.id === currentUser.id || // themselves
               user.id === currentUser.parent_id || // their escritório
-              (escritorio && user.id === escritorio.parent_id) // their master
+              (escritorio && user.id === escritorio.parent_id) || // their master
+              user.parent_id === currentUser.id // their agentes
             );
             break;
             
@@ -428,33 +440,45 @@ const InvestmentManagement: React.FC = () => {
                 break;
                 
               case 'Master':
-                // Master can see themselves + their escritórios + their heads
+                // Master can see themselves + their escritórios + their heads + their agentes
                 filteredUsers = allCommissionData.filter(user => 
                   user.id === currentUser.id || // themselves
                   user.parent_id === currentUser.id || // direct subordinates (escritórios)
                   allCommissionData.some(escritorio => 
                     escritorio.parent_id === currentUser.id && 
                     user.parent_id === escritorio.id
-                  ) // heads under their escritórios
+                  ) || // heads under their escritórios
+                  allCommissionData.some(head => 
+                    allCommissionData.some(escritorio => 
+                      escritorio.parent_id === currentUser.id && 
+                      head.parent_id === escritorio.id
+                    ) && 
+                    user.parent_id === head.id
+                  ) // agentes under their heads
                 );
                 break;
                 
               case 'Escritório':
-                // Escritório can see themselves + their master + their heads
+                // Escritório can see themselves + their master + their heads + their agentes
                 filteredUsers = allCommissionData.filter(user => 
                   user.id === currentUser.id || // themselves
                   user.id === currentUser.parent_id || // their master
-                  user.parent_id === currentUser.id // their heads
+                  user.parent_id === currentUser.id || // their heads
+                  allCommissionData.some(head => 
+                    head.parent_id === currentUser.id && 
+                    user.parent_id === head.id
+                  ) // agentes under their heads
                 );
                 break;
                 
               case 'Head':
-                // Head can see themselves + their escritório + their master
+                // Head can see themselves + their escritório + their master + their agentes
                 const escritorio = allCommissionData.find(u => u.id === currentUser.parent_id);
                 filteredUsers = allCommissionData.filter(user => 
                   user.id === currentUser.id || // themselves
                   user.id === currentUser.parent_id || // their escritório
-                  (escritorio && user.id === escritorio.parent_id) // their master
+                  (escritorio && user.id === escritorio.parent_id) || // their master
+                  user.parent_id === currentUser.id // their agentes
                 );
                 break;
                 
