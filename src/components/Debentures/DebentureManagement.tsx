@@ -24,8 +24,6 @@ interface Serie {
   term_months: number;
   max_commission_year: number;
   max_commission_month: number;
-  remuneration_year: number;
-  remuneration_month: number;
   captacao_amount: number;
   created_at: string;
   updated_at: string;
@@ -59,9 +57,7 @@ const DebentureManagement: React.FC = () => {
     term_months: '',
     captacao_amount: '',
     max_commission_year: '',
-    max_commission_month: '', // Campo calculado automaticamente
-    remuneration_year: '',
-    remuneration_month: '' // Campo calculado automaticamente
+    max_commission_month: '' // Campo calculado automaticamente
   });
 
   // Verificar permissões de usuário
@@ -143,15 +139,7 @@ const DebentureManagement: React.FC = () => {
     });
   };
 
-  // Handler para mudança na remuneração anual
-  const handleRemunerationYearChange = (value: string) => {
-    const monthValue = calculateMonthlyValues(value);
-    setSeriesFormData({
-      ...seriesFormData,
-      remuneration_year: value,
-      remuneration_month: monthValue
-    });
-  };
+
 
   const fetchDebentures = async () => {
     try {
@@ -370,17 +358,13 @@ const DebentureManagement: React.FC = () => {
     
     // Calcular valores mensais ao carregar dados para edição
     const commissionMonth = calculateMonthlyValues(String(serie.max_commission_year || ''));
-    const remunerationMonth = calculateMonthlyValues(String(serie.remuneration_year || ''));
-    
     setSeriesFormData({
       series_letter: serie.series_letter || '',
       commercial_name: serie.commercial_name || '',
       term_months: String(serie.term_months || ''),
       captacao_amount: String(serie.captacao_amount || ''),
       max_commission_year: String(serie.max_commission_year || ''),
-      max_commission_month: commissionMonth,
-      remuneration_year: String(serie.remuneration_year || ''),
-      remuneration_month: remunerationMonth
+      max_commission_month: commissionMonth
     });
     setShowSeriesForm(true);
   };
@@ -439,8 +423,6 @@ const DebentureManagement: React.FC = () => {
         captacao_amount: parseFloat(seriesFormData.captacao_amount) || 0,
         max_commission_year: parseFloat(seriesFormData.max_commission_year) || 0,
         max_commission_month: parseFloat(seriesFormData.max_commission_month) || 0,
-        remuneration_year: parseFloat(seriesFormData.remuneration_year) || 0,
-        remuneration_month: parseFloat(seriesFormData.remuneration_month) || 0,
         created_by: userProfile?.id
       };
 
@@ -498,9 +480,7 @@ const DebentureManagement: React.FC = () => {
       term_months: '',
       captacao_amount: '',
       max_commission_year: '',
-      max_commission_month: '',
-      remuneration_year: '',
-      remuneration_month: ''
+      max_commission_month: ''
     });
   };
 
@@ -650,7 +630,7 @@ const DebentureManagement: React.FC = () => {
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Captação</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Progresso</th>
                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Comissão/Ano</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remuneração/Ano</th>
+
                                     {isGlobalUser && (
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
                                     )}
@@ -723,7 +703,7 @@ const DebentureManagement: React.FC = () => {
                                         })()}
                                       </td>
                                       <td className="px-4 py-2 text-sm text-gray-900">{serie.max_commission_year}%</td>
-                                      <td className="px-4 py-2 text-sm text-gray-900">{serie.remuneration_year}%</td>
+
                                       {isGlobalUser && (
                                         <td className="px-4 py-2 text-sm font-medium space-x-2">
                                           <button
@@ -979,39 +959,7 @@ const DebentureManagement: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Seção de Remuneração com cálculo automático */}
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="text-sm font-medium text-green-900 mb-3">Remuneração</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Por Ano (%)
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        step="0.01"
-                        value={seriesFormData.remuneration_year}
-                        onChange={(e) => handleRemunerationYearChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="24"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Por Mês (%) <span className="text-green-600 text-xs">- Calculado automaticamente</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={seriesFormData.remuneration_month}
-                        readOnly
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
-                        placeholder="2.00"
-                      />
-                    </div>
-                  </div>
-                </div>
+
 
                 <div className="flex space-x-3 pt-4">
                   <button
