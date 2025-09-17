@@ -58,9 +58,14 @@ export async function generateCommissions(investmentId) {
         percentage: parseFloat(investment.commission_escritorio) || 0
       },
       {
-        userId: investment.assessor_user_id,
-        userType: 'assessor',
-        percentage: parseFloat(investment.commission_assessor) || 0
+        userId: investment.head_user_id,
+        userType: 'head',
+        percentage: parseFloat(investment.commission_head) || 0
+      },
+      {
+        userId: investment.agente_user_id,
+        userType: 'agente',
+        percentage: parseFloat(investment.agente_commission_percentage) || 0
       },
       {
         userId: investment.global_user_id,
