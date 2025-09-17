@@ -143,8 +143,8 @@ const UserManagement = () => {
       const hierarchyMap: Record<string, string[]> = {
         'Master': ['Global'],
         'Escritório': ['Global', 'Master'],
-        'Assessor': ['Global', 'Master', 'Escritório'],
-        'Investidor': ['Global', 'Master', 'Escritório', 'Assessor']
+        'Head': ['Global', 'Master', 'Escritório'],
+        'Investidor': ['Global', 'Master', 'Escritório', 'Head']
       }
       
       const validSuperiorRoles = hierarchyMap[selectedRole] || []
@@ -489,7 +489,7 @@ const UserManagement = () => {
       'Global': 'bg-purple-100 text-purple-800',
       'Master': 'bg-blue-100 text-blue-800',
       'Escritório': 'bg-green-100 text-green-800',
-      'Assessor': 'bg-yellow-100 text-yellow-800',
+      'Head': 'bg-yellow-100 text-yellow-800',
       'Investidor': 'bg-gray-100 text-gray-800'
     }
     return colors[role] || 'bg-gray-100 text-gray-800'
@@ -829,7 +829,7 @@ const UserManagement = () => {
                         watchedRoleName === 'Global' ?
                         "Este cargo não requer um superior." :
                         watchedRoleName === 'Investidor' ?
-                        "Investidor pode ter superior de qualquer nível: Global, Master, Escritório ou Assessor." :
+                        "Investidor pode ter superior de qualquer nível: Global, Master, Escritório ou Head." :
                         "Este campo é obrigatório. Busque e selecione o líder direto."
                       }
                     </p>

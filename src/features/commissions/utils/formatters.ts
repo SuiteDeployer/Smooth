@@ -79,7 +79,7 @@ export const formatRole = (role: string): string => {
     'Global': 'Global',
     'Master': 'Master',
     'Escritório': 'Escritório',
-    'Assessor': 'Assessor',
+    'Head': 'Head',
     'Investidor': 'Investidor'
   }
   return roleMap[role] || role
@@ -156,7 +156,7 @@ export const getRoleColor = (role: string): {
       bg: 'bg-green-100',
       text: 'text-green-800'
     },
-    'Assessor': {
+    'Head': {
       bg: 'bg-orange-100',
       text: 'text-orange-800'
     },

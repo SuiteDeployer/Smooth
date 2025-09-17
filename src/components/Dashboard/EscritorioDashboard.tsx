@@ -16,8 +16,8 @@ const EscritorioDashboard = () => {
       setIsLoading(true)
       setError(null)
 
-      // Buscar assessores subordinados ao Escritório
-      const { data: assessores, error: assessoresError } = await supabase
+      // Buscar heades subordinados ao Escritório
+      const { data: heades, error: headesError } = await supabase
         .from('users')
         .select(`
           id, 
@@ -26,13 +26,13 @@ const EscritorioDashboard = () => {
           created_at,
           user_roles!inner(role_name)
         `)
-        .eq('user_roles.role_name', 'Assessor')
+        .eq('user_roles.role_name', 'Head')
         .eq('superior_user_id', userProfile?.id)
 
-      if (assessoresError) throw assessoresError
+      if (headesError) throw headesError
 
-      // Buscar investidores ligados aos assessores
-      const assessoresIds = assessores?.map(a => a.id) || []
+      // Buscar investidores ligados aos heades
+      const headesIds = heades?.map(a => a.id) || []
       const { data: investidores, error: investidoresError } = await supabase
         .from('users')
         .select(`
@@ -44,7 +44,7 @@ const EscritorioDashboard = () => {
           superior_user_id
         `)
         .eq('user_roles.role_name', 'Investidor')
-        .in('superior_user_id', assessoresIds)
+        .in('superior_user_id', headesIds)
 
       if (investidoresError) throw investidoresError
 
@@ -57,11 +57,11 @@ const EscritorioDashboard = () => {
 
       if (investimentosError) throw investimentosError
 
-      // Buscar comissões dos assessores
+      // Buscar comissões dos heades
       const { data: comissoes, error: comissoesError } = await supabase
         .from('commissions')
         .select('*')
-        .in('recipient_user_id', assessoresIds)
+        .in('recipient_user_id', headesIds)
 
       if (comissoesError) throw comissoesError
 
@@ -70,24 +70,24 @@ const EscritorioDashboard = () => {
       const totalComissoes = comissoes?.reduce((sum, comm) => sum + Number(comm.commission_amount), 0) || 0
       const comissoesPendentes = comissoes?.filter(c => c.payment_status === 'pending')?.reduce((sum, comm) => sum + Number(comm.commission_amount), 0) || 0
 
-      // Performance por assessor
-      const performancePorAssessor = assessores?.map(assessor => {
-        const investidoresAssessor = investidores?.filter(i => i.superior_user_id === assessor.id) || []
-        const investimentosAssessor = investimentos?.filter(i => investidoresAssessor.some(inv => inv.id === i.investor_user_id)) || []
-        const comissoesAssessor = comissoes?.filter(c => c.recipient_user_id === assessor.id) || []
+      // Performance por head
+      const performancePorHead = heades?.map(head => {
+        const investidoresHead = investidores?.filter(i => i.superior_user_id === head.id) || []
+        const investimentosHead = investimentos?.filter(i => investidoresHead.some(inv => inv.id === i.investor_user_id)) || []
+        const comissoesHead = comissoes?.filter(c => c.recipient_user_id === head.id) || []
         
-        const totalInvestidoAssessor = investimentosAssessor.reduce((sum, inv) => sum + Number(inv.invested_amount), 0)
-        const totalComissoesAssessor = comissoesAssessor.reduce((sum, comm) => sum + Number(comm.commission_amount), 0)
+        const totalInvestidoHead = investimentosHead.reduce((sum, inv) => sum + Number(inv.invested_amount), 0)
+        const totalComissoesHead = comissoesHead.reduce((sum, comm) => sum + Number(comm.commission_amount), 0)
         
         return {
-          id: assessor.id,
-          nome: assessor.full_name,
-          email: assessor.email,
-          clientes: investidoresAssessor.length,
-          investimentos: investimentosAssessor.length,
-          totalInvestido: totalInvestidoAssessor,
-          totalComissoes: totalComissoesAssessor,
-          ticketMedio: investimentosAssessor.length > 0 ? totalInvestidoAssessor / investimentosAssessor.length : 0
+          id: head.id,
+          nome: head.full_name,
+          email: head.email,
+          clientes: investidoresHead.length,
+          investimentos: investimentosHead.length,
+          totalInvestido: totalInvestidoHead,
+          totalComissoes: totalComissoesHead,
+          ticketMedio: investimentosHead.length > 0 ? totalInvestidoHead / investimentosHead.length : 0
         }
       }).sort((a, b) => b.totalInvestido - a.totalInvestido) || []
 
@@ -128,13 +128,13 @@ const EscritorioDashboard = () => {
       const valorPipeline = pipeline.reduce((sum, inv) => sum + Number(inv.invested_amount), 0)
 
       setStats({
-        assessores: assessores?.length || 0,
+        heades: heades?.length || 0,
         investidores: investidores?.length || 0,
         totalInvestimentos: investimentos?.length || 0,
         totalInvestido,
         totalComissoes,
         comissoesPendentes,
-        performancePorAssessor,
+        performancePorHead,
         investimentosRecentes: investimentosRecentes.length,
         crescimentoMensal,
         pipeline: pipeline.length,
@@ -193,7 +193,7 @@ const EscritorioDashboard = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Escritório</h1>
-        <p className="text-gray-600 mt-2">Gestão dos assessores e investidores do escritório</p>
+        <p className="text-gray-600 mt-2">Gestão dos heades e investidores do escritório</p>
       </div>
 
       {/* Cards de Stats do Escritório */}
@@ -204,8 +204,8 @@ const EscritorioDashboard = () => {
               <Briefcase className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Assessores</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.assessores}</p>
+              <p className="text-sm text-gray-600">Heades</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.heades}</p>
             </div>
           </div>
         </div>
@@ -311,12 +311,12 @@ const EscritorioDashboard = () => {
           </div>
         </div>
 
-        {/* Performance por Assessor */}
+        {/* Performance por Head */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance por Assessor</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance por Head</h3>
           <div style={{ width: '100%', height: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats?.performancePorAssessor || []}>
+              <BarChart data={stats?.performancePorHead || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="nome" 
@@ -338,17 +338,17 @@ const EscritorioDashboard = () => {
         </div>
       </div>
 
-      {/* Tabela de Assessores */}
+      {/* Tabela de Heades */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Detalhamento dos Assessores</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Detalhamento dos Heades</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assessor
+                  Head
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Clientes
@@ -368,28 +368,28 @@ const EscritorioDashboard = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {stats?.performancePorAssessor?.map((assessor: any, index: number) => (
+              {stats?.performancePorHead?.map((head: any, index: number) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{assessor.nome}</div>
-                      <div className="text-sm text-gray-500">{assessor.email}</div>
+                      <div className="text-sm font-medium text-gray-900">{head.nome}</div>
+                      <div className="text-sm text-gray-500">{head.email}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{assessor.clientes}</div>
+                    <div className="text-sm text-gray-900">{head.clientes}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{assessor.investimentos}</div>
+                    <div className="text-sm text-gray-900">{head.investimentos}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-green-600">{formatCurrency(assessor.totalInvestido)}</div>
+                    <div className="text-sm font-semibold text-green-600">{formatCurrency(head.totalInvestido)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatCurrency(assessor.ticketMedio)}</div>
+                    <div className="text-sm text-gray-900">{formatCurrency(head.ticketMedio)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-blue-600">{formatCurrency(assessor.totalComissoes)}</div>
+                    <div className="text-sm font-semibold text-blue-600">{formatCurrency(head.totalComissoes)}</div>
                   </td>
                 </tr>
               ))}

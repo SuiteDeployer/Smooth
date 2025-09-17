@@ -4,7 +4,7 @@ import { TrendingUp } from 'lucide-react'
 import GlobalDashboard from './GlobalDashboard'
 import MasterDashboard from './MasterDashboard'
 import EscritorioDashboard from './EscritorioDashboard'
-import AssessorDashboard from './AssessorDashboard'
+import HeadDashboard from './HeadDashboard'
 import InvestorPortfolio from './InvestorPortfolio'
 
 const NewDashboard = () => {
@@ -32,9 +32,9 @@ const NewDashboard = () => {
     return <EscritorioDashboard />
   }
 
-  // Se for Assessor, mostrar dashboard de gestão de carteira
-  if (userRole === 'Assessor') {
-    return <AssessorDashboard />
+  // Se for Head, mostrar dashboard de gestão de carteira
+  if (userRole === 'Head') {
+    return <HeadDashboard />
   }
 
   // Fallback para outros perfis

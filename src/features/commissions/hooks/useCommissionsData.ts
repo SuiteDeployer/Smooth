@@ -67,7 +67,7 @@ const useCommissionsData = () => {
       return {
         totalMonthCommissions: summary.total_amount || 0,
         pendingCommissions: summary.pending_amount || 0,
-        activeAdvisors: 3, // Baseado na hierarquia: Assessor, Escritório, Master
+        activeAdvisors: 3, // Baseado na hierarquia: Head, Escritório, Master
         conversionRate: summary.total_amount > 0 ? (summary.paid_amount / summary.total_amount) * 100 : 0,
         monthGrowth: 15.2, // Placeholder - pode ser calculado comparando meses
         advisorGrowth: 8.1, // Placeholder
@@ -101,7 +101,7 @@ const useCommissionsData = () => {
             invested_amount,
             investment_date,
             investor:investor_user_id(full_name),
-            assessor:assessor_user_id(full_name),
+            head:head_user_id(full_name),
             series:series_id(name, series_code)
           )
         `)
@@ -130,7 +130,7 @@ const useCommissionsData = () => {
         invested_amount: parseFloat(commission.investment?.invested_amount || 0),
         investment_date: commission.investment?.investment_date || '',
         investor_name: commission.investment?.investor?.full_name || 'N/A',
-        registered_by: commission.investment?.assessor?.full_name || 'N/A',
+        registered_by: commission.investment?.head?.full_name || 'N/A',
         created_at: commission.created_at
       })) || [];
     } catch (error) {

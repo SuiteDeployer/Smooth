@@ -22,18 +22,18 @@ const GlobalDashboard = () => {
   // Buscar dados de performance dos usuários
   const fetchPerformanceData = async () => {
     try {
-      // Rankings por Assessor (volume de investimentos captados)
-      const assessorRankingResult = await supabase
+      // Rankings por Head (volume de investimentos captados)
+      const headRankingResult = await supabase
         .from('users')
         .select(`
           id,
           full_name,
           user_roles!inner(role_name),
-          investments:investments!assessor_user_id(invested_amount)
+          investments:investments!head_user_id(invested_amount)
         `)
-        .eq('user_roles.role_name', 'Assessor')
+        .eq('user_roles.role_name', 'Head')
 
-      // Rankings por Escritório (volume de investimentos captados pelos assessores do escritório)
+      // Rankings por Escritório (volume de investimentos captados pelos heades do escritório)
       const escritorioRankingResult = await supabase
         .from('users')
         .select(`
@@ -53,13 +53,13 @@ const GlobalDashboard = () => {
         `)
         .eq('user_roles.role_name', 'Master')
 
-      // Processar dados de assessores
-      const assessores = assessorRankingResult.data?.map(assessor => {
-        const volumeTotal = assessor.investments?.reduce((sum, inv) => sum + Number(inv.invested_amount || 0), 0) || 0
+      // Processar dados de heades
+      const heades = headRankingResult.data?.map(head => {
+        const volumeTotal = head.investments?.reduce((sum, inv) => sum + Number(inv.invested_amount || 0), 0) || 0
         return {
-          nome: assessor.full_name,
+          nome: head.full_name,
           volume: volumeTotal,
-          investimentos: assessor.investments?.length || 0
+          investimentos: head.investments?.length || 0
         }
       }).sort((a, b) => b.volume - a.volume) || []
 
@@ -67,7 +67,7 @@ const GlobalDashboard = () => {
       const escritorios = escritorioRankingResult.data?.map(escritorio => ({
         nome: escritorio.full_name,
         volume: 0, // Implementar lógica de agregação futuramente
-        assessores: 0
+        heades: 0
       })) || []
 
       const masters = masterRankingResult.data?.map(master => ({
@@ -77,7 +77,7 @@ const GlobalDashboard = () => {
       })) || []
 
       setPerformanceData({
-        assessores,
+        heades,
         escritorios,
         masters
       })
@@ -155,7 +155,7 @@ const GlobalDashboard = () => {
       // Calcular estatísticas
       const masters = usersByRole['Master'] || []
       const escritorios = usersByRole['Escritório'] || []
-      const assessores = usersByRole['Assessor'] || []
+      const heades = usersByRole['Head'] || []
       const investidores = usersByRole['Investidor'] || []
 
       // Calcular novos usuários do mês
@@ -165,13 +165,13 @@ const GlobalDashboard = () => {
 
       const newMasters = getNewUsersThisMonth(masters)
       const newEscritorios = getNewUsersThisMonth(escritorios)
-      const newAssessores = getNewUsersThisMonth(assessores)
+      const newHeades = getNewUsersThisMonth(heades)
       const newInvestidores = getNewUsersThisMonth(investidores)
 
       // Calcular taxas de crescimento
       const masterGrowthRate = masters.length > 0 ? ((newMasters / masters.length) * 100) : 0
       const escritorioGrowthRate = escritorios.length > 0 ? ((newEscritorios / escritorios.length) * 100) : 0
-      const assessorGrowthRate = assessores.length > 0 ? ((newAssessores / assessores.length) * 100) : 0
+      const headGrowthRate = heades.length > 0 ? ((newHeades / heades.length) * 100) : 0
       const investidorGrowthRate = investidores.length > 0 ? ((newInvestidores / investidores.length) * 100) : 0
 
       const totalInvestments = investmentsTotalResult.data?.length || 0
@@ -194,10 +194,10 @@ const GlobalDashboard = () => {
           novos: newEscritorios,
           crescimento: escritorioGrowthRate
         },
-        assessor: {
-          total: assessores.length,
-          novos: newAssessores,
-          crescimento: assessorGrowthRate
+        head: {
+          total: heades.length,
+          novos: newHeades,
+          crescimento: headGrowthRate
         },
         investidor: {
           total: investidores.length,
@@ -332,7 +332,7 @@ const GlobalDashboard = () => {
     )
   }
 
-  const renderRankingSection = (title: string, data: any[], type: 'assessor' | 'escritorio' | 'master', icon: React.ReactNode) => {
+  const renderRankingSection = (title: string, data: any[], type: 'head' | 'escritorio' | 'master', icon: React.ReactNode) => {
     const top5 = data.slice(0, 5)
     const bottom5 = data.slice(-5).reverse()
     
@@ -362,8 +362,8 @@ const GlobalDashboard = () => {
                   <div className="text-right">
                     <p className="font-bold text-green-900">{formatCurrency(item.volume)}</p>
                     <p className="text-xs text-green-700">
-                      {type === 'assessor' ? `${item.investimentos} investimentos` : 
-                       type === 'escritorio' ? `${item.assessores} assessores` : 
+                      {type === 'head' ? `${item.investimentos} investimentos` : 
+                       type === 'escritorio' ? `${item.heades} heades` : 
                        `${item.escritorios} escritórios`}
                     </p>
                   </div>
@@ -394,8 +394,8 @@ const GlobalDashboard = () => {
                   <div className="text-right">
                     <p className="font-bold text-red-900">{formatCurrency(item.volume)}</p>
                     <p className="text-xs text-red-700">
-                      {type === 'assessor' ? `${item.investimentos} investimentos` : 
-                       type === 'escritorio' ? `${item.assessores} assessores` : 
+                      {type === 'head' ? `${item.investimentos} investimentos` : 
+                       type === 'escritorio' ? `${item.heades} heades` : 
                        `${item.escritorios} escritórios`}
                     </p>
                   </div>
@@ -452,8 +452,8 @@ const GlobalDashboard = () => {
       {/* Seção Escritórios */}
       {stats && renderSection('escritorio', 'Escritórios na Rede', <Building className="h-6 w-6 text-green-600" />, stats.escritorio)}
 
-      {/* Seção Assessores */}
-      {stats && renderSection('assessor', 'Assessores na Rede', <User className="h-6 w-6 text-purple-600" />, stats.assessor)}
+      {/* Seção Heades */}
+      {stats && renderSection('head', 'Heades na Rede', <User className="h-6 w-6 text-purple-600" />, stats.head)}
 
       {/* Seção Investidores */}
       {stats && renderSimpleSection('Investidores na Rede', <Users className="h-6 w-6 text-orange-600" />, stats.investidor)}
@@ -497,11 +497,11 @@ const GlobalDashboard = () => {
             <Building className="h-6 w-6 text-green-600" />
           )}
 
-          {/* Ranking de Assessores */}
+          {/* Ranking de Heades */}
           {renderRankingSection(
-            'Performance de Assessores', 
-            performanceData.assessores, 
-            'assessor',
+            'Performance de Heades', 
+            performanceData.heades, 
+            'head',
             <User className="h-6 w-6 text-purple-600" />
           )}
         </>

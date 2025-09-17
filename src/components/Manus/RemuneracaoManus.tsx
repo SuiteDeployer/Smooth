@@ -372,7 +372,7 @@ const RemuneracaoManus = () => {
               <p className="text-green-800 text-sm">
                 Esta área mostra remunerações baseadas na sua hierarquia organizacional. 
                 Você visualiza apenas as remunerações dos investidores de sua rede subordinada, 
-                respeitando a estrutura: Global → Master → Escritório → Assessor → Investidor.
+                respeitando a estrutura: Global → Master → Escritório → Head → Investidor.
                 As remunerações são exclusivas para investidores.
               </p>
             </div>

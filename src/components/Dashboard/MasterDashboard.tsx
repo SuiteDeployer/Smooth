@@ -31,9 +31,9 @@ const MasterDashboard = () => {
 
       if (escritoriosError) throw escritoriosError
 
-      // Buscar assessores ligados aos escritórios
+      // Buscar heades ligados aos escritórios
       const escritoriosIds = escritorios?.map(e => e.id) || []
-      const { data: assessores, error: assessoresError } = await supabase
+      const { data: heades, error: headesError } = await supabase
         .from('users')
         .select(`
           id, 
@@ -42,13 +42,13 @@ const MasterDashboard = () => {
           user_roles!inner(role_name),
           superior_user_id
         `)
-        .eq('user_roles.role_name', 'Assessor')
+        .eq('user_roles.role_name', 'Head')
         .in('superior_user_id', escritoriosIds)
 
-      if (assessoresError) throw assessoresError
+      if (headesError) throw headesError
 
-      // Buscar investidores ligados aos assessores
-      const assessoresIds = assessores?.map(a => a.id) || []
+      // Buscar investidores ligados aos heades
+      const headesIds = heades?.map(a => a.id) || []
       const { data: investidores, error: investidoresError } = await supabase
         .from('users')
         .select(`
@@ -59,12 +59,12 @@ const MasterDashboard = () => {
           superior_user_id
         `)
         .eq('user_roles.role_name', 'Investidor')
-        .in('superior_user_id', assessoresIds)
+        .in('superior_user_id', headesIds)
 
       if (investidoresError) throw investidoresError
 
       // Buscar investimentos da rede
-      const todosUsuariosRede = [...escritoriosIds, ...assessoresIds, ...(investidores?.map(i => i.id) || [])]
+      const todosUsuariosRede = [...escritoriosIds, ...headesIds, ...(investidores?.map(i => i.id) || [])]
       const { data: investimentos, error: investimentosError } = await supabase
         .from('investments')
         .select('*')
@@ -76,7 +76,7 @@ const MasterDashboard = () => {
       const { data: comissoes, error: comissoesError } = await supabase
         .from('commissions')
         .select('*')
-        .in('recipient_user_id', assessoresIds)
+        .in('recipient_user_id', headesIds)
 
       if (comissoesError) throw comissoesError
 
@@ -87,50 +87,50 @@ const MasterDashboard = () => {
 
       // Performance por escritório
       const performancePorEscritorio = escritorios?.map(escritorio => {
-        const assessoresEscritorio = assessores?.filter(a => a.superior_user_id === escritorio.id) || []
-        const investidoresEscritorio = investidores?.filter(i => assessoresEscritorio.some(a => a.id === i.superior_user_id)) || []
+        const headesEscritorio = heades?.filter(a => a.superior_user_id === escritorio.id) || []
+        const investidoresEscritorio = investidores?.filter(i => headesEscritorio.some(a => a.id === i.superior_user_id)) || []
         const investimentosEscritorio = investimentos?.filter(i => investidoresEscritorio.some(inv => inv.id === i.investor_user_id)) || []
-        const comissoesEscritorio = comissoes?.filter(c => assessoresEscritorio.some(a => a.id === c.recipient_user_id)) || []
+        const comissoesEscritorio = comissoes?.filter(c => headesEscritorio.some(a => a.id === c.recipient_user_id)) || []
         
         const totalInvestidoEscritorio = investimentosEscritorio.reduce((sum, inv) => sum + Number(inv.invested_amount), 0)
         const totalComissoesEscritorio = comissoesEscritorio.reduce((sum, comm) => sum + Number(comm.commission_amount), 0)
         
         return {
           nome: escritorio.full_name,
-          assessores: assessoresEscritorio.length,
+          heades: headesEscritorio.length,
           investidores: investidoresEscritorio.length,
           totalInvestido: totalInvestidoEscritorio,
           totalComissoes: totalComissoesEscritorio
         }
       }) || []
 
-      // Top assessores
-      const topAssessores = assessores?.map(assessor => {
-        const investidoresAssessor = investidores?.filter(i => i.superior_user_id === assessor.id) || []
-        const investimentosAssessor = investimentos?.filter(i => investidoresAssessor.some(inv => inv.id === i.investor_user_id)) || []
-        const comissoesAssessor = comissoes?.filter(c => c.recipient_user_id === assessor.id) || []
+      // Top heades
+      const topHeades = heades?.map(head => {
+        const investidoresHead = investidores?.filter(i => i.superior_user_id === head.id) || []
+        const investimentosHead = investimentos?.filter(i => investidoresHead.some(inv => inv.id === i.investor_user_id)) || []
+        const comissoesHead = comissoes?.filter(c => c.recipient_user_id === head.id) || []
         
-        const totalInvestidoAssessor = investimentosAssessor.reduce((sum, inv) => sum + Number(inv.invested_amount), 0)
-        const totalComissoesAssessor = comissoesAssessor.reduce((sum, comm) => sum + Number(comm.commission_amount), 0)
+        const totalInvestidoHead = investimentosHead.reduce((sum, inv) => sum + Number(inv.invested_amount), 0)
+        const totalComissoesHead = comissoesHead.reduce((sum, comm) => sum + Number(comm.commission_amount), 0)
         
         return {
-          nome: assessor.full_name,
-          clientes: investidoresAssessor.length,
-          totalInvestido: totalInvestidoAssessor,
-          totalComissoes: totalComissoesAssessor
+          nome: head.full_name,
+          clientes: investidoresHead.length,
+          totalInvestido: totalInvestidoHead,
+          totalComissoes: totalComissoesHead
         }
       }).sort((a, b) => b.totalInvestido - a.totalInvestido).slice(0, 5) || []
 
       setStats({
         escritorios: escritorios?.length || 0,
-        assessores: assessores?.length || 0,
+        heades: heades?.length || 0,
         investidores: investidores?.length || 0,
         totalInvestimentos: investimentos?.length || 0,
         totalInvestido,
         totalComissoes,
         comissoesPendentes,
         performancePorEscritorio,
-        topAssessores
+        topHeades
       })
     } catch (err: any) {
       console.error('Erro ao buscar estatísticas do Master:', err)
@@ -186,7 +186,7 @@ const MasterDashboard = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Master</h1>
-        <p className="text-gray-600 mt-2">Gestão da rede de escritórios e assessores</p>
+        <p className="text-gray-600 mt-2">Gestão da rede de escritórios e heades</p>
       </div>
 
       {/* Cards de Stats da Rede */}
@@ -209,8 +209,8 @@ const MasterDashboard = () => {
               <Briefcase className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Assessores</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.assessores}</p>
+              <p className="text-sm text-gray-600">Heades</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.heades}</p>
             </div>
           </div>
         </div>
@@ -311,27 +311,27 @@ const MasterDashboard = () => {
           </div>
         </div>
 
-        {/* Top Assessores */}
+        {/* Top Heades */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center mb-4">
             <Award className="h-5 w-5 text-yellow-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-900">Top 5 Assessores</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Top 5 Heades</h3>
           </div>
           <div className="space-y-3">
-            {stats?.topAssessores?.map((assessor: any, index: number) => (
+            {stats?.topHeades?.map((head: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
                   <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mr-3">
                     <span className="text-sm font-bold text-blue-600">{index + 1}</span>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{assessor.nome}</p>
-                    <p className="text-sm text-gray-600">{assessor.clientes} clientes</p>
+                    <p className="font-semibold text-gray-900">{head.nome}</p>
+                    <p className="text-sm text-gray-600">{head.clientes} clientes</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-600">{formatCurrency(assessor.totalInvestido)}</p>
-                  <p className="text-sm text-gray-600">{formatCurrency(assessor.totalComissoes)} comissões</p>
+                  <p className="font-bold text-green-600">{formatCurrency(head.totalInvestido)}</p>
+                  <p className="text-sm text-gray-600">{formatCurrency(head.totalComissoes)} comissões</p>
                 </div>
               </div>
             ))}
@@ -352,7 +352,7 @@ const MasterDashboard = () => {
                   Escritório
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assessores
+                  Heades
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Investidores
@@ -372,7 +372,7 @@ const MasterDashboard = () => {
                     <div className="text-sm font-medium text-gray-900">{escritorio.nome}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{escritorio.assessores}</div>
+                    <div className="text-sm text-gray-900">{escritorio.heades}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{escritorio.investidores}</div>

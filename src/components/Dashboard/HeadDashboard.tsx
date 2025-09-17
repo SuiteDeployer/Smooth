@@ -4,19 +4,19 @@ import { useAuth } from '../../contexts/AuthContext'
 import { TrendingUp, Users, DollarSign, User, Target, Calendar, Award, CheckCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 
-const AssessorDashboard = () => {
+const HeadDashboard = () => {
   const { userProfile } = useAuth()
   const [stats, setStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Buscar dados da carteira do assessor
-  const fetchAssessorStats = async () => {
+  // Buscar dados da carteira do head
+  const fetchHeadStats = async () => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Buscar clientes (investidores) do assessor
+      // Buscar clientes (investidores) do head
       const { data: clientes, error: clientesError } = await supabase
         .from('users')
         .select(`
@@ -40,7 +40,7 @@ const AssessorDashboard = () => {
 
       if (investimentosError) throw investimentosError
 
-      // Buscar comissões do assessor
+      // Buscar comissões do head
       const { data: comissoes, error: comissoesError } = await supabase
         .from('commissions')
         .select('*')
@@ -157,7 +157,7 @@ const AssessorDashboard = () => {
         ticketMedio: investimentos?.length > 0 ? totalInvestido / investimentos.length : 0
       })
     } catch (err: any) {
-      console.error('Erro ao buscar estatísticas do Assessor:', err)
+      console.error('Erro ao buscar estatísticas do Head:', err)
       setError(err.message)
     } finally {
       setIsLoading(false)
@@ -166,7 +166,7 @@ const AssessorDashboard = () => {
 
   useEffect(() => {
     if (userProfile?.id) {
-      fetchAssessorStats()
+      fetchHeadStats()
     }
   }, [userProfile?.id])
 
@@ -213,7 +213,7 @@ const AssessorDashboard = () => {
     <div className="w-full p-4 md:p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Assessor</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard Head</h1>
         <p className="text-gray-600 mt-2">Gestão da carteira de clientes investidores</p>
       </div>
 
@@ -441,4 +441,4 @@ const AssessorDashboard = () => {
   )
 }
 
-export default AssessorDashboard
+export default HeadDashboard

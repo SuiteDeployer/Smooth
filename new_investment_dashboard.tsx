@@ -30,7 +30,7 @@ const InvestmentDashboard = () => {
     interest_type: 'simple'
   })
 
-  const canCreateInvestments = ['Global', 'Master', 'Escritório', 'Assessor'].includes(
+  const canCreateInvestments = ['Global', 'Master', 'Escritório', 'Head'].includes(
     userProfile?.user_roles?.role_name || ''
   )
 

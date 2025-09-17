@@ -97,7 +97,7 @@ const EnhancedCommissions: React.FC = () => {
     const labels = {
       'master': 'Master',
       'escritorio': 'Escritório',
-      'assessor': 'Assessor'
+      'head': 'Head'
     };
     return labels[type] || type;
   };
@@ -263,7 +263,7 @@ const EnhancedCommissions: React.FC = () => {
                     <SelectItem value="todos">Todos os Tipos</SelectItem>
                     <SelectItem value="master">Master</SelectItem>
                     <SelectItem value="escritorio">Escritório</SelectItem>
-                    <SelectItem value="assessor">Assessor</SelectItem>
+                    <SelectItem value="head">Head</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

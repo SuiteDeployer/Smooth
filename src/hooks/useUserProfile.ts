@@ -14,7 +14,7 @@ export interface ProfileUser {
 }
 
 export interface ProfileHierarchy {
-  assessor?: ProfileUser
+  head?: ProfileUser
   escritorio?: ProfileUser
   master?: ProfileUser
   global?: ProfileUser
@@ -31,7 +31,7 @@ export interface InvestorProfileData {
   }
 }
 
-export interface AssessorProfileData {
+export interface HeadProfileData {
   user: ProfileUser
   hierarchy: ProfileHierarchy
   investors: ProfileUser[]
@@ -44,11 +44,11 @@ export interface AssessorProfileData {
 export interface EscritorioProfileData {
   user: ProfileUser
   hierarchy: ProfileHierarchy
-  assessors: ProfileUser[]
+  heads: ProfileUser[]
   investors: ProfileUser[]
   summary: {
-    total_assessors: number
-    active_assessors: number
+    total_heads: number
+    active_heads: number
     total_investors: number
     active_investors: number
   }
@@ -58,13 +58,13 @@ export interface MasterProfileData {
   user: ProfileUser
   hierarchy: {}
   escritorios: ProfileUser[]
-  assessors: ProfileUser[]
+  heads: ProfileUser[]
   investors: ProfileUser[]
   summary: {
     total_escritorios: number
     active_escritorios: number
-    total_assessors: number
-    active_assessors: number
+    total_heads: number
+    active_heads: number
     total_investors: number
     active_investors: number
   }
@@ -78,14 +78,14 @@ export interface GlobalProfileData {
     total_masters: number
     active_masters: number
     total_escritorios: number
-    total_assessors: number
+    total_heads: number
     total_investors: number
   }
 }
 
 export type ProfileAction = 
   | 'get_investor_profile'
-  | 'get_assessor_profile'
+  | 'get_head_profile'
   | 'get_escritorio_profile'
   | 'get_master_profile'
   | 'get_global_profile'
@@ -152,8 +152,8 @@ export function useUserProfile(userId: string, action: ProfileAction): UseProfil
 export const useInvestorProfile = (userId: string): UseProfileReturn => 
   useUserProfile(userId, 'get_investor_profile')
 
-export const useAssessorProfile = (userId: string): UseProfileReturn => 
-  useUserProfile(userId, 'get_assessor_profile')
+export const useHeadProfile = (userId: string): UseProfileReturn => 
+  useUserProfile(userId, 'get_head_profile')
 
 export const useEscritorioProfile = (userId: string): UseProfileReturn => 
   useUserProfile(userId, 'get_escritorio_profile')

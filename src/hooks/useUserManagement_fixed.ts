@@ -290,7 +290,7 @@ export function useUserManagement() {
       { id: '1', role_name: 'Global', hierarchy_level: 1 },
       { id: '2', role_name: 'Master', hierarchy_level: 2 },
       { id: '3', role_name: 'Escritório', hierarchy_level: 3 },
-      { id: '4', role_name: 'Assessor', hierarchy_level: 4 },
+      { id: '4', role_name: 'Head', hierarchy_level: 4 },
       { id: '5', role_name: 'Investidor', hierarchy_level: 5 }
     ]
   }

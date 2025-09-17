@@ -93,7 +93,7 @@ class CommissionAPI {
         invested_amount,
         investment_date,
         investor:investor_user_id(full_name),
-        assessor:assessor_user_id(full_name),
+        head:head_user_id(full_name),
         series:series_id(name, series_code)
       )
     `, { count: 'exact' })

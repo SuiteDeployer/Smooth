@@ -81,7 +81,7 @@ export interface Investment {
   id: string
   series_id: string
   investor_user_id: string
-  assessor_user_id: string
+  head_user_id: string
   master_user_id: string         // ✅ Adicionado
   escritorio_user_id: string     // ✅ Adicionado
   global_user_id?: string | null // ✅ Adicionado (opcional)
@@ -92,7 +92,7 @@ export interface Investment {
   interest_rate: number
   commission_master: number       // ✅ Adicionado
   commission_escritorio: number   // ✅ Adicionado
-  commission_assessor: number     // ✅ Adicionado
+  commission_head: number     // ✅ Adicionado
   commission_global?: number      // ✅ Adicionado (opcional)
   status: string
   contract_hash: string | null

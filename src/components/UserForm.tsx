@@ -33,7 +33,7 @@ const ROLE_OPTIONS = [
   { value: 'Global', label: 'Global' },
   { value: 'Master', label: 'Master' },
   { value: 'Escritório', label: 'Escritório' },
-  { value: 'Assessor', label: 'Assessor' },
+  { value: 'Head', label: 'Head' },
   { value: 'Investidor', label: 'Investidor' }
 ];
 
@@ -77,8 +77,8 @@ export const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
       const hierarchyMap: Record<string, string[]> = {
         'Master': ['Global'],
         'Escritório': ['Global', 'Master'],
-        'Assessor': ['Global', 'Master', 'Escritório'],
-        'Investidor': ['Global', 'Master', 'Escritório', 'Assessor']
+        'Head': ['Global', 'Master', 'Escritório'],
+        'Investidor': ['Global', 'Master', 'Escritório', 'Head']
       };
 
       const validSuperiorRoles = hierarchyMap[selectedRole] || [];

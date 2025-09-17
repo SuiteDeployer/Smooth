@@ -19,7 +19,7 @@ const TestUserForm = () => {
     { role_name: 'Global' },
     { role_name: 'Master' },
     { role_name: 'Escritório' },
-    { role_name: 'Assessor' },
+    { role_name: 'Head' },
     { role_name: 'Investidor' }
   ]
 

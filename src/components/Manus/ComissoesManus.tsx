@@ -114,8 +114,8 @@ const ComissoesManus = () => {
       const users = [
         { id: 'master-1', name: 'Master Demonstração', email: 'master@smooth.com.br', type: 'Master' },
         { id: 'escritorio-1', name: 'Escritório Alpha', email: 'escritorio@alpha.com', type: 'Escritório' },
-        { id: 'assessor-1', name: 'Assessor Demonstração', email: 'assessor@smooth.com.br', type: 'Assessor' },
-        { id: 'assessor-2', name: 'Alpha Assessor', email: 'assessor-alpha@alpha.com', type: 'Assessor' }
+        { id: 'head-1', name: 'Head Demonstração', email: 'head@smooth.com.br', type: 'Head' },
+        { id: 'head-2', name: 'Alpha Head', email: 'head-alpha@alpha.com', type: 'Head' }
       ]
       
       let commissionId = 1
@@ -198,16 +198,16 @@ const ComissoesManus = () => {
             })
           }
           
-          // Comissão Assessor (2%)
-          const assessorId = invIndex % 2 === 0 ? 'assessor-1' : 'assessor-2'
-          const assessorName = invIndex % 2 === 0 ? 'Assessor Demonstração' : 'Alpha Assessor'
-          const assessorEmail = invIndex % 2 === 0 ? 'assessor@smooth.com.br' : 'assessor-alpha@alpha.com'
+          // Comissão Head (2%)
+          const headId = invIndex % 2 === 0 ? 'head-1' : 'head-2'
+          const headName = invIndex % 2 === 0 ? 'Head Demonstração' : 'Alpha Head'
+          const headEmail = invIndex % 2 === 0 ? 'head@smooth.com.br' : 'head-alpha@alpha.com'
           
           exampleCommissions.push({
             id: `comm-${commissionId++}`,
             investment_id: investment.id,
-            user_id: assessorId,
-            user_type: 'Assessor',
+            user_id: headId,
+            user_type: 'Head',
             commission_percentage: 2.0,
             base_amount: investment.amount,
             annual_amount: investment.amount * 0.02,
@@ -231,9 +231,9 @@ const ComissoesManus = () => {
               }
             },
             user: {
-              id: assessorId,
-              full_name: assessorName,
-              email: assessorEmail
+              id: headId,
+              full_name: headName,
+              email: headEmail
             }
           })
         }
@@ -304,7 +304,7 @@ const ComissoesManus = () => {
           <p className="text-blue-800 text-sm">
             <strong>Demonstração:</strong> Dados baseados nos 11 investimentos reais (R$ 745.000 total). 
             Comissões calculadas conforme distribuição definida em cada investimento: 
-            algumas com Master 8%, Escritório 2%, Assessor 2%; outras com Master 12%, Escritório 0%, Assessor 0%; 
+            algumas com Master 8%, Escritório 2%, Head 2%; outras com Master 12%, Escritório 0%, Head 0%; 
             e outras distribuições que sempre totalizam 12% (comissão máxima da série).
           </p>
         </div>    </div>
@@ -483,11 +483,11 @@ const ComissoesManus = () => {
             <div>
               <h4 className="font-medium text-blue-900 mb-1">Sobre as Comissões Manus</h4>
                  <p className="text-gray-600 text-sm">
-              Esta área mostra comissões baseadas na sua hierarquia organizacional. Você visualiza apenas as comissões dos usuários de sua rede subordinada, respeitando a estrutura: Global → Master → Escritório → Assessor → Investidor.
+              Esta área mostra comissões baseadas na sua hierarquia organizacional. Você visualiza apenas as comissões dos usuários de sua rede subordinada, respeitando a estrutura: Global → Master → Escritório → Head → Investidor.
             </p>
             <p className="text-gray-600 text-sm mt-2">
               <strong>Dados atuais:</strong> Demonstração baseada nos investimentos reais com distribuições variadas de comissão. 
-              Cada investimento pode ter distribuição diferente (ex: Master 8%, Escritório 2%, Assessor 2% OU Master 12%, Escritório 0%, Assessor 0%), 
+              Cada investimento pode ter distribuição diferente (ex: Master 8%, Escritório 2%, Head 2% OU Master 12%, Escritório 0%, Head 0%), 
               sempre respeitando o limite máximo de 12% da série.
             </p>
           </div>

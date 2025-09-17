@@ -184,7 +184,7 @@ const LoginForm = () => {
                 <p><strong>Global:</strong> admin@smooth.com.br</p>
                 <p><strong>Master:</strong> master@smooth.com.br</p>
                 <p><strong>Escritório:</strong> escritorio@smooth.com.br</p>
-                <p><strong>Assessor:</strong> assessor@smooth.com.br</p>
+                <p><strong>Head:</strong> head@smooth.com.br</p>
                 <p><strong>Investidor:</strong> investidor@smooth.com.br</p>
                 <p><strong>Senha:</strong> smooth123</p>
               </div>

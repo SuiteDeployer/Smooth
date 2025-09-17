@@ -7,7 +7,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  user_type: 'Global' | 'Master' | 'Escritório' | 'Assessor' | 'Investidor';
+  user_type: 'Global' | 'Master' | 'Escritório' | 'Head' | 'Investidor';
   parent_id: string | null;
   phone: string | null;
   document: string | null; // Temporário - será migrado para cpf
@@ -279,8 +279,8 @@ const UserManagement: React.FC = () => {
         // Escritório só pode ter Master como superior
         availableUsers = availableUsers.filter(u => u.user_type === 'Master');
         break;
-      case 'Assessor':
-        // Assessor só pode ter Escritório como superior
+      case 'Head':
+        // Head só pode ter Escritório como superior
         availableUsers = availableUsers.filter(u => u.user_type === 'Escritório');
         break;
       case 'Investidor':
@@ -373,7 +373,7 @@ const UserManagement: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Investidor">Investidor</option>
-                    <option value="Assessor">Assessor</option>
+                    <option value="Head">Head</option>
                     <option value="Escritório">Escritório</option>
                     <option value="Master">Master</option>
                     <option value="Global">Global</option>

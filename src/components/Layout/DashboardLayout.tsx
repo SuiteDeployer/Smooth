@@ -100,7 +100,7 @@ const DashboardLayout = () => {
       ]
     }
 
-    if (userProfile?.user_roles?.role_name === 'Assessor') {
+    if (userProfile?.user_roles?.role_name === 'Head') {
       return [
         ...commonItems,
         { icon: Users, label: 'Meus Clientes', path: '/clients' },

@@ -32,7 +32,7 @@ const getRoleIcon = (role: string) => {
       return <Crown className="h-4 w-4" />
     case 'Escritório':
       return <Building2 className="h-4 w-4" />
-    case 'Assessor':
+    case 'Head':
       return <UserCheck className="h-4 w-4" />
     default:
       return <Users className="h-4 w-4" />
@@ -45,7 +45,7 @@ const getRoleColor = (role: string) => {
       return 'text-yellow-600 bg-yellow-50 border-yellow-200'
     case 'Escritório':
       return 'text-indigo-600 bg-indigo-50 border-indigo-200'
-    case 'Assessor':
+    case 'Head':
       return 'text-green-600 bg-green-50 border-green-200'
     default:
       return 'text-gray-600 bg-gray-50 border-gray-200'
@@ -58,7 +58,7 @@ const CommissionsModal: React.FC<CommissionsModalProps> = ({ isOpen, onClose, da
   const rolesData = [
     { role: 'Master', amount: data.by_role.Master, icon: Crown, color: 'yellow' },
     { role: 'Escritório', amount: data.by_role.Escritório, icon: Building2, color: 'indigo' },
-    { role: 'Assessor', amount: data.by_role.Assessor, icon: UserCheck, color: 'green' }
+    { role: 'Head', amount: data.by_role.Head, icon: UserCheck, color: 'green' }
   ].sort((a, b) => b.amount - a.amount)
 
   return (

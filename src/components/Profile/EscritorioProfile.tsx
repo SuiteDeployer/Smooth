@@ -49,7 +49,7 @@ const EscritorioProfile = () => {
     )
   }
 
-  const { user, hierarchy, assessors, investors, summary } = profileData
+  const { user, hierarchy, heads, investors, summary } = profileData
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR')
@@ -110,13 +110,13 @@ const EscritorioProfile = () => {
                 <div className="bg-green-50 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
                     <Users className="h-5 w-5 text-green-600" />
-                    <span className="text-sm font-medium text-green-900">Assessores</span>
+                    <span className="text-sm font-medium text-green-900">Heades</span>
                   </div>
                   <p className="text-2xl font-bold text-green-900 mt-2">
-                    {summary.total_assessors}
+                    {summary.total_heads}
                   </p>
                   <p className="text-xs text-green-600">
-                    {summary.active_assessors} ativos
+                    {summary.active_heads} ativos
                   </p>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-4">
@@ -134,34 +134,34 @@ const EscritorioProfile = () => {
               </div>
             </div>
 
-            {/* Assessores */}
+            {/* Heades */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Assessores</h2>
-              {assessors && assessors.length > 0 ? (
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Heades</h2>
+              {heads && heads.length > 0 ? (
                 <div className="space-y-4">
-                  {assessors.map((assessor) => (
-                    <div key={assessor.id} className="border border-gray-200 rounded-lg p-4">
+                  {heads.map((head) => (
+                    <div key={head.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-green-600" />
                             <Link
-                              to={`/perfil/assessor/${assessor.id}`}
+                              to={`/perfil/head/${head.id}`}
                               className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
                             >
-                              {assessor.nome}
+                              {head.nome}
                             </Link>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">{assessor.email}</p>
+                          <p className="text-sm text-gray-600 mt-1">{head.email}</p>
                           <p className="text-sm text-gray-500 mt-1">
-                            Membro desde: {formatDate(assessor.data_criacao)}
+                            Membro desde: {formatDate(head.data_criacao)}
                           </p>
                         </div>
                         <div className="text-right">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            assessor.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            head.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
-                            {assessor.ativo ? 'Ativo' : 'Inativo'}
+                            {head.ativo ? 'Ativo' : 'Inativo'}
                           </span>
                         </div>
                       </div>
@@ -169,7 +169,7 @@ const EscritorioProfile = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-8">Nenhum assessor encontrado</p>
+                <p className="text-gray-500 text-center py-8">Nenhum head encontrado</p>
               )}
             </div>
 

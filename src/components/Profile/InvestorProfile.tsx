@@ -187,20 +187,20 @@ const InvestorProfile = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Hierarquia</h2>
               <div className="space-y-4">
-                {/* Assessor */}
-                {hierarchy.assessor && (
+                {/* Head */}
+                {hierarchy.head && (
                   <div className="border-l-4 border-green-500 pl-4">
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-600">Assessor</span>
+                      <span className="text-sm font-medium text-green-600">Head</span>
                     </div>
                     <Link
-                      to={`/perfil/assessor/${hierarchy.assessor.id}`}
+                      to={`/perfil/head/${hierarchy.head.id}`}
                       className="block mt-1 font-medium text-gray-900 hover:text-blue-600 transition-colors"
                     >
-                      {hierarchy.assessor.nome}
+                      {hierarchy.head.nome}
                     </Link>
-                    <p className="text-sm text-gray-600">{hierarchy.assessor.email}</p>
+                    <p className="text-sm text-gray-600">{hierarchy.head.email}</p>
                   </div>
                 )}
 

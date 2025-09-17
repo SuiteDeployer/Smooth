@@ -11,16 +11,16 @@ interface Investment {
   debenture_id: string;
   series_id: string;
   investor_user_id: string;
-  assessor_user_id: string;
+  head_user_id: string;
   escritorio_user_id: string;
   master_user_id: string;
   investment_amount: number;
   investment_date: string;
   maturity_date: string;
-  assessor_commission_percentage: number;
+  head_commission_percentage: number;
   escritorio_commission_percentage: number;
   master_commission_percentage: number;
-  assessor_commission_amount?: number;
+  head_commission_amount?: number;
   escritorio_commission_amount?: number;
   master_commission_amount?: number;
   status: string;
@@ -31,7 +31,7 @@ interface Investment {
   updated_by?: string;
   commission_master: number;
   commission_escritorio: number;
-  commission_assessor: number;
+  commission_head: number;
   global_user_id: string;
   commission_global: number;
   // Dados relacionados via queries separadas
@@ -50,7 +50,7 @@ interface Investment {
     name: string;
     email: string;
   };
-  assessor?: {
+  head?: {
     id: string;
     name: string;
     email: string;
@@ -98,7 +98,7 @@ interface User {
   email: string;
   name: string;
   full_name?: string; // Alias for name for compatibility
-  user_type: 'Global' | 'Master' | 'Escritório' | 'Assessor' | 'Investidor';
+  user_type: 'Global' | 'Master' | 'Escritório' | 'Head' | 'Investidor';
   parent_id: string | null;
   phone: string | null;
   document: string | null;
@@ -110,7 +110,7 @@ interface User {
   created_by: string | null;
   master_id?: string;
   escritorio_id?: string;
-  assessor_id?: string;
+  head_id?: string;
 }
 
 const InvestmentManagement: React.FC = () => {
@@ -125,11 +125,11 @@ const InvestmentManagement: React.FC = () => {
     debenture_id: '',
     series_id: '',
     investor_id: '',
-    assessor_id: '',
+    head_id: '',
     escritorio_id: '',
     master_id: '',
     investment_amount: '',
-    assessor_commission_percentage: '',
+    head_commission_percentage: '',
     escritorio_commission_percentage: '',
     master_commission_percentage: '',
     notes: ''
@@ -141,7 +141,7 @@ const InvestmentManagement: React.FC = () => {
   const [investors, setInvestors] = useState<User[]>([]);
   const [masters, setMasters] = useState<User[]>([]);
   const [escritorios, setEscritorios] = useState<User[]>([]);
-  const [assessors, setAssessors] = useState<User[]>([]);
+  const [heads, setHeads] = useState<User[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   
   // State for selected series info
@@ -253,28 +253,28 @@ const InvestmentManagement: React.FC = () => {
             break;
             
           case 'Master':
-            // Master can see themselves + their escritórios + their assessors
+            // Master can see themselves + their escritórios + their heads
             filteredUsers = allUsers.filter(user => 
               user.id === currentUser.id || // themselves
               user.parent_id === currentUser.id || // direct subordinates (escritórios)
               allUsers.some(escritorio => 
                 escritorio.parent_id === currentUser.id && 
                 user.parent_id === escritorio.id
-              ) // assessors under their escritórios
+              ) // heads under their escritórios
             );
             break;
             
           case 'Escritório':
-            // Escritório can see themselves + their master + their assessors
+            // Escritório can see themselves + their master + their heads
             filteredUsers = allUsers.filter(user => 
               user.id === currentUser.id || // themselves
               user.id === currentUser.parent_id || // their master
-              user.parent_id === currentUser.id // their assessors
+              user.parent_id === currentUser.id // their heads
             );
             break;
             
-          case 'Assessor':
-            // Assessor can see themselves + their escritório + their master
+          case 'Head':
+            // Head can see themselves + their escritório + their master
             const escritorio = allUsers.find(u => u.id === currentUser.parent_id);
             filteredUsers = allUsers.filter(user => 
               user.id === currentUser.id || // themselves
@@ -293,13 +293,13 @@ const InvestmentManagement: React.FC = () => {
         // Separate users by type (for commission split dropdowns)
         const masters = filteredUsers.filter(u => u.user_type === 'Master');
         const escritorios = filteredUsers.filter(u => u.user_type === 'Escritório');
-        const assessors = filteredUsers.filter(u => u.user_type === 'Assessor');
+        const heads = filteredUsers.filter(u => u.user_type === 'Head');
         
-        console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+        console.log('Separated users - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length);
         
         setMasters(masters);
         setEscritorios(escritorios);
-        setAssessors(assessors);
+        setHeads(heads);
         
       } catch (err) {
         console.error('Error loading commission users:', err);
@@ -327,7 +327,7 @@ const InvestmentManagement: React.FC = () => {
           ...prev,
           master_id: currentUser.id,
           escritorio_id: '', // Must select manually
-          assessor_id: '' // Must select manually
+          head_id: '' // Must select manually
         }));
         break;
 
@@ -338,19 +338,19 @@ const InvestmentManagement: React.FC = () => {
           ...prev,
           master_id: currentUser.parent_id || '',
           escritorio_id: currentUser.id,
-          assessor_id: '' // Must select manually
+          head_id: '' // Must select manually
         }));
         break;
 
-      case 'Assessor':
-        // Assessor: Auto-select master, escritório and themselves
+      case 'Head':
+        // Head: Auto-select master, escritório and themselves
         const escritorio = escritorios.find(e => e.id === currentUser.parent_id);
-        console.log('🔄 Auto-select Assessor: Escritório encontrado =', escritorio?.name, ', Master =', escritorio?.parent_id);
+        console.log('🔄 Auto-select Head: Escritório encontrado =', escritorio?.name, ', Master =', escritorio?.parent_id);
         setFormData(prev => ({
           ...prev,
           master_id: escritorio?.parent_id || '',
           escritorio_id: currentUser.parent_id || '',
-          assessor_id: currentUser.id
+          head_id: currentUser.id
         }));
         break;
 
@@ -361,7 +361,7 @@ const InvestmentManagement: React.FC = () => {
           ...prev,
           master_id: '',
           escritorio_id: '',
-          assessor_id: ''
+          head_id: ''
         }));
         break;
         
@@ -376,7 +376,7 @@ const InvestmentManagement: React.FC = () => {
   // Debug modal opening
   const handleOpenModal = async () => {
     console.log('Opening modal, currentUser:', currentUser);
-    console.log('Current state - investors:', investors.length, 'masters:', masters.length, 'escritorios:', escritorios.length, 'assessors:', assessors.length);
+    console.log('Current state - investors:', investors.length, 'masters:', masters.length, 'escritorios:', escritorios.length, 'heads:', heads.length);
     
     // Force reload data when modal opens
     if (currentUser) {
@@ -422,28 +422,28 @@ const InvestmentManagement: React.FC = () => {
                 break;
                 
               case 'Master':
-                // Master can see themselves + their escritórios + their assessors
+                // Master can see themselves + their escritórios + their heads
                 filteredUsers = allCommissionData.filter(user => 
                   user.id === currentUser.id || // themselves
                   user.parent_id === currentUser.id || // direct subordinates (escritórios)
                   allCommissionData.some(escritorio => 
                     escritorio.parent_id === currentUser.id && 
                     user.parent_id === escritorio.id
-                  ) // assessors under their escritórios
+                  ) // heads under their escritórios
                 );
                 break;
                 
               case 'Escritório':
-                // Escritório can see themselves + their master + their assessors
+                // Escritório can see themselves + their master + their heads
                 filteredUsers = allCommissionData.filter(user => 
                   user.id === currentUser.id || // themselves
                   user.id === currentUser.parent_id || // their master
-                  user.parent_id === currentUser.id // their assessors
+                  user.parent_id === currentUser.id // their heads
                 );
                 break;
                 
-              case 'Assessor':
-                // Assessor can see themselves + their escritório + their master
+              case 'Head':
+                // Head can see themselves + their escritório + their master
                 const escritorio = allCommissionData.find(u => u.id === currentUser.parent_id);
                 filteredUsers = allCommissionData.filter(user => 
                   user.id === currentUser.id || // themselves
@@ -461,13 +461,13 @@ const InvestmentManagement: React.FC = () => {
             
             const masters = filteredUsers.filter(u => u.user_type === 'Master');
             const escritorios = filteredUsers.filter(u => u.user_type === 'Escritório');
-            const assessors = filteredUsers.filter(u => u.user_type === 'Assessor');
+            const heads = filteredUsers.filter(u => u.user_type === 'Head');
             
-            console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+            console.log('Force separated - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length);
             
             setMasters(masters);
             setEscritorios(escritorios);
-            setAssessors(assessors);
+            setHeads(heads);
           }
         }
         
@@ -479,7 +479,7 @@ const InvestmentManagement: React.FC = () => {
     // Auto-select commission users based on hierarchy APÓS carregar os dados
     setTimeout(() => {
       console.log('🔄 Executando auto-select após carregamento dos dados...');
-      console.log('Estado atual - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Assessors:', assessors.length);
+      console.log('Estado atual - Masters:', masters.length, 'Escritórios:', escritorios.length, 'Heads:', heads.length);
       console.log('Current user:', currentUser?.user_type, currentUser?.email, 'Parent ID:', currentUser?.parent_id);
       autoSelectCommissionUsers();
     }, 200); // Aumentando timeout para garantir que dados estejam carregados
@@ -515,7 +515,7 @@ const InvestmentManagement: React.FC = () => {
       const seriesIds = [...new Set(investmentsData.map(inv => inv.series_id))];
       const userIds = [...new Set([
         ...investmentsData.map(inv => inv.investor_user_id),
-        ...investmentsData.map(inv => inv.assessor_user_id),
+        ...investmentsData.map(inv => inv.head_user_id),
         ...investmentsData.map(inv => inv.escritorio_user_id),
         ...investmentsData.map(inv => inv.master_user_id),
         ...investmentsData.map(inv => inv.created_by)
@@ -545,7 +545,7 @@ const InvestmentManagement: React.FC = () => {
         debentures: debenturesData?.find(d => d.id === investment.debenture_id),
         series: seriesData?.find(s => s.id === investment.series_id),
         investor: usersData?.find(u => u.id === investment.investor_user_id),
-        assessor: usersData?.find(u => u.id === investment.assessor_user_id),
+        head: usersData?.find(u => u.id === investment.head_user_id),
         escritorio: usersData?.find(u => u.id === investment.escritorio_user_id),
         master: usersData?.find(u => u.id === investment.master_user_id),
         creator: usersData?.find(u => u.id === investment.created_by)
@@ -589,11 +589,11 @@ const InvestmentManagement: React.FC = () => {
 
   // Validate commission split - ONLY check series limit, not 100%
   const validateCommissionSplit = () => {
-    const assessor = parseFloat(formData.assessor_commission_percentage) || 0;
+    const head = parseFloat(formData.head_commission_percentage) || 0;
     const escritorio = parseFloat(formData.escritorio_commission_percentage) || 0;
     const master = parseFloat(formData.master_commission_percentage) || 0;
     
-    const total = assessor + escritorio + master;
+    const total = head + escritorio + master;
     
     // Only validate against series maximum, not 100%
     if (selectedSeries) {
@@ -688,12 +688,12 @@ const InvestmentManagement: React.FC = () => {
         // UPDATE existing investment - only update fields that can be changed
         const updateData = {
           investment_amount: parseFloat(formData.investment_amount) || 0,
-          assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
+          head_commission_percentage: parseFloat(formData.head_commission_percentage) || 0,
           escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
           master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
           commission_master: parseFloat(formData.master_commission_percentage) || 0,
           commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
-          commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
+          commission_head: parseFloat(formData.head_commission_percentage) || 0,
           notes: formData.notes || '',
           updated_at: new Date().toISOString(),
           updated_by: userProfile?.id || ''
@@ -714,19 +714,19 @@ const InvestmentManagement: React.FC = () => {
           debenture_id: formData.debenture_id,
           series_id: formData.series_id,
           investor_user_id: formData.investor_id,
-          assessor_user_id: formData.assessor_id,
+          head_user_id: formData.head_id,
           master_user_id: formData.master_id,
           escritorio_user_id: formData.escritorio_id,
           global_user_id: userProfile?.id || '',
           investment_amount: parseFloat(formData.investment_amount) || 0,
           investment_date: getTodayDate(),
           maturity_date: calculateMaturityDate(),
-          assessor_commission_percentage: parseFloat(formData.assessor_commission_percentage) || 0,
+          head_commission_percentage: parseFloat(formData.head_commission_percentage) || 0,
           escritorio_commission_percentage: parseFloat(formData.escritorio_commission_percentage) || 0,
           master_commission_percentage: parseFloat(formData.master_commission_percentage) || 0,
           commission_master: parseFloat(formData.master_commission_percentage) || 0,
           commission_escritorio: parseFloat(formData.escritorio_commission_percentage) || 0,
-          commission_assessor: parseFloat(formData.assessor_commission_percentage) || 0,
+          commission_head: parseFloat(formData.head_commission_percentage) || 0,
           commission_global: 0,
           status: 'active',
           notes: formData.notes || '',
@@ -805,11 +805,11 @@ const InvestmentManagement: React.FC = () => {
         debenture_id: '',
         series_id: '',
         investor_id: '',
-        assessor_id: '',
+        head_id: '',
         escritorio_id: '',
         master_id: '',
         investment_amount: '',
-        assessor_commission_percentage: '',
+        head_commission_percentage: '',
         escritorio_commission_percentage: '',
         master_commission_percentage: '',
         notes: ''
@@ -832,10 +832,10 @@ const InvestmentManagement: React.FC = () => {
 
   // Calculate commission total
   const getCommissionTotal = () => {
-    const assessor = parseFloat(formData.assessor_commission_percentage) || 0;
+    const head = parseFloat(formData.head_commission_percentage) || 0;
     const escritorio = parseFloat(formData.escritorio_commission_percentage) || 0;
     const master = parseFloat(formData.master_commission_percentage) || 0;
-    return assessor + escritorio + master;
+    return head + escritorio + master;
   };
 
   // Open modal
@@ -852,11 +852,11 @@ const InvestmentManagement: React.FC = () => {
       debenture_id: '',
       series_id: '',
       investor_id: '',
-      assessor_id: '',
+      head_id: '',
       escritorio_id: '',
       master_id: '',
       investment_amount: '',
-      assessor_commission_percentage: '',
+      head_commission_percentage: '',
       escritorio_commission_percentage: '',
       master_commission_percentage: '',
       notes: ''
@@ -981,11 +981,11 @@ const InvestmentManagement: React.FC = () => {
         debenture_id: investment.debenture_id,
         series_id: investment.series_id,
         investor_id: investment.investor_user_id,
-        assessor_id: investment.assessor_user_id,
+        head_id: investment.head_user_id,
         escritorio_id: investment.escritorio_user_id,
         master_id: investment.master_user_id,
         investment_amount: investment.investment_amount.toString(),
-        assessor_commission_percentage: investment.assessor_commission_percentage.toString(),
+        head_commission_percentage: investment.head_commission_percentage.toString(),
         escritorio_commission_percentage: investment.escritorio_commission_percentage.toString(),
         master_commission_percentage: investment.master_commission_percentage.toString(),
         notes: investment.notes || ''
@@ -1352,21 +1352,21 @@ const InvestmentManagement: React.FC = () => {
                       />
                     </div>
 
-                    {/* Assessor */}
+                    {/* Head */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Assessor
+                        Head
                       </label>
                       <select
-                        value={formData.assessor_id}
-                        onChange={(e) => setFormData(prev => ({ ...prev, assessor_id: e.target.value }))}
+                        value={formData.head_id}
+                        onChange={(e) => setFormData(prev => ({ ...prev, head_id: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
                         required
                       >
-                        <option value="">Selecione um assessor</option>
-                        {assessors.map(assessor => (
-                          <option key={assessor.id} value={assessor.id}>
-                            {assessor.email || assessor.full_name || assessor.name || `Assessor ${assessor.id}`}
+                        <option value="">Selecione um head</option>
+                        {heads.map(head => (
+                          <option key={head.id} value={head.id}>
+                            {head.email || head.full_name || head.name || `Head ${head.id}`}
                           </option>
                         ))}
                       </select>
@@ -1375,8 +1375,8 @@ const InvestmentManagement: React.FC = () => {
                         step="0.01"
                         min="0"
                         placeholder="Percentual (%)"
-                        value={formData.assessor_commission_percentage}
-                        onChange={(e) => setFormData(prev => ({ ...prev, assessor_commission_percentage: e.target.value }))}
+                        value={formData.head_commission_percentage}
+                        onChange={(e) => setFormData(prev => ({ ...prev, head_commission_percentage: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>

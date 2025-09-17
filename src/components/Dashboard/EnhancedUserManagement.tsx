@@ -206,7 +206,7 @@ const EnhancedUserManagement = () => {
       'Global': 'bg-purple-100 text-purple-800',
       'Master': 'bg-blue-100 text-blue-800',
       'Escritório': 'bg-green-100 text-green-800',
-      'Assessor': 'bg-yellow-100 text-yellow-800',
+      'Head': 'bg-yellow-100 text-yellow-800',
       'Investidor': 'bg-gray-100 text-gray-800'
     }
     return colors[role] || 'bg-gray-100 text-gray-800'
@@ -262,7 +262,7 @@ const EnhancedUserManagement = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Gestão de Rede</h3>
-                  <p className="text-sm text-gray-600">Masters, Escritórios e Assessores</p>
+                  <p className="text-sm text-gray-600">Masters, Escritórios e Heads</p>
                 </div>
               </div>
             </div>
@@ -397,7 +397,7 @@ const EnhancedUserManagement = () => {
             </h1>
             <p className="text-gray-600 mt-2">
               {viewMode === 'network' 
-                ? 'Gerencie Masters, Escritórios e Assessores da sua rede' 
+                ? 'Gerencie Masters, Escritórios e Heads da sua rede' 
                 : 'Gerencie investidores e suas carteiras'}
             </p>
           </div>

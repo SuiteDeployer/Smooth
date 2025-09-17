@@ -66,7 +66,7 @@ const DebentureManagement: React.FC = () => {
 
   // Verificar permissões de usuário
   const isGlobalUser = userProfile?.user_type === 'Global';
-  const canViewDebentures = ['Global', 'Master', 'Escritório', 'Assessor'].includes(userProfile?.user_type || '');
+  const canViewDebentures = ['Global', 'Master', 'Escritório', 'Head'].includes(userProfile?.user_type || '');
   
   // Redirecionar Investidores
   useEffect(() => {

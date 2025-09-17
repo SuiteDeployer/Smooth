@@ -1,18 +1,18 @@
 import React from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useAssessorProfile } from '../../hooks/useUserProfile'
+import { useHeadProfile } from '../../hooks/useUserProfile'
 import { ArrowLeft, User, Users, TrendingUp, Mail, Badge, UserCheck } from 'lucide-react'
 
-const AssessorProfile = () => {
+const HeadProfile = () => {
   const { id } = useParams<{ id: string }>()
-  const { data: profileData, isLoading, error } = useAssessorProfile(id!)
+  const { data: profileData, isLoading, error } = useHeadProfile(id!)
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando perfil do assessor...</p>
+          <p className="mt-4 text-gray-600">Carregando perfil do head...</p>
         </div>
       </div>
     )
@@ -78,7 +78,7 @@ const AssessorProfile = () => {
                 <h1 className="text-2xl font-bold text-gray-900">{user.nome}</h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <Badge className="h-4 w-4 text-green-600" />
-                  <span className="text-green-600 font-medium">Assessor</span>
+                  <span className="text-green-600 font-medium">Head</span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
                   <Mail className="h-4 w-4 text-gray-500" />
@@ -236,4 +236,4 @@ const AssessorProfile = () => {
   )
 }
 
-export default AssessorProfile
+export default HeadProfile

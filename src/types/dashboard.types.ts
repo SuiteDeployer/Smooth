@@ -7,9 +7,9 @@ export interface DashboardUser {
   status: string;
 }
 
-export interface AssessorPerformance {
-  assessor_id: string;
-  assessor_name: string;
+export interface HeadPerformance {
+  head_id: string;
+  head_name: string;
   total_investments: number;
   total_amount: number;
   clients_count: number;
@@ -18,7 +18,7 @@ export interface AssessorPerformance {
 export interface RecentInvestment {
   id: string;
   investor_name: string;
-  assessor_name: string;
+  head_name: string;
   series_name: string;
   amount: number;
   created_at: string;
@@ -55,11 +55,11 @@ export interface DashboardMetrics {
     new_this_month: number;
     users: DashboardUser[];
   };
-  assessores: {
+  heades: {
     total: number;
     new_this_month: number;
-    top_performers: AssessorPerformance[];
-    bottom_performers: AssessorPerformance[];
+    top_performers: HeadPerformance[];
+    bottom_performers: HeadPerformance[];
     users: DashboardUser[];
   };
   investidores: {
@@ -99,7 +99,7 @@ export interface DashboardMetrics {
     by_role: {
       Master: number;
       Escritório: number;
-      Assessor: number;
+      Head: number;
     };
     recent: RecentCommission[];
   };
@@ -116,7 +116,7 @@ export interface DashboardMetrics {
 export type ModalType = 
   | 'masters' 
   | 'escritorios' 
-  | 'assessores' 
+  | 'heades' 
   | 'investidores' 
   | 'investments' 
   | 'remuneracao' 

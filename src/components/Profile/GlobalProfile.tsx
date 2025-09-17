@@ -137,10 +137,10 @@ const GlobalProfile = () => {
             <div className="bg-green-50 rounded-lg p-4">
               <div className="flex items-center space-x-2">
                 <Users className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Assessores</span>
+                <span className="text-sm font-medium text-green-900">Heades</span>
               </div>
               <p className="text-2xl font-bold text-green-900 mt-2">
-                {summary.total_assessors}
+                {summary.total_heads}
               </p>
             </div>
             <div className="bg-orange-50 rounded-lg p-4">

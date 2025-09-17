@@ -13,10 +13,10 @@ import { UserCheck, TrendingUp, Calendar, Trophy, Target } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-interface AssessoresModalProps {
+interface HeadsModalProps {
   isOpen: boolean
   onClose: () => void
-  data: DashboardMetrics['assessores'] | null
+  data: DashboardMetrics['heades'] | null
 }
 
 const formatCurrency = (value: number) => {
@@ -26,7 +26,7 @@ const formatCurrency = (value: number) => {
   }).format(value)
 }
 
-const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data }) => {
+const HeadsModal: React.FC<HeadsModalProps> = ({ isOpen, onClose, data }) => {
   if (!data) return null
 
   return (
@@ -35,10 +35,10 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
         <DialogHeader className="pb-4 border-b border-gray-200">
           <DialogTitle className="flex items-center gap-2 text-gray-900">
             <UserCheck className="h-5 w-5 text-green-600" />
-            Assessores na Rede
+            Heads na Rede
           </DialogTitle>
           <DialogDescription className="text-gray-500">
-            Detalhes dos assessores e seu desempenho na sua hierarquia
+            Detalhes dos heades e seu desempenho na sua hierarquia
           </DialogDescription>
         </DialogHeader>
         
@@ -83,8 +83,8 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
                 
                 {data.top_performers.length > 0 ? (
                   <div className="space-y-3">
-                    {data.top_performers.map((assessor, index) => (
-                      <div key={assessor.assessor_id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-yellow-100">
+                    {data.top_performers.map((head, index) => (
+                      <div key={head.head_id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-yellow-100">
                         <div className="flex items-center gap-3">
                           <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                             index === 0 ? 'bg-yellow-400 text-yellow-900' :
@@ -95,14 +95,14 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
                             {index + 1}
                           </div>
                           <div>
-                            <h4 className="font-medium text-gray-900">{assessor.assessor_name}</h4>
-                            <p className="text-xs text-gray-600">{assessor.clients_count} clientes</p>
+                            <h4 className="font-medium text-gray-900">{head.head_name}</h4>
+                            <p className="text-xs text-gray-600">{head.clients_count} clientes</p>
                           </div>
                         </div>
                         
                         <div className="text-right">
-                          <p className="font-bold text-green-700">{formatCurrency(assessor.total_amount)}</p>
-                          <p className="text-xs text-gray-600">{assessor.total_investments} investimentos</p>
+                          <p className="font-bold text-green-700">{formatCurrency(head.total_amount)}</p>
+                          <p className="text-xs text-gray-600">{head.total_investments} investimentos</p>
                         </div>
                       </div>
                     ))}
@@ -126,21 +126,21 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
                 
                 {data.bottom_performers.length > 0 ? (
                   <div className="space-y-3">
-                    {data.bottom_performers.map((assessor, index) => (
-                      <div key={assessor.assessor_id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-red-100">
+                    {data.bottom_performers.map((head, index) => (
+                      <div key={head.head_id} className="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-red-100">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-800 text-xs font-bold">
                             {index + 1}
                           </div>
                           <div>
-                            <h4 className="font-medium text-gray-900">{assessor.assessor_name}</h4>
-                            <p className="text-xs text-gray-600">{assessor.clients_count} clientes</p>
+                            <h4 className="font-medium text-gray-900">{head.head_name}</h4>
+                            <p className="text-xs text-gray-600">{head.clients_count} clientes</p>
                           </div>
                         </div>
                         
                         <div className="text-right">
-                          <p className="font-bold text-red-700">{formatCurrency(assessor.total_amount)}</p>
-                          <p className="text-xs text-gray-600">{assessor.total_investments} investimentos</p>
+                          <p className="font-bold text-red-700">{formatCurrency(head.total_amount)}</p>
+                          <p className="text-xs text-gray-600">{head.total_investments} investimentos</p>
                         </div>
                       </div>
                     ))}
@@ -155,9 +155,9 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
             </Card>
           </div>
 
-          {/* Lista Completa de Assessores */}
+          {/* Lista Completa de Heads */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Lista Completa de Assessores</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Lista Completa de Heads</h3>
             {data.users.length > 0 ? (
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {data.users.map((user) => (
@@ -190,7 +190,7 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
             ) : (
               <div className="text-center py-8">
                 <UserCheck className="mx-auto h-12 w-12 text-gray-300" />
-                <p className="mt-2 text-sm text-gray-500">Nenhum Assessor encontrado na sua rede</p>
+                <p className="mt-2 text-sm text-gray-500">Nenhum Head encontrado na sua rede</p>
               </div>
             )}
           </div>
@@ -200,4 +200,4 @@ const AssessoresModal: React.FC<AssessoresModalProps> = ({ isOpen, onClose, data
   )
 }
 
-export default AssessoresModal
+export default HeadsModal

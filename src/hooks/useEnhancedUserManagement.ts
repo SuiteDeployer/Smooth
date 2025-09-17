@@ -185,7 +185,7 @@ export function useEnhancedUserManagement() {
     updateUser: { mutateAsync: updateUser, isLoading: loading },
     deleteUser: { mutateAsync: deleteUser, isLoading: loading },
     // Propriedades adicionais para compatibilidade
-    availableRoles: { data: ['Investidor', 'Assessor', 'Escritório', 'Master', 'Global'] },
+    availableRoles: { data: ['Investidor', 'Head', 'Escritório', 'Master', 'Global'] },
     getPossibleSuperiors: async () => networkUsers.filter(u => u.user_roles?.role_name !== 'Investidor'),
     createNetworkUser: { mutateAsync: createUser, isLoading: loading },
     createInvestor: { mutateAsync: createUser, isLoading: loading },

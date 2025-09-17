@@ -26,8 +26,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         return 'Master';
       case 'Escritório':
         return 'Escritório';
-      case 'Assessor':
-        return 'Assessor';
+      case 'Head':
+        return 'Head';
       case 'Investidor':
         return 'Investidor';
       default:
