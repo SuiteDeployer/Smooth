@@ -58,7 +58,7 @@ const RemuneracaoManagement: React.FC = () => {
           investment:investments!inner(
             id,
             debenture:debentures(name),
-            series:series(name, commercial_name)
+            series:series!series_id(name, commercial_name)
           ),
           investor:users!investor_user_id(name, email, pix)
         `)
