@@ -158,7 +158,13 @@ export interface AlertNotification {
  */
 export const getUserNetworkMaster = async (userId: string): Promise<string | null> => {
   try {
-    // Buscar usuário atual
+    // Verificar se userId é válido
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      console.error('getUserNetworkMaster: userId inválido:', userId)
+      return null
+    }
+
+    // Buscar dados do usuário
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('user_type, parent_id')
@@ -170,12 +176,12 @@ export const getUserNetworkMaster = async (userId: string): Promise<string | nul
       return null
     }
 
-    // Global vê tudo
+    // Se é Global, retorna null (vê tudo)
     if (user.user_type === 'Global') {
       return null
     }
 
-    // Master retorna próprio ID
+    // Se é Master, retorna próprio ID
     if (user.user_type === 'Master') {
       return userId
     }
@@ -186,7 +192,7 @@ export const getUserNetworkMaster = async (userId: string): Promise<string | nul
     let attempts = 0
     const maxAttempts = 10 // Limite de segurança
 
-    while (currentParentId && attempts < maxAttempts) {
+    while (currentParentId && currentParentId !== 'undefined' && currentParentId !== 'null' && attempts < maxAttempts) {
       const { data: parentUser, error: parentError } = await supabase
         .from('users')
         .select('user_type, parent_id')
