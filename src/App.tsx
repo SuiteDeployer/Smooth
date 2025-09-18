@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { getModuleAccess } from './lib/supabase';
 import LoginForm from './components/Auth/LoginForm';
 import EmptyDashboard from './components/Dashboard/EmptyDashboard';
 import UserManagement from './components/Users/UserManagement';
@@ -13,6 +14,7 @@ import RemuneracaoManagement from './features/remuneracao/pages/RemuneracaoManag
 import DashboardLayout from './components/Layout/DashboardLayout';
 import AgenteDashboard from './components/Dashboard/AgenteDashboard';
 import AgenteProfile from './components/Profile/AgenteProfile';
+import ModuleAccessControl from './components/common/ModuleAccessControl';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
@@ -35,6 +37,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+// Componente para proteger rotas com controle de acesso por módulo
+function ModuleProtectedRoute({ 
+  module, 
+  action = 'view', 
+  children 
+}: { 
+  module: 'debentures' | 'series' | 'commissions' | 'remunerations' | 'investments' | 'users';
+  action?: 'view' | 'create' | 'edit' | 'delete';
+  children: React.ReactNode;
+}) {
+  return (
+    <ProtectedRoute>
+      <ModuleAccessControl module={module} action={action}>
+        {children}
+      </ModuleAccessControl>
+    </ProtectedRoute>
+  );
 }
 
 function App() {
@@ -99,29 +120,29 @@ function App() {
             <Route
               path="/users"
               element={
-                <ProtectedRoute>
+                <ModuleProtectedRoute module="users">
                   <UserManagement />
-                </ProtectedRoute>
+                </ModuleProtectedRoute>
               }
             />
             
-            {/* Rota protegida - Gerenciamento de debêntures */}
+            {/* Rota protegida - Gerenciamento de debêntures (BLOQUEADA para Investidores) */}
             <Route
               path="/debentures"
               element={
-                <ProtectedRoute>
+                <ModuleProtectedRoute module="debentures">
                   <DebentureManagement />
-                </ProtectedRoute>
+                </ModuleProtectedRoute>
               }
             />
             
-            {/* Rota protegida - Gerenciamento de séries */}
+            {/* Rota protegida - Gerenciamento de séries (BLOQUEADA para Investidores) */}
             <Route
               path="/debentures/:debentureId/series"
               element={
-                <ProtectedRoute>
+                <ModuleProtectedRoute module="series">
                   <SeriesManagement />
-                </ProtectedRoute>
+                </ModuleProtectedRoute>
               }
             />
             
@@ -129,19 +150,19 @@ function App() {
             <Route
               path="/investments"
               element={
-                <ProtectedRoute>
+                <ModuleProtectedRoute module="investments">
                   <InvestmentManagement />
-                </ProtectedRoute>
+                </ModuleProtectedRoute>
               }
             />
             
-            {/* Rota protegida - Dashboard de comissões */}
+            {/* Rota protegida - Dashboard de comissões (BLOQUEADA para Investidores) */}
             <Route
               path="/comissoes"
               element={
-                <ProtectedRoute>
+                <ModuleProtectedRoute module="commissions">
                   <CommissionsDashboard />
-                </ProtectedRoute>
+                </ModuleProtectedRoute>
               }
             />
             
@@ -149,9 +170,9 @@ function App() {
             <Route
               path="/remuneracao"
               element={
-                <ProtectedRoute>
+                <ModuleProtectedRoute module="remunerations">
                   <RemuneracaoManagement />
-                </ProtectedRoute>
+                </ModuleProtectedRoute>
               }
             />
             
@@ -186,4 +207,3 @@ function App() {
 }
 
 export default App;
-

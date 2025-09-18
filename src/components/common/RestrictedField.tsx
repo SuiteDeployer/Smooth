@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { isRestrictedValue } from '../../utils/formatters';
 import { useAuth } from '../../contexts/AuthContext';
+import { getUserNetworkMaster, userInInvestmentSplit } from '../../lib/supabase';
 import './RestrictedField.css';
 
 interface RestrictedFieldProps {
@@ -14,7 +15,7 @@ interface RestrictedFieldProps {
 }
 
 // Função para verificar se o usuário tem permissão para ver o campo
-const checkUserPermission = (userProfile: any, investment: any, field?: string): boolean => {
+const checkUserPermission = async (userProfile: any, investment: any, field?: string): Promise<boolean> => {
   // Se não há usuário logado, restringir
   if (!userProfile) return false;
   
@@ -24,20 +25,52 @@ const checkUserPermission = (userProfile: any, investment: any, field?: string):
   // Se não há dados do investimento, usar lógica padrão (permitir)
   if (!investment) return true;
   
-  // Verificar se o usuário está no split do investimento
-  const userIsInSplit = 
-    investment.master_user_id === userProfile.id ||
-    investment.escritorio_user_id === userProfile.id ||
-    investment.head_user_id === userProfile.id ||
-    investment.agente_user_id === userProfile.id ||
-    investment.investor_user_id === userProfile.id;
-  
-  // Se o usuário está no split, ele pode ver todos os campos
-  if (userIsInSplit) return true;
-  
-  // Lógica hierárquica para usuários não no split
-  // (pode ser implementada posteriormente se necessário)
-  return false;
+  try {
+    // Verificar se está na mesma rede
+    const userNetwork = await getUserNetworkMaster(userProfile.id);
+    const investmentNetwork = await getUserNetworkMaster(investment.master_user_id);
+    
+    // Se não está na mesma rede, não pode ver
+    if (userNetwork !== investmentNetwork) {
+      console.log('🚫 Usuário de rede diferente bloqueado:', {
+        userNetwork,
+        investmentNetwork,
+        userType: userProfile.user_type
+      });
+      return false;
+    }
+    
+    // Verificar se o usuário está no split do investimento
+    const userIsInSplit = userInInvestmentSplit(userProfile.id, investment);
+    
+    // Se o usuário está no split da mesma rede, ele pode ver todos os campos
+    if (userIsInSplit) {
+      console.log('✅ Usuário no split da mesma rede:', {
+        userType: userProfile.user_type,
+        userNetwork,
+        investmentNetwork
+      });
+      return true;
+    }
+    
+    // Master pode ver investimentos que cria (mesmo que não esteja no split)
+    if (userProfile.user_type === 'Master' && investment.master_user_id === userProfile.id) {
+      console.log('✅ Master vendo investimento que criou');
+      return true;
+    }
+    
+    console.log('🚫 Usuário não está no split:', {
+      userType: userProfile.user_type,
+      userNetwork,
+      investmentNetwork,
+      userIsInSplit
+    });
+    
+    return false;
+  } catch (error) {
+    console.error('❌ Erro ao verificar permissão:', error);
+    return false;
+  }
 };
 
 const RestrictedField: React.FC<RestrictedFieldProps> = ({ 
@@ -50,20 +83,54 @@ const RestrictedField: React.FC<RestrictedFieldProps> = ({
   ...props 
 }) => {
   const { userProfile } = useAuth();
+  const [hasPermission, setHasPermission] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  
+  // Verificar permissão quando componente monta ou dados mudam
+  useEffect(() => {
+    const verifyPermission = async () => {
+      if (!userProfile || !investment) {
+        setHasPermission(true);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        const permission = await checkUserPermission(userProfile, investment, field);
+        setHasPermission(permission);
+      } catch (error) {
+        console.error('Erro ao verificar permissão:', error);
+        setHasPermission(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    verifyPermission();
+  }, [userProfile, investment, field]);
   
   // Verificar se o valor é tecnicamente restrito (null/undefined)
   const valueIsEmpty = isRestrictedValue(value);
   
-  // Verificar se o usuário tem permissão para ver este campo
-  const userHasPermission = checkUserPermission(userProfile, investment, field);
+  const restricted = valueIsEmpty || !hasPermission;
   
-  const restricted = valueIsEmpty || !userHasPermission;
+  if (loading) {
+    return (
+      <span className={`restricted-field loading ${className}`} {...props}>
+        ⏳ Verificando...
+      </span>
+    );
+  }
   
   if (restricted) {
+    const tooltipMessage = valueIsEmpty 
+      ? "Esta informação não está disponível"
+      : "Esta informação está restrita ao seu nível hierárquico ou rede";
+      
     return (
       <span 
         className={`restricted-field ${className}`}
-        title={showTooltip ? "Esta informação está restrita ao seu nível hierárquico" : ""}
+        title={showTooltip ? tooltipMessage : ""}
         {...props}
       >
         🔒 Restrito
@@ -104,4 +171,3 @@ const RestrictedField: React.FC<RestrictedFieldProps> = ({
 };
 
 export default RestrictedField;
-
