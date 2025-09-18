@@ -750,7 +750,6 @@ const InvestmentManagement: React.FC = () => {
           master_user_id: formData.master_id,
           escritorio_user_id: formData.escritorio_id,
           agente_user_id: formData.agente_id || null,
-          global_user_id: userProfile?.id || '',
           investment_amount: parseFloat(formData.investment_amount) || 0,
           investment_date: getTodayDate(),
           maturity_date: calculateMaturityDate(),
