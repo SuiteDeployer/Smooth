@@ -602,7 +602,7 @@ const SimpleCommissionsDashboard: React.FC = () => {
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-24">
                         <span className="truncate block">
-                          <RestrictedField value={commission.investment?.debenture?.name} />
+                          <RestrictedField value={commission.investment?.debenture?.name} investment={commission.investment} field="debenture" />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-32">
@@ -610,22 +610,22 @@ const SimpleCommissionsDashboard: React.FC = () => {
                           <RestrictedField value={commission.investment?.series ? 
                             `${commission.investment.series.series_letter} - ${commission.investment.series.commercial_name}` : 
                             null
-                          } />
+                          } investment={commission.investment} field="series" />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-40">
                         <span className="truncate block" title={commission.investment?.investor?.name || 'N/A'}>
-                          <RestrictedField value={commission.investment?.investor?.name} />
+                          <RestrictedField value={commission.investment?.investor?.name} investment={commission.investment} field="investor" />
                         </span>
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-900 w-36">
                         <div className="truncate">
                           <div className="font-medium">
-                            <RestrictedField value={commission.user?.name || commission.user?.email} />
+                            <RestrictedField value={commission.user?.name || commission.user?.email} investment={commission.investment} field="beneficiary" />
                           </div>
                           {commission.user?.pix && (
                             <div className="text-gray-500 text-xs">
-                              PIX: <RestrictedField value={commission.user.pix} />
+                              PIX: <RestrictedField value={commission.user.pix} investment={commission.investment} field="beneficiary_pix" />
                             </div>
                           )}
                         </div>

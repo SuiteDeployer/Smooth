@@ -1121,13 +1121,13 @@ const InvestmentManagement: React.FC = () => {
                         #{investment.id}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedField value={investment.debentures?.name} />
+                        <RestrictedField value={investment.debentures?.name} investment={investment} field="debenture" />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedField value={investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : null} />
+                        <RestrictedField value={investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : null} investment={investment} field="series" />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedField value={investment.investor?.name} />
+                        <RestrictedField value={investment.investor?.name} investment={investment} field="investor" />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}

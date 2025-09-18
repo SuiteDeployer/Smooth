@@ -380,22 +380,22 @@ const RemuneracaoManagement: React.FC = () => {
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-900 w-32">
                         <span className="truncate block">
-                          <RestrictedField value={remuneration.investment?.debenture?.name} />
+                          <RestrictedField value={remuneration.investment?.debenture?.name} investment={remuneration.investment} field="debenture" />
                         </span>
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-900 w-32">
                         <span className="truncate block">
-                          <RestrictedField value={remuneration.investment?.series?.commercial_name} />
+                          <RestrictedField value={remuneration.investment?.series?.commercial_name} investment={remuneration.investment} field="series" />
                         </span>
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-900 w-40">
                         <div className="truncate">
                           <div className="font-medium">
-                            <RestrictedField value={remuneration.investor?.name || remuneration.investor?.email} />
+                            <RestrictedField value={remuneration.investor?.name || remuneration.investor?.email} investment={remuneration.investment} field="investor" />
                           </div>
                           {remuneration.investor?.pix && (
                             <div className="text-gray-500 text-xs">
-                              PIX: <RestrictedField value={remuneration.investor.pix} />
+                              PIX: <RestrictedField value={remuneration.investor.pix} investment={remuneration.investment} field="investor_pix" />
                             </div>
                           )}
                         </div>
