@@ -3,7 +3,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import AppLayout from '../../../components/Layout/AppLayout';
 import { Filter, Download } from 'lucide-react';
-import RestrictedField from '../../../components/common/RestrictedField';
+import RestrictedField from '../../../components/common/RestrictedFieldDebug';
 
 interface Remuneration {
   id: string;
