@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../Layout/AppLayout';
 import { generateCommissions } from '../../utils/commissionGenerator';
-import RestrictedField from '../common/RestrictedFieldDebug';
+import RestrictedField from '../common/RestrictedField';
 
 interface Investment {
   id: number;
