@@ -57,8 +57,8 @@ const RemuneracaoManagement: React.FC = () => {
           *,
           investment:investments!inner(
             id,
-            debenture:debentures(name),
-            series:series!series_id(name, commercial_name)
+            series_id,
+            debenture:debentures(name)
           ),
           investor:users!investor_user_id(name, email, pix)
         `)
@@ -70,7 +70,33 @@ const RemuneracaoManagement: React.FC = () => {
       }
 
       console.log('✅ Remunerações carregadas:', data?.length || 0);
-      setRemunerations(data || []);
+      
+      // Buscar dados das séries separadamente para evitar conflito de relacionamento
+      if (data && data.length > 0) {
+        const seriesIds = [...new Set(data.map(r => r.investment?.series_id).filter(Boolean))];
+        
+        if (seriesIds.length > 0) {
+          const { data: seriesData } = await supabase
+            .from('series')
+            .select('id, name, commercial_name')
+            .in('id', seriesIds);
+          
+          // Enriquecer remunerações com dados das séries
+          const enrichedData = data.map(remuneration => ({
+            ...remuneration,
+            investment: {
+              ...remuneration.investment,
+              series: seriesData?.find(s => s.id === remuneration.investment?.series_id)
+            }
+          }));
+          
+          setRemunerations(enrichedData);
+        } else {
+          setRemunerations(data);
+        }
+      } else {
+        setRemunerations(data || []);
+      }
 
     } catch (error) {
       console.error('Erro ao carregar remunerações:', error);
