@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { isRestrictedValue } from '../../utils/formatters';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUserNetworkMaster, userInInvestmentSplit } from '../../lib/supabase';
+import { getUserNetworkMaster, userInInvestmentSplitSync } from '../../lib/supabase';
 import './RestrictedField.css';
 
 interface RestrictedFieldProps {
@@ -27,7 +27,7 @@ const checkUserPermission = async (userProfile: any, investment: any, field?: st
   
   try {
     // Verificar se o usuário está no split do investimento
-    const userIsInSplit = userInInvestmentSplit(userProfile.id, investment);
+    const userIsInSplit = userInInvestmentSplitSync(userProfile.id, investment);
     
     // Se o usuário está no split, ele pode ver todos os campos relacionados
     if (userIsInSplit) {

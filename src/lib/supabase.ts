@@ -214,14 +214,50 @@ export const getUserNetworkMaster = async (userId: string): Promise<string | nul
 }
 
 /**
- * Verifica se o usuário está no split do investimento
+ * Verifica se o usuário está no split do investimento (usando função SQL)
  */
-export const userInInvestmentSplit = (userId: string, investment: Investment): boolean => {
+export const userInInvestmentSplit = async (userId: string, investment: Investment): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('user_in_investment_split', {
+      user_uuid: userId,
+      investment_id: investment.id
+    });
+
+    if (error) {
+      console.error('Erro ao verificar split do investimento:', error);
+      // Fallback para verificação local
+      return (
+        investment.master_user_id === userId ||
+        investment.escritorio_user_id === userId ||
+        investment.head_user_id === userId ||
+        investment.agente_user_id === userId ||
+        investment.investor_user_id === userId
+      );
+    }
+
+    return data === true;
+  } catch (error) {
+    console.error('Erro na função userInInvestmentSplit:', error);
+    // Fallback para verificação local
+    return (
+      investment.master_user_id === userId ||
+      investment.escritorio_user_id === userId ||
+      investment.head_user_id === userId ||
+      investment.agente_user_id === userId ||
+      investment.investor_user_id === userId
+    );
+  }
+}
+
+/**
+ * Verifica se o usuário está no split do investimento (versão síncrona para compatibilidade)
+ */
+export const userInInvestmentSplitSync = (userId: string, investment: Investment): boolean => {
   return (
     investment.master_user_id === userId ||
     investment.escritorio_user_id === userId ||
     investment.head_user_id === userId ||
-    investment.agente_user_id === userId ||  // ✅ CORRIGIDO: Campo agora existe
+    investment.agente_user_id === userId ||
     investment.investor_user_id === userId
   )
 }
