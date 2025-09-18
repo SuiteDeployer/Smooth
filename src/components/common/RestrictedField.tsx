@@ -26,6 +26,19 @@ const checkUserPermission = async (userProfile: any, investment: any, field?: st
   if (!investment) return true;
   
   try {
+    // Verificar se o usuário está no split do investimento
+    const userIsInSplit = userInInvestmentSplit(userProfile.id, investment);
+    
+    // Se o usuário está no split, ele pode ver todos os campos relacionados
+    if (userIsInSplit) {
+      console.log('✅ Usuário no split do investimento:', {
+        userType: userProfile.user_type,
+        userId: userProfile.id,
+        investmentId: investment.id
+      });
+      return true;
+    }
+    
     // Verificar se está na mesma rede
     const userNetwork = await getUserNetworkMaster(userProfile.id);
     const investmentNetwork = await getUserNetworkMaster(investment.master_user_id);
@@ -38,19 +51,6 @@ const checkUserPermission = async (userProfile: any, investment: any, field?: st
         userType: userProfile.user_type
       });
       return false;
-    }
-    
-    // Verificar se o usuário está no split do investimento
-    const userIsInSplit = userInInvestmentSplit(userProfile.id, investment);
-    
-    // Se o usuário está no split da mesma rede, ele pode ver todos os campos
-    if (userIsInSplit) {
-      console.log('✅ Usuário no split da mesma rede:', {
-        userType: userProfile.user_type,
-        userNetwork,
-        investmentNetwork
-      });
-      return true;
     }
     
     // Master pode ver investimentos que cria (mesmo que não esteja no split)
