@@ -1,213 +1,160 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User as SupabaseUser } from '@supabase/supabase-js'
-import { supabase, User } from '../lib/supabase'
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase, User } from '../lib/supabase';
 
 interface AuthContextType {
-  user: SupabaseUser | null
-  userProfile: User | null
-  loading: boolean
-  signIn: (email: string, password: string) => Promise<any>
-  signUp: (email: string, password: string) => Promise<any>
-  signOut: () => Promise<void>
-  refreshUserProfile: () => Promise<void>
+  user: SupabaseUser | null;
+  userProfile: User | null;
+  loading: boolean;
+  profileError: string | null; // Adicionado para tratar erros de perfil
+  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string) => Promise<any>;
+  signOut: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<SupabaseUser | null>(null)
-  const [userProfile, setUserProfile] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null); // Estado para erro
 
-  // Buscar perfil do usuário no sistema
   const fetchUserProfile = async (authUser: SupabaseUser): Promise<User | null> => {
+    console.log(`[AuthContext] 🔍 fetchUserProfile: Buscando perfil para ${authUser.email} (ID: ${authUser.id})`);
+    setProfileError(null); // Limpa erro anterior
+
     try {
-      console.log('🔍 Buscando perfil do usuário:', authUser.email)
-      
-      // Adicionar timeout para evitar travamento
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout na busca do perfil')), 10000)
-      )
-      
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', authUser.id)
-        .single()
-      
-      const { data: userData, error: userError } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
+        .single();
 
-      if (userError) {
-        console.error('❌ Erro ao buscar usuário:', userError.message)
-        
-        // Se não encontrar por ID, tentar por email como fallback
-        console.log('🔄 Tentando buscar por email...')
-        const { data: userByEmail, error: emailError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', authUser.email)
-          .single()
-          
-        if (emailError) {
-          console.error('❌ Erro ao buscar por email:', emailError.message)
-          return null
-        }
-        
-        console.log('✅ Perfil encontrado por email:', userByEmail.name)
-        return userByEmail
+      if (error) {
+        console.error('[AuthContext] ❌ fetchUserProfile: Erro ao buscar usuário por ID.', error);
+        // Fallback para email não é mais necessário se o ID do auth.user é a fonte da verdade.
+        // O problema é que o usuário pode não existir na tabela 'users'.
+        const errorMessage = 'Seu perfil de usuário não foi encontrado no sistema. Entre em contato com o suporte.';
+        console.error(`[AuthContext] ❌ fetchUserProfile: ${errorMessage}`);
+        setProfileError(errorMessage);
+        return null;
       }
 
-      console.log('✅ Perfil encontrado por ID:', userData.name)
-      return userData
+      console.log(`[AuthContext] ✅ fetchUserProfile: Perfil encontrado para ${data.name} (Tipo: ${data.user_type})`);
+      return data;
     } catch (error: any) {
-      console.error('❌ Erro ao buscar perfil:', error.message)
-      
-      // Em caso de erro, retornar um perfil básico para não travar
-      console.log('🔄 Criando perfil básico temporário...')
-      return {
-        id: authUser.id,
-        email: authUser.email || '',
-        name: 'Usuário',
-        user_type: 'Global',
-        parent_id: null,
-        phone: null,
-        document: null,
-        cpf: null,
-        pix: null,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        created_by: null
-      } as User
+      const errorMessage = `Erro crítico ao buscar seu perfil: ${error.message}`;
+      console.error(`[AuthContext] ❌ fetchUserProfile: ${errorMessage}`);
+      setProfileError(errorMessage);
+      return null;
     }
-  }
+  };
 
-  // Atualizar perfil do usuário
   const refreshUserProfile = async () => {
     if (user) {
-      console.log('🔄 Atualizando perfil do usuário...')
-      const profile = await fetchUserProfile(user)
-      setUserProfile(profile)
+      console.log('[AuthContext] 🔄 refreshUserProfile: Atualizando perfil do usuário...');
+      const profile = await fetchUserProfile(user);
+      setUserProfile(profile);
+    } else {
+      console.log('[AuthContext] 🔄 refreshUserProfile: Nenhum usuário logado para atualizar.');
     }
-  }
+  };
 
-  // Carregar usuário na inicialização
   useEffect(() => {
-    let mounted = true
+    console.log('[AuthContext] 🚀 useEffect: Montando o AuthProvider.');
+    setLoading(true);
 
-    async function loadUser() {
-      console.log('🚀 Carregando usuário inicial...')
-      
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        console.log('👤 Usuário auth:', authUser?.email || 'Nenhum')
-        
-        if (!mounted) return
-        
-        setUser(authUser)
-        
-        if (authUser) {
-          const profile = await fetchUserProfile(authUser)
-          if (mounted) {
-            setUserProfile(profile)
-          }
-        } else {
-          if (mounted) {
-            setUserProfile(null)
-          }
-        }
-      } catch (error) {
-        console.error('❌ Erro ao carregar usuário:', error)
-        if (mounted) {
-          setUser(null)
-          setUserProfile(null)
-        }
-      } finally {
-        if (mounted) {
-          console.log('✅ Loading finalizado')
-          setLoading(false)
-        }
-      }
-    }
-
-    loadUser()
-
-    // Listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change:', event, session?.user?.email || 'Nenhum')
+        console.log(`[AuthContext] 🔄 onAuthStateChange: Evento '${event}'`, { session });
         
-        if (!mounted) return
-        
-        setUser(session?.user || null)
-        
-        if (session?.user) {
-          const profile = await fetchUserProfile(session.user)
-          if (mounted) {
-            setUserProfile(profile)
+        const authUser = session?.user || null;
+        setUser(authUser);
+
+        if (authUser) {
+          // Se o usuário já tem perfil, não busca de novo, a menos que seja um login
+          if (event === 'SIGNED_IN' || !userProfile) {
+            console.log('[AuthContext] 🔄 onAuthStateChange: Buscando perfil após SIGNED_IN ou perfil vazio.');
+            const profile = await fetchUserProfile(authUser);
+            setUserProfile(profile);
           }
         } else {
-          if (mounted) {
-            setUserProfile(null)
-          }
+          setUserProfile(null);
         }
         
-        if (mounted) {
-          setLoading(false)
-        }
+        setLoading(false);
       }
-    )
+    );
+
+    // Verifica a sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        console.log('[AuthContext] 🚀 getSession: Verificando sessão inicial.', { session });
+        if (!session) {
+            setLoading(false);
+        }
+        // O onAuthStateChange já vai ser chamado se houver uma sessão, então não precisa fazer nada aqui.
+    });
+
 
     return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
+      console.log('[AuthContext] 🧹 useEffect: Desmontando o AuthProvider. Cancelando inscrição.');
+      subscription.unsubscribe();
+    };
+  }, []); // O array de dependências vazio garante que isso rode apenas uma vez.
 
-  // Métodos de autenticação
   async function signIn(email: string, password: string) {
-    console.log('🔐 Tentando fazer login com:', email)
-    setLoading(true)
-    
+    console.log(`[AuthContext] 🔐 signIn: Tentando login para ${email}`);
+    setLoading(true);
+    setProfileError(null);
     try {
-      const result = await supabase.auth.signInWithPassword({ email, password })
-      console.log('🔐 Resultado do login:', result.error ? 'Erro' : 'Sucesso')
-      
+      const result = await supabase.auth.signInWithPassword({ email, password });
       if (result.error) {
-        console.error('❌ Erro no login:', result.error.message)
+        console.error('[AuthContext] ❌ signIn: Erro no login:', result.error.message);
+        setProfileError(`Falha no login: ${result.error.message}`);
+      } else {
+        console.log('[AuthContext] ✅ signIn: Login bem-sucedido.');
+        // O onAuthStateChange vai cuidar de buscar o perfil.
       }
-      
-      return result
-    } catch (error) {
-      console.error('❌ Exceção no login:', error)
-      throw error
+      return result;
+    } catch (error: any) {
+      console.error('[AuthContext] ❌ signIn: Exceção no login:', error.message);
+      setProfileError(`Ocorreu um erro inesperado: ${error.message}`);
+      throw error;
     } finally {
-      setLoading(false)
+      // O loading será setado para false pelo onAuthStateChange
     }
   }
 
   async function signUp(email: string, password: string) {
-    setLoading(true)
+    // ... (manter implementação original)
+    setLoading(true);
     try {
-      const result = await supabase.auth.signUp({ email, password })
-      return result
+      const result = await supabase.auth.signUp({ email, password });
+      return result;
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function signOut() {
-    console.log('🚪 Fazendo logout...')
-    setLoading(true)
+    console.log('[AuthContext] 🚪 signOut: Fazendo logout...');
+    setLoading(true);
     try {
-      await supabase.auth.signOut()
-      setUser(null)
-      setUserProfile(null)
-    } finally {
-      setLoading(false)
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('[AuthContext] ❌ signOut: Erro ao fazer logout:', error.message);
+      } else {
+        setUser(null);
+        setUserProfile(null);
+        setProfileError(null);
+      }
+    } catch (error: any) {
+        console.error('[AuthContext] ❌ signOut: Exceção ao fazer logout:', error.message);
+    }
+    finally {
+      setLoading(false);
     }
   }
 
@@ -215,24 +162,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     userProfile,
     loading,
+    profileError, // Expor o erro no contexto
     signIn,
     signUp,
     signOut,
-    refreshUserProfile
-  }
+    refreshUserProfile,
+  };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
+  return context;
 }
 
