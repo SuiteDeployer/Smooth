@@ -78,7 +78,7 @@ const RemuneracaoManagement: React.FC = () => {
         if (seriesIds.length > 0) {
           const { data: seriesData } = await supabase
             .from('series')
-            .select('id, name, commercial_name')
+            .select('id, series_letter, commercial_name')
             .in('id', seriesIds);
           
           // Enriquecer remunerações com dados das séries
