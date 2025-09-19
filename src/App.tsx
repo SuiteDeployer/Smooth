@@ -14,7 +14,7 @@ import RemuneracaoManagement from './features/remuneracao/pages/RemuneracaoManag
 import DashboardLayout from './components/Layout/DashboardLayout';
 import AgenteDashboard from './components/Dashboard/AgenteDashboard';
 import AgenteProfile from './components/Profile/AgenteProfile';
-import ModuleAccessControl from './components/common/ModuleAccessControl';
+import ModuleAccessControl from './components/common/ModuleAccessControlDebug';
 import './App.css';
 
 // Componente para proteger rotas que precisam de autenticação
