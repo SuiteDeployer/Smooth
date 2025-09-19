@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../Layout/AppLayout';
 import { generateCommissions } from '../../utils/commissionGenerator';
-import RestrictedFieldFixedFixed from '../common/RestrictedFieldFixedFixed';
+import RestrictedField from '../common/RestrictedField';
 
 interface Investment {
   id: number;
@@ -1121,13 +1121,13 @@ const InvestmentManagement: React.FC = () => {
                         #{investment.id}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedFieldFixed value={investment.debentures?.name} investment={investment} field="debenture" />
+                        <RestrictedField value={investment.debentures?.name} investment={investment} field="debenture" />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedFieldFixed value={investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : null} investment={investment} field="series" />
+                        <RestrictedField value={investment.series ? `${investment.series.series_letter} - ${investment.series.commercial_name}` : null} investment={investment} field="series" />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <RestrictedFieldFixed value={investment.investor?.name} investment={investment} field="investor" />
+                        <RestrictedField value={investment.investor?.name} investment={investment} field="investor" />
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatCurrency(investment.investment_amount)}
