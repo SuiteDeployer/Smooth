@@ -24,24 +24,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔍 Buscando perfil do usuário:', authUser.email)
       
-      // Adicionar timeout para evitar travamento
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout na busca do perfil')), 10000)
-      )
-      
-      const queryPromise = supabase
+      // Buscar por ID primeiro
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', authUser.id)
         .single()
-      
-      const { data: userData, error: userError } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
 
       if (userError) {
-        console.error('❌ Erro ao buscar usuário:', userError.message)
+        console.error('❌ Erro ao buscar usuário por ID:', userError.message)
         
         // Se não encontrar por ID, tentar por email como fallback
         console.log('🔄 Tentando buscar por email...')
@@ -53,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
         if (emailError) {
           console.error('❌ Erro ao buscar por email:', emailError.message)
+          console.error('❌ USUÁRIO NÃO ENCONTRADO NO BANCO DE DADOS')
           return null
         }
         
@@ -60,28 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return userByEmail
       }
 
-      console.log('✅ Perfil encontrado por ID:', userData.name)
+      console.log('✅ Perfil encontrado por ID:', userData.name, '- Tipo:', userData.user_type)
       return userData
     } catch (error: any) {
-      console.error('❌ Erro ao buscar perfil:', error.message)
-      
-      // Em caso de erro, retornar um perfil básico para não travar
-      console.log('🔄 Criando perfil básico temporário...')
-      return {
-        id: authUser.id,
-        email: authUser.email || '',
-        name: 'Usuário',
-        user_type: 'Global',
-        parent_id: null,
-        phone: null,
-        document: null,
-        cpf: null,
-        pix: null,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        created_by: null
-      } as User
+      console.error('❌ Erro crítico ao buscar perfil:', error.message)
+      // NÃO criar perfil falso - retornar null para mostrar erro
+      return null
     }
   }
 
