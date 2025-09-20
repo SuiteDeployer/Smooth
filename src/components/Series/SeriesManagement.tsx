@@ -47,7 +47,7 @@ const SeriesManagement: React.FC = () => {
 
   // Verificar permissões de usuário
   const isGlobalUser = userProfile?.user_type === 'Global';
-  const canViewSeries = ['Global', 'Master', 'Escritório', 'Head'].includes(userProfile?.user_type || '');
+  const canViewSeries = ['Global', 'Master', 'Escritório', 'Head', 'Agente'].includes(userProfile?.user_type || '');
   
   // Redirecionar se não tiver permissão
   useEffect(() => {

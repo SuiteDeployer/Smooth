@@ -316,18 +316,49 @@ export const canViewInvestment = async (userId: string, investment: Investment):
  */
 export const getModuleAccess = (userType: string | undefined) => {
   return {
+    // Debêntures: Todos exceto Investidor podem acessar
     canAccessDebentures: userType !== 'Investidor',
+    
+    // Séries: Todos exceto Investidor podem acessar
     canAccessSeries: userType !== 'Investidor',
+    
+    // Comissões: Todos exceto Investidor podem acessar (incluindo Agente)
     canAccessCommissions: userType !== 'Investidor',
-    canAccessRemunerations: true, // Todos podem acessar (com controles RLS específicos)
-    canCreateInvestments: ['Global', 'Master', 'Escritório', 'Head'].includes(userType || ''),
+    
+    // Remunerações: Todos podem acessar (com controles RLS específicos)
+    canAccessRemunerations: true,
+    
+    // Criar Investimentos: Global, Master, Escritório, Head, Agente
+    canCreateInvestments: ['Global', 'Master', 'Escritório', 'Head', 'Agente'].includes(userType || ''),
+    
+    // Editar Investimentos: Global, Master
     canEditInvestments: ['Global', 'Master'].includes(userType || ''),
+    
+    // Deletar Investimentos: Global, Master
     canDeleteInvestments: ['Global', 'Master'].includes(userType || ''),
+    
+    // Criar Debêntures: Apenas Global
     canCreateDebentures: userType === 'Global',
+    
+    // Editar Debêntures: Apenas Global
     canEditDebentures: userType === 'Global',
+    
+    // Deletar Debêntures: Apenas Global
     canDeleteDebentures: userType === 'Global',
+    
+    // Criar Séries: Apenas Global
     canCreateSeries: userType === 'Global',
+    
+    // Editar Séries: Apenas Global
     canEditSeries: userType === 'Global',
-    canDeleteSeries: userType === 'Global'
+    
+    // Deletar Séries: Apenas Global
+    canDeleteSeries: userType === 'Global',
+    
+    // Gerenciar Usuários: Global, Master, Escritório (Agente NÃO pode)
+    canManageUsers: ['Global', 'Master', 'Escritório'].includes(userType || ''),
+    
+    // Acessar Dashboard: Todos os tipos podem acessar
+    canAccessDashboard: ['Global', 'Master', 'Escritório', 'Head', 'Agente', 'Investidor'].includes(userType || '')
   }
 }
