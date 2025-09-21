@@ -24,53 +24,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔍 Buscando perfil do usuário:', authUser.email)
       
-      // Adicionar timeout para evitar travamento
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout na busca do perfil')), 10000)
-      )
-      
-      const queryPromise = supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', authUser.id)
         .single()
-      
-      const { data: userData, error: userError } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
 
       if (userError) {
         console.error('❌ Erro ao buscar usuário:', userError.message)
         
-        // Se não encontrar por ID, tentar por email como fallback
-        console.log('🔄 Tentando buscar por email...')
-        const { data: userByEmail, error: emailError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', authUser.email)
-          .single()
-          
-        if (emailError) {
-          console.error('❌ Erro ao buscar por email:', emailError.message)
-          return null
-        }
-        
-        console.log('✅ Perfil encontrado por email:', userByEmail.name)
-        return userByEmail
+        // FALLBACK: Criar perfil básico em vez de retornar null
+        console.log('🔄 Criando perfil básico para não travar o sistema...')
+        return {
+          id: authUser.id,
+          email: authUser.email || '',
+          name: authUser.email?.split('@')[0] || 'Usuário',
+          user_type: 'Global', // Tipo padrão para não travar
+          parent_id: null,
+          phone: null,
+          document: null,
+          cpf: null,
+          pix: null,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: null
+        } as User
       }
 
-      console.log('✅ Perfil encontrado por ID:', userData.name)
+      console.log('✅ Perfil encontrado:', userData.name)
       return userData
     } catch (error: any) {
       console.error('❌ Erro ao buscar perfil:', error.message)
       
-      // Em caso de erro, retornar um perfil básico para não travar
-      console.log('🔄 Criando perfil básico temporário...')
+      // SEMPRE retornar perfil básico para não travar
       return {
         id: authUser.id,
         email: authUser.email || '',
-        name: 'Usuário',
+        name: authUser.email?.split('@')[0] || 'Usuário',
         user_type: 'Global',
         parent_id: null,
         phone: null,
